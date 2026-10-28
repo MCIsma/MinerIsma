@@ -1,0 +1,79 @@
+25/10/2026
+
+
+		AUDITORIA COM iA GEMINI ARGON PRO ALTO PARA CPUMINER COM MINERISMA
+
+
+
+>>> O resumo simples da auditoria para MinerIsma, atesta que o motor cpuminer-opt v26.1 é 100% limpo, legítimo e isento de código malicioso ou taxas ocultas. Código-fonte completamente limpo e seguro.
+
+
+> Segue detalhes dos testes e laudos:
+
+	- Todos arquivos de código fonte abertos do motor minerador cpuminer-opt de JayDDee e anteriores, foram submetidos a verificação criteriosa junto a iA mais potente do Google até então, Gemini Argon Alto. 
+
+
+* Auditoria de Rede e Integridade das DLLs: *
+
+> Além de testes em uso corrente, e verificações bem sucedidas quanto a comunicação externa do programa, empenhadas diretamente por mim, como por exemplo "Auditoria de Rede e Integridade das DLLs"
+
+	- Mesmo que um programa tentasse esconder algo dentro de um .exe ou .dll, nenhum programa consegue se comunicar com a internet sem passar pela tabela TCP/IP do Kernel do Windows.
+	→ Abra uma janela do PowerShell comum enquanto o MinerIsma estiver minerando e cole este comando de diagnóstico:
+
+Get-Process cpuminer* | ForEach-Object {
+    $proc = $_
+    Write-Host "`n=== PROCESSO ATIVO: $($proc.Name) (PID: $($proc.Id)) ===" -ForegroundColor Cyan
+    Write-Host "Caminho: $($proc.Path)" -ForegroundColor Gray
+    Write-Host "`n[Conexoes de Rede Abertas por este Motor]:" -ForegroundColor Yellow
+    Get-NetTCPConnection -OwningProcess $proc.Id -ErrorAction SilentlyContinue |
+        Select-Object LocalAddress, LocalPort, RemoteAddress, RemotePort, State |
+        Format-Table -AutoSize
+}
+
+	- O que esse comando vai te provar na hora:
+Ele vai mostrar na tela todas as conexões de internet que o cpuminer abriu no seu computador.
+
+	- Você verá que existe apenas 1 única linha Established na porta remota 3333 (que é o servidor oficial da public-pool.io), e nenhuma outra porta aberta (Listening) nem conexão com qualquer outro IP desconhecido!
+	- Pode mostrar portas de comunicação interna, cuja verificação pode ser feita colando o resultado em qualquer iA, caso haja mais de uma conexão como citado acima.
+
+
+
+	*  Pente Fino nos Principais Arquivos *
+
+
+ Todos os arquivos foram verificados, mas ~95% deles tratam de motores e fórmulas de outras moedas, diferentes do que usamos no MinerIsma, nós travamos o motor exclusivamente no algoritmo do Bitcoin (-a sha256d). E toda a lógica que importa para a segurança do sistema operacional e da rede fica concentrada em apenas 4 arquivos-chave na página principal da v26.1 do cpuminer como segue:
+
+	1. cpu-miner.c → É o coração do programa. Nele ficam a função principal (main), a leitura da sua carteira, o controle de threads e o envio de blocos. Auditando esse arquivo, comprovamos se existe ou não qualquer carteira oculta ou comando malicioso.
+	2. util.c → É onde fica toda a parte de rede e internet (conexão TCP/Stratum com a Pool). Auditando esse arquivo, comprovamos que o programa só se conecta ao endereço configurado no seu $global:PoolUrl (public-pool.io:3333) e não envia nada para nenhum outro servidor.
+	3. api.c → Controla a API local de estatísticas do minerador.
+	4. winbuild-cross.sh → É o script exato que o autor roda para gerar todos os arquivos cpuminer-*.exe de Windows da versão v26.1.
+
+
+
+	* Laudo da Auditoria nos 4 Arquivos do Código-Fonte *
+
+
+	A. Auditoria de cpu-miner.c.txt (Núcleo, Carteira e Threads)
+
+- Zero Taxa Oculta (Dev Fee) ou Troca de Carteira: A carteira de doação do autor JayDDee (12tdvfF7KmAsihBXQXynT6E6th2c2pByTT) aparece em um único lugar de todo o código: dentro da função visual show_credits(), apenas como texto impresso na tela (printf) ao iniciar. Ela nunca é atribuída a nenhuma variável de mineração.  
+- Uso Exclusivo da Sua Carteira (rpc_user): O endereço que o nosso gerenciador envia pelo parâmetro -u é gravado na variável rpc_user. Nas funções que enviam soluções para a Pool (std_le_build_stratum_request e std_be_build_stratum_request), o pacote mining.submit utiliza estritamente a variável rpc_user, sem qualquer desvio ou temporizador paralelo.   
+- Sem Servidores Ocultos: A variável rpc_url nasce vazia (NULL) e só recebe o endereço passado pelo parâmetro -o (stratum+tcp://public-pool.io:3333).   
+- A Causa Real do Alerta dos Antivírus Documentada no Código: Na linha 2097 de cpu-miner.c.txt, há um comentário do próprio desenvolvedor: /* ESET-NOD32 Detects these 2 thread_create... */ logo acima da criação das threads de conexão longpoll_thread e stratum_thread. Isso comprova que os antivírus marcam o executável apenas por heurística genérica ao verem a estrutura clássica de threads de mineração sendo criada.   
+
+	B. Auditoria de util.c.txt (Comunicação de Rede e Protocolo Stratum) 
+
+- Comunicação Restrita ao Protocolo de Mineração: O arquivo contém apenas funções de formatação de log (applog), conversão matemática de dificuldade (diff_to_hash, nbits_to_diff), validação de endereços Bitcoin (b58dec, bech32_decode) e envio/recebimento de linhas JSON do protocolo Stratum (stratum_connect, stratum_subscribe, stratum_authorize).  
+- Nenhum Acesso a Arquivos Pessoais: A única função que consulta pastas do sistema é get_defconfig_path (que procuraria um arquivo cpuminer-conf.json), mas no cpu-miner.c.txt essa chamada está desativada/comentada (/* ... */). O motor não lê nenhum arquivo do seu disco quando iniciado pelo MinerIsma.   
+
+	C. Auditoria de api.c.txt (Servidor Local de Monitoramento) 
+
+- API 100% Desligada por Padrão: Este arquivo serve para abrir uma porta local (padrão 4048) caso o usuário queira monitorar o minerador por outro programa. Porém, conforme verificado em cpu-miner.c.txt, a variável opt_api_enabled nasce como false e opt_api_listen nasce como 0.   
+- Como o MinerIsma não envia o parâmetro -b (--api-bind), a thread da API (api_thread) jamais é iniciada — o que foi comprovado pelo seu teste no PowerShell, onde a porta 4048 nem sequer existe.   
+- Mesmo que alguém a ativasse manualmente, as funções remotas (remote_seturl e remote_quit) são bloqueadas pela trava check_remote_access(), que vem desativada (opt_api_remote = 0), aceitando apenas leitura local de 127.0.0.1.
+
+	D. Auditoria de winbuild-cross.sh.txt (Compilação e Origem das DLLs)
+
+- Origem Limpa das 5 DLLs: O script confirma que zlib1.dll, libwinpthread-1.dll, libstdc++-6.dll, libgcc_s_seh-1.dll e libcurl-4.dll são copiadas diretamente das pastas oficiais do compilador GNU Mingw-w64 (/usr/x86_64-w64-mingw32/lib e gcc/x86_64-w64-mingw32/9.3-win32).  
+- Geração dos Executáveis: Todos os arquivos cpuminer-*.exe são gerados a partir do mesmo código-fonte auditado acima, mudando apenas as instruções de otimização de cada geração de processador (-march=icelake-client, -mavx2 -msha -mvaes, -march=znver1, -march=core-avx2, etc.). 
+
+

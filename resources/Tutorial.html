@@ -1,0 +1,988 @@
+<!DOCTYPE html>
+<!-- saved from url=(0014)about:internet -->
+<!-- =====================================================================
+     Tutorial_v2.9.html (Salvar como: resources\Tutorial.html)
+     Projeto: MinerIsma - Gerenciador Solo de Bitcoin (Lottery Miner)
+     ===================================================================== -->
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title id="cfg-page-title">MinerIsma v2.0 - Tutorial</title>
+
+    <!-- =================================================================
+         1. CONFIGURACOES RAPIDAS DE VERSAO E REGISTRO (EDITE APENAS AQUI)
+         ================================================================= -->
+    <script>
+        var MINERISMA_CFG = {
+            // --- Versoes Gerais ---
+            VersaoCurta      : "v2.0",                 // Atualiza o Titulo MinerIsma_v2.0
+            VersaoCompleta   : "v2.0.2",               // Atualiza o Gerenciador MinerIsma v2.0.2
+            MesAnoVersao     : "10/2026",              // Data ao lado da versao do Gerenciador
+            VersaoMotor      : "cpuminer-opt-26.1",    // Versao do motor cpuminer
+
+            // --- Data Exibida no Topo da Pagina (nos 3 idiomas) ---
+            DataTopoPT       : "Bitcoin, 27 de Outubro de 2026",
+            DataTopoEN       : "Bitcoin, October 27, 2026",
+            DataTopoES       : "Bitcoin, 27 de Octubre de 2026",
+
+            // --- Registro de Propriedade Intelectual (Blockchain) ---
+            ArquivoRar       : "BTC_MinerIsma_v1.9.7.rar",
+            HashSha256       : "903463835AF1E04C1C215CD88052DFB4A423D599B17FBCD9B7A238E985C1DDE7",
+            HashTxId         : "0x832537a1b1dc4f5632bb12c64f291862b666ec14208ba19faf1b3b1f1413641b",
+            WalletAssinante  : "0xF72C0Ee272eEf5c52018dA877ED2EF61c9434015",
+            NomeExplorador   : "polygonscan.com",
+            UrlVerificador   : "https://polygonscan.com/tx/0x832537a1b1dc4f5632bb12c64f291862b666ec14208ba19faf1b3b1f1413641b"
+        };
+    </script>
+    <!-- ================================================================= -->
+
+    <style>
+        * { box-sizing: border-box; }
+
+        html, body {
+            margin: 0;
+            padding: 0;
+            scrollbar-face-color: #2a2014;
+            scrollbar-track-color: #10151c;
+            scrollbar-arrow-color: #f7931a;
+            scrollbar-highlight-color: #5a3c18;
+            scrollbar-shadow-color: #5a3c18;
+        }
+
+        body {
+            background-color: #0c1016;
+            background-image:
+                radial-gradient(circle at 50% 0, rgba(247, 147, 26, 0.20), transparent 46%),
+                linear-gradient(rgba(247, 147, 26, 0.045) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(247, 147, 26, 0.045) 1px, transparent 1px);
+            background-size: auto, 18px 18px, 18px 18px;
+            color: #E6EDF3;
+            font-family: "Segoe UI", "Liberation Sans", Tahoma, sans-serif;
+            font-size: 15px;
+            line-height: 1.52;
+        }
+
+        ::selection { background: #F7931A; color: #1a0e04; }
+
+        a {
+            color: #3B9EFF;
+            text-decoration: underline;
+            word-wrap: break-word;
+        }
+        a:hover { color: #8EC5FF; }
+        a:focus { outline: 1px dashed #FFD166; }
+
+        .page {
+            padding: 14px 16px 28px 12px;
+        }
+
+        .slab {
+            max-width: 756px;
+            margin: 0 auto;
+            padding: 7px;
+            background-color: #F7931A;
+            background-image: linear-gradient(155deg, #FFE7BC 0%, #F7931A 30%, #C46A00 68%, #7A3E00 100%);
+            border-style: solid;
+            border-width: 4px;
+            border-color: #FFF3D4 #6E3B00 #4E2A00 #FFE0A8;
+            box-shadow: 8px 8px 0 #3a1e08;
+        }
+
+        .slab-inner {
+            position: relative;
+            background-color: #10151c;
+            background-image: linear-gradient(180deg, #1a2230 0%, #10151c 150px);
+            border-style: solid;
+            border-width: 3px;
+            border-color: #140e0a #7a4e16 #8a5818 #140e0a;
+            box-shadow: inset 0 0 0 1px #3a2c18;
+            padding: 16px 18px 18px;
+        }
+
+        .watermark {
+            position: absolute;
+            top: 108px;
+            right: 8px;
+            width: 210px;
+            height: 210px;
+            opacity: 0.055;
+            z-index: 0;
+        }
+
+        .content { position: relative; z-index: 1; }
+
+        .screw {
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            background: #E8890C;
+            box-shadow: inset 2px 2px 0 #FFE0A8, inset -2px -2px 0 #6A3800;
+            z-index: 2;
+        }
+        .screw-tl { top: 7px; left: 7px; }
+        .screw-tr { top: 7px; right: 7px; }
+        .screw-bl { bottom: 7px; left: 7px; }
+        .screw-br { bottom: 7px; right: 7px; }
+
+        .statusbar { margin: 0 0 8px; }
+        .statusbar:after {
+            content: "";
+            display: block;
+            clear: both;
+        }
+
+        .date-line {
+            float: left;
+            font-family: Consolas, "DejaVu Sans Mono", "Courier New", monospace;
+            font-size: 15px;
+            font-weight: 700;
+            color: #FFB347;
+            text-shadow: 1px 1px 0 #000;
+            padding-top: 3px;
+        }
+        .date-line:before {
+            content: "";
+            display: inline-block;
+            width: 9px;
+            height: 9px;
+            margin-right: 8px;
+            background: #F7931A;
+            box-shadow: inset 2px 2px 0 #FFE0A8, inset -2px -2px 0 #8A4B00;
+            vertical-align: -1px;
+            animation: blink 2.8s ease-in-out infinite;
+        }
+
+        .status-right {
+            float: right;
+        }
+
+        /* Seletor Retro de Idioma [ PT | EN | ES ] */
+        .lang-switch {
+            display: inline-block;
+            vertical-align: middle;
+            margin-right: 10px;
+            background: #17120c;
+            border: 2px solid #7a4e16;
+            box-shadow: 2px 2px 0 #3a1e08;
+            padding: 1px 3px;
+            font-family: Consolas, "DejaVu Sans Mono", "Courier New", monospace;
+            font-size: 12.5px;
+            font-weight: 700;
+        }
+        .lang-btn {
+            background: transparent;
+            border: none;
+            color: #FFD280;
+            font-family: inherit;
+            font-size: inherit;
+            font-weight: 700;
+            padding: 1px 6px;
+            cursor: pointer;
+        }
+        .lang-btn:hover {
+            color: #FFFFFF;
+            background: #2a1c10;
+        }
+        .lang-btn.active {
+            background: #F7931A;
+            color: #140e0a;
+            box-shadow: inset 1px 1px 0 #FFE0A8, inset -1px -1px 0 #8A4B00;
+        }
+        .lang-sep {
+            color: #6e4a16;
+            font-weight: normal;
+        }
+
+        .status-ores {
+            display: inline-block;
+            vertical-align: middle;
+            font-size: 0;
+            line-height: 0;
+        }
+
+        .miner-bar {
+            clear: both;
+            height: 10px;
+            margin: 0 0 14px;
+            background: #120e0a;
+            border-style: solid;
+            border-width: 2px;
+            border-color: #2a180c #FFD699 #FFD699 #2a180c;
+            overflow: hidden;
+        }
+        .miner-bar span {
+            display: block;
+            height: 100%;
+            width: 28%;
+            background-color: #F7931A;
+            background-image: linear-gradient(180deg, #FFE0A8 0%, #F7931A 45%, #C46A00 100%);
+            box-shadow: 0 0 10px rgba(247, 147, 26, 0.65);
+            animation: mine 3.2s linear infinite;
+        }
+
+        .mast { text-align: center; margin: 2px 0 12px; }
+        .mast-footer { text-align: center; margin: 10px 0 4px; }
+
+        .coin {
+            position: relative;
+            display: inline-block;
+            width: 84px;
+            height: 84px;
+            overflow: hidden;
+            border-radius: 50%;
+            background: #0c1016;
+            box-shadow:
+                0 0 0 3px #2a1608,
+                0 0 0 6px #F7931A,
+                0 7px 0 #4a2800,
+                0 0 22px rgba(247, 147, 26, 0.38);
+        }
+        .coin-pickaxe {
+            width: 72px;
+            height: 72px;
+        }
+        .coin svg { display: block; }
+        .shine {
+            position: absolute;
+            left: 0;
+            top: -45%;
+            width: 100%;
+            height: 38%;
+            background: linear-gradient(to bottom, transparent, rgba(255, 255, 255, 0.38), transparent);
+            animation: sweep 4.8s linear infinite;
+        }
+
+        .ores {
+            margin-top: 10px;
+            text-align: center;
+            font-size: 0;
+            line-height: 0;
+        }
+        .ore {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            margin: 0 3px;
+            border: 1px solid #1a0e04;
+            vertical-align: top;
+        }
+        .ore-stone {
+            background: #3e3830;
+            box-shadow: inset 3px 3px 0 #7a7368, inset -3px -3px 0 #1c1914;
+        }
+        .ore-gold {
+            background: #E8890C;
+            box-shadow: inset 3px 3px 0 #FFE0A8, inset -3px -3px 0 #7A4200;
+        }
+        .ore-bright {
+            width: 22px;
+            height: 22px;
+            margin-top: -6px;
+            background: #FFB000;
+            box-shadow: inset 3px 3px 0 #FFF1C9, inset -3px -3px 0 #A35C00, 0 0 10px rgba(247, 147, 26, 0.55);
+        }
+        .ores-end { margin: 10px 0 2px; }
+        .ores-end .ore { width: 12px; height: 12px; }
+
+        .title-box {
+            background-color: #17120c;
+            background-image:
+                linear-gradient(rgba(247, 147, 26, 0.09) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(247, 147, 26, 0.09) 1px, transparent 1px);
+            background-size: 14px 14px;
+            border-style: solid;
+            border-width: 3px;
+            border-color: #FFD699 #522C00 #522C00 #FFD699;
+            box-shadow: 4px 4px 0 #3a1e08;
+            padding: 12px 14px 11px;
+            text-align: center;
+        }
+        .main-title {
+            font-size: 19.5px;
+            font-weight: 800;
+            color: #F7931A;
+            text-shadow: 0 2px 0 #3a1e00, 0 0 16px rgba(247, 147, 26, 0.28);
+            line-height: 1.35;
+            margin-bottom: 6px;
+        }
+        .sub-title {
+            font-size: 15px;
+            font-weight: 700;
+            color: #FFD280;
+            letter-spacing: 0.2px;
+        }
+
+        .entry {
+            margin-top: 12px;
+            background: #121820;
+            border: 1px solid #2c3648;
+            box-shadow: 3px 3px 0 #4a2c08;
+        }
+        .entry:hover { border-color: #C47A12; }
+
+        .topic {
+            margin: 0;
+            padding: 8px 12px 8px 10px;
+            background: #22180f;
+            border-left: 6px solid #F7931A;
+            color: #FF9E2C;
+            font-size: 16px;
+            font-weight: 700;
+            line-height: 1.45;
+            text-shadow: 1px 1px 0 #000;
+        }
+        .topic-sub {
+            border-top: 1px solid #322818;
+        }
+
+        .entry-body {
+            padding: 6px 10px 8px 4px;
+            border-top: 1px solid #322818;
+        }
+
+        .sub-2, .sub-4, .sub-arrow {
+            margin: 3px 0;
+            line-height: 1.52;
+        }
+        .sub-2 {
+            color: #E4EAF0;
+            padding-left: 14px;
+        }
+        .sub-4 {
+            color: #C5CED6;
+            padding-left: 32px;
+        }
+        .sub-arrow {
+            color: #FFB347;
+            font-weight: 700;
+            margin: 7px 8px 7px 10px;
+            padding: 5px 8px;
+            background: #1c140e;
+            border-left: 3px solid #FFB347;
+        }
+
+        .quote {
+            font-style: italic;
+            color: #FFE0B0;
+        }
+        .ref {
+            font-style: normal;
+            color: #FFF0D6;
+            background: rgba(255, 240, 214, 0.07);
+            padding: 0 2px;
+        }
+        .cash {
+            color: #FFD700;
+            font-weight: 800;
+        }
+
+        .wallet-addr {
+            display: inline-block;
+            max-width: 100%;
+            margin-top: 2px;
+            padding: 1px 6px 2px;
+            color: #FFD166;
+            font-weight: 700;
+            font-family: Consolas, "DejaVu Sans Mono", "Courier New", monospace;
+            font-size: 14px;
+            vertical-align: baseline;
+            background: #1a1208;
+            border: 1px solid #C88820;
+            box-shadow: inset 0 0 0 1px #3d2a10, 2px 2px 0 #3d2200;
+            word-wrap: break-word;
+            -ms-user-select: text;
+            user-select: all;
+        }
+
+        .hash-box {
+            display: block;
+            margin: 5px 8px 6px 14px;
+            padding: 7px 8px;
+            background: #090c11;
+            border: 1px solid #6e4a16;
+            border-left: 4px solid #F7931A;
+            color: #F2A900;
+            font-family: Consolas, "DejaVu Sans Mono", "Courier New", monospace;
+            font-size: 13.5px;
+            line-height: 1.45;
+            word-wrap: break-word;
+            -ms-user-select: text;
+            user-select: text;
+        }
+
+        .divider {
+            margin: 18px 0 14px;
+            color: #F7931A;
+            font-family: Consolas, "DejaVu Sans Mono", "Courier New", monospace;
+            font-size: 13px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            text-align: center;
+            text-shadow: 0 0 8px rgba(247, 147, 26, 0.45);
+            overflow: hidden;
+            white-space: nowrap;
+        }
+
+        .outro-donate {
+            font-size: 17px;
+            font-weight: 800;
+            color: #FF9E2C;
+            background-color: #1c140e;
+            background-image: linear-gradient(180deg, #2a1c10 0%, #1c140e 100%);
+            border-style: solid;
+            border-width: 3px;
+            border-color: #FFE0A8 #6E3B00 #6E3B00 #FFE0A8;
+            box-shadow: 4px 4px 0 #3a1e08, 0 0 0 rgba(247, 147, 26, 0);
+            padding: 12px 12px;
+            line-height: 1.5;
+            text-shadow: 1px 1px 0 #000;
+            animation: ember 3.6s ease-in-out infinite;
+        }
+
+        .screen {
+            margin: 16px auto 0;
+            max-width: 460px;
+            background: #07090c;
+            border-style: solid;
+            border-width: 3px;
+            border-color: #2a1808 #E8C27A #E8C27A #2a1808;
+            box-shadow: inset 0 0 24px rgba(247, 147, 26, 0.14), 0 0 0 1px #F7931A, 4px 4px 0 #3a1e08;
+            padding: 12px 8px 6px;
+        }
+        .btc-art {
+            font-family: Unifont, Consolas, "Courier New", monospace;
+            font-size: 20px;
+            line-height: 20px;
+            color: #F7931A;
+            text-shadow: 0 0 12px rgba(247, 147, 26, 0.45);
+            text-align: center;
+            margin: 0;
+            white-space: pre;
+            letter-spacing: 0;
+        }
+
+        .final-wish {
+            font-size: 25px;
+            font-weight: 800;
+            color: #FFB347;
+            text-align: center;
+            margin: 14px 0 8px;
+            letter-spacing: 0.4px;
+            text-shadow: 2px 2px 0 #3a1e00, 0 0 14px rgba(247, 147, 26, 0.35);
+        }
+
+        @keyframes mine {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(360%); }
+        }
+        @keyframes sweep {
+            0% { top: -45%; }
+            55%, 100% { top: 120%; }
+        }
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.35; }
+        }
+        @keyframes ember {
+            0%, 100% { box-shadow: 4px 4px 0 #3a1e08, 0 0 0 rgba(247, 147, 26, 0); }
+            50% { box-shadow: 4px 4px 0 #3a1e08, 0 0 16px rgba(247, 147, 26, 0.45); }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .miner-bar span,
+            .shine,
+            .date-line:before,
+            .outro-donate { animation: none; }
+            .miner-bar span { width: 100%; transform: none; }
+        }
+
+        @media (max-width: 520px) {
+            .page { padding: 8px 10px 22px 8px; }
+            .slab { box-shadow: 5px 5px 0 #3a1e08; }
+            .slab-inner { padding: 14px 10px 14px; }
+            .main-title { font-size: 16px; }
+            .topic { font-size: 14.5px; }
+            .status-ores { display: none; }
+            .final-wish { font-size: 20px; }
+            .watermark { display: none; }
+            .sub-4 { padding-left: 22px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="page">
+<div class="slab">
+<div class="slab-inner">
+
+    <svg class="watermark" viewBox="0 0 24 24" aria-hidden="true">
+        <path fill="#F7931A" d="M23.638 14.904c-1.602 6.43-8.113 10.34-14.542 8.736C2.67 22.05-1.244 15.525.362 9.105 1.962 2.67 8.475-1.243 14.9.358c6.43 1.605 10.342 8.115 8.738 14.548v-.002zm-6.35-4.613c.24-1.59-.974-2.45-2.64-3.03l.54-2.153-1.315-.33-.525 2.107c-.345-.087-.705-.167-1.064-.25l.526-2.127-1.32-.33-.54 2.165c-.285-.067-.565-.132-.84-.2l-1.815-.45-.35 1.407s.975.225.955.236c.535.136.63.486.615.766l-1.477 5.92c-.075.166-.24.406-.614.314.015.02-.96-.24-.96-.24l-.66 1.51 1.71.426.93.242-.54 2.19 1.32.327.54-2.17c.36.1.705.19 1.05.273l-.51 2.154 1.32.33.545-2.19c2.24.427 3.93.257 4.64-1.774.57-1.637-.03-2.58-1.217-3.196.854-.193 1.5-.76 1.68-1.93h.01zm-3.01 4.22c-.404 1.64-3.157.75-4.05.53l.72-2.9c.896.23 3.757.67 3.33 2.37zm.41-4.24c-.37 1.49-2.662.735-3.405.55l.654-2.64c.744.18 3.137.524 2.75 2.084v.006z"/>
+    </svg>
+    <span class="screw screw-tl" aria-hidden="true"></span>
+    <span class="screw screw-tr" aria-hidden="true"></span>
+    <span class="screw screw-bl" aria-hidden="true"></span>
+    <span class="screw screw-br" aria-hidden="true"></span>
+
+    <div class="content">
+
+        <div class="statusbar">
+            <div class="date-line" id="t-date">Bitcoin, 25 de Outubro de 2026</div>
+            <div class="status-right">
+                <div class="lang-switch" aria-label="Language Selector">
+                    <button type="button" class="lang-btn active" id="btn-lang-PT" onclick="setTutorialLang('PT')">PT</button><span class="lang-sep">|</span><button type="button" class="lang-btn" id="btn-lang-EN" onclick="setTutorialLang('EN')">EN</button><span class="lang-sep">|</span><button type="button" class="lang-btn" id="btn-lang-ES" onclick="setTutorialLang('ES')">ES</button>
+                </div>
+                <div class="status-ores" aria-hidden="true">
+                    <span class="ore ore-stone"></span><span class="ore ore-gold"></span><span class="ore ore-bright"></span>
+                </div>
+            </div>
+        </div>
+        <div class="miner-bar" aria-hidden="true"><span></span></div>
+
+        <div class="mast">
+            <div class="coin" aria-hidden="true">
+                <svg viewBox="0 0 24 24" width="84" height="84">
+                    <path fill="#F7931A" d="M23.638 14.904c-1.602 6.43-8.113 10.34-14.542 8.736C2.67 22.05-1.244 15.525.362 9.105 1.962 2.67 8.475-1.243 14.9.358c6.43 1.605 10.342 8.115 8.738 14.548v-.002zm-6.35-4.613c.24-1.59-.974-2.45-2.64-3.03l.54-2.153-1.315-.33-.525 2.107c-.345-.087-.705-.167-1.064-.25l.526-2.127-1.32-.33-.54 2.165c-.285-.067-.565-.132-.84-.2l-1.815-.45-.35 1.407s.975.225.955.236c.535.136.63.486.615.766l-1.477 5.92c-.075.166-.24.406-.614.314.015.02-.96-.24-.96-.24l-.66 1.51 1.71.426.93.242-.54 2.19 1.32.327.54-2.17c.36.1.705.19 1.05.273l-.51 2.154 1.32.33.545-2.19c2.24.427 3.93.257 4.64-1.774.57-1.637-.03-2.58-1.217-3.196.854-.193 1.5-.76 1.68-1.93h.01zm-3.01 4.22c-.404 1.64-3.157.75-4.05.53l.72-2.9c.896.23 3.757.67 3.33 2.37zm.41-4.24c-.37 1.49-2.662.735-3.405.55l.654-2.64c.744.18 3.137.524 2.75 2.084v.006z"/>
+                </svg>
+                <span class="shine"></span>
+            </div>
+            <div class="ores" aria-hidden="true">
+                <span class="ore ore-stone"></span><span class="ore ore-gold"></span><span class="ore ore-bright"></span><span class="ore ore-gold"></span><span class="ore ore-stone"></span>
+            </div>
+        </div>
+
+        <!-- >>> CAMPO 1 DE VERSAO CURTA (MinerIsma_v2.0) <<< -->
+        <div class="title-box">
+            <div class="main-title" id="t-main-title">*  MinerIsma: Mineração Solo de Bitcoin ao estilo <span class="quote">"Lottery"</span>  *</div>
+            <div class="sub-title" id="t-sub-title">Tutorial para Windows - MinerIsma_<span id="cfg-ver-title">v2.0</span></div>
+        </div>
+
+        <div class="entry">
+            <div class="topic" id="t-b1-top">→ MinerIsma é um gerenciador: Grátis, fácil e inclusivo à Mineração Cripto.</div>
+            <div class="entry-body">
+                <div class="sub-2" id="t-b1-s1">- Dá remota possibilidade de descobrir um Bloco BTC, <span class="cash">&#36;</span> valendo muito <span class="cash">&#36;</span>;</div>
+                <div class="sub-2" id="t-b1-s2">- Usa o incrível, <span class="ref">auditado</span> e seguro motor minerador cpuminer-opt de JayDDee;</div>
+                <div class="sub-2" id="t-b1-s3">- Não há pagamentos, deixe rodando e com Sorte quebre um Bloco Bitcoin.</div>
+            </div>
+        </div>
+
+        <div class="entry">
+            <div class="topic" id="t-b2-top">→ Em Documentos crie a pasta <span class="ref">MINER</span> e no Antivírus crie uma EXCEÇÃO para ela.</div>
+            <div class="entry-body">
+                <div class="sub-2" id="t-b2-s1">- Não é malware, mineradores são alvo de preconceito. O Código é aberto!</div>
+                <div class="sub-2" id="t-b2-s2">- <span class="quote">"Carros já foram proibidos em Birmingham-UK, pois os bandidos usavam"</span>.</div>
+                <div class="sub-4" id="t-b2-s3">- No Windows: Segurança do Windows &gt; Proteção contra vírus e ameaças &gt;</div>
+                <div class="sub-4" id="t-b2-s4">Gerenciar configurações &gt; Exclusões &gt; Adicionar ou remover exclusões.</div>
+                <div class="sub-2" id="t-b2-s5">- Faça isso também no Antivírus, e desative alguns minutos para baixar.</div>
+            </div>
+        </div>
+
+        <div class="entry">
+            <div class="topic" id="t-b3-top">→ Baixe <span class="quote">"MinerIsma_v1.x.exe"</span> direto na pasta <span class="ref">MINER</span> em Documentos, e Execute.</div>
+            <div class="entry-body">
+                <div class="sub-2" id="t-b3-s1">- Se o Windows <span class="quote">"proteger"</span>, → <span class="quote">"Mais informações"</span> e <span class="quote">"Execute assim mesmo"</span>;</div>
+                <div class="sub-2" id="t-b3-s2">- A pasta <span class="ref">'BTC_MinerIsma'</span> é criada, o programa inicia: insira sua carteira;</div>
+                <div class="sub-2" id="t-b3-s3">- Após 1ª vez, o MinerIsma inicia junto do S.O. oculto com ícone no Tray;</div>
+            </div>
+            <div class="topic topic-sub" id="t-b3-s4">→ Atualizando Versão: Apenas baixe/execute Nova versão na mesma pasta <span class="ref">MINER</span>.</div>
+        </div>
+
+        <div class="entry">
+            <div class="topic" id="t-b5-top">→ Em Carteira necessária, insira seu endereço BTC. Ou mude no ícone no tray.</div>
+            <div class="entry-body">
+                <div class="sub-2" id="t-b5-s1">- Se não possuir uma, baixe a <a href="https://bluewallet.io/">Blue Wallet</a> no link, é boa e fácil;</div>
+                <div class="sub-2" id="t-b5-s2">- Guarde BEM as 12 palavras, Papel e Caneta! Nada de Foto ou Notas;</div>
+                <div class="sub-2" id="t-b5-s3">- Tudo minúscula, não erre, confira 2x, não pronuncie as palavras;</div>
+                <div class="sub-2" id="t-b5-s4">- Em <span class="ref">'Receber'</span> na Blue Wallet, copie o seu novo endereço Bitcoin;</div>
+                <div class="sub-arrow" id="t-b5-s5">→ Na janela da Carteira, preencha o Endereço, o Trabalhador, e Salve.</div>
+            </div>
+        </div>
+
+        <div class="entry">
+            <div class="topic" id="t-b6-top">→ Acesse com botão direito, no ícone na seta do Tray, ao lado do relógio;</div>
+            <div class="entry-body">
+                <div class="sub-2" id="t-b6-s1">- Lá, explore configurações, monitoramento, aprendizado e curiosidades.</div>
+                <div class="sub-2" id="t-b6-s2">- Não recomendo aqui produtos ou investimentos, é apenas aprendizado.</div>
+                <div class="sub-2" id="t-b6-s3">- Os links anexos são apenas minhas experiências agradáveis, de meu uso.</div>
+                <div class="sub-2" id="t-b6-s4">- Ajuste Delay do Miner para carregar o S.O. e internet antes do Miner.</div>
+                <div class="sub-2" id="t-b6-s5">- O processo de mineração requer internet, mas o consumo é irrisório.</div>
+            </div>
+        </div>
+
+        <div class="entry">
+            <div class="topic" id="t-b7-top">→ Use MinerIsma por sua conta e risco! Pode superaquecer, e gasta energia.</div>
+        </div>
+
+        <div class="entry">
+            <div class="topic" id="t-b8-top">→ Usando opção de mais threads da CPU, teste acompanhando a temperatura.</div>
+            <div class="entry-body">
+                <div class="sub-2" id="t-b8-s1">- Em Notebooks use na rede elétrica, menos threads e boa ventilação.</div>
+                <div class="sub-2" id="t-b8-s2">- Pause mineração no ícone/Tray, quando há outra grande demanda no Pc.</div>
+                <div class="sub-2" id="t-b8-s3">- Modo Pulsar: Mecanismo termoeficiente para quando usar mais threads.</div>
+            </div>
+        </div>
+
+        <div class="entry">
+            <div class="topic" id="t-b9-top">→ Não há garantia de Prêmio, aliás, é bem improvável. Mas possível. Fé! <span class="cash">&#36;</span></div>
+            <div class="entry-body">
+                <div class="sub-2" id="t-b9-s1">- É como um bilhete de loteria a cada ~10min! <span class="cash">&#36;&#36;</span>, mas contra milhares;</div>
+                <div class="sub-2" id="t-b9-s2">- Se milhões de cálculos casar a Hash do Pc, libera novo Bloco na Rede <span class="cash">&#36;</span></div>
+                <div class="sub-2" id="t-b9-s3">- Não há garantia de Aviso efetivo, verifique sua Carteira com o tempo;</div>
+            </div>
+        </div>
+
+        <div class="entry">
+            <div class="topic" id="t-b10-top">→ Muito além do Prêmio: Rodar um Miner de Bitcoin é um ato libertário!</div>
+            <div class="entry-body">
+                <div class="sub-2" id="t-b10-s1">- Você fortalece a descentralização financeira, contra opressão mundial.</div>
+                <div class="sub-2" id="t-b10-s2">- O Bitcoin foi idealizado por Satoshi Nakamoto, para trazer liberdade.</div>
+            </div>
+        </div>
+
+        <div class="entry">
+            <div class="topic" id="t-b11-top">→ <span class="quote">"Se você tem menos de 40 anos, o Bitcoin é seu novo Ouro"</span>, Kevin Warsh.</div>
+            <div class="entry-body">
+                <div class="sub-2" id="t-b11-s1">- Desinflacionário, e um dos maiores ativos do planeta, pense Bitcoin.</div>
+                <div class="sub-2" id="t-b11-s2">- Evolua na Mineração, use sua GPU e ganhe em Bitcoin com a <a href="https://www.kryptex.com/?ref=2103d720">Kryptex</a> <span class="cash">&#36;&#36;</span></div>
+            </div>
+        </div>
+
+        <div class="entry">
+            <div class="topic" id="t-b12-top">→ Ganhou? Apoie, Doe Bitcoin: <span class="wallet-addr">bc1qy2wuwjz0c5hcw4r835erf9w7kjz9kmzprvgd7m</span></div>
+            <div class="entry-body">
+                <div class="sub-2" id="t-b12-s1">- Suporte MinerIsma: emcis77@proton.me</div>
+                <div class="sub-2" id="t-b12-s2">- Motor cpuminer-opt: <a href="https://github.com/jayddee/cpuminer-opt/releases">https://github.com/jayddee/cpuminer-opt/releases</a></div>
+                <div class="sub-2" id="t-b12-s3">- Doações ao <span class="ref">'motor'</span> cpuminer: BTC: <span class="wallet-addr">12tdvfF7KmAsihBXQXynT6E6th2c2pByTT</span></div>
+            </div>
+        </div>
+
+        <!-- >>> CAMPO 3 DE VERSAO DO MOTOR E GERENCIADOR (v2.0.2) <<< -->
+        <div class="entry">
+            <div class="topic" id="t-b13-top">→ Últimas Versões (MinerIsma fase Alpha): Atualizações: Links 1 e 2 opção:</div>
+            <div class="entry-body">
+                <div class="sub-2" id="t-b13-s1">- Link 1:  <a href="https://drive.proton.me/urls/WF022MG27W#YknkVYHMQO4w">https://drive.proton.me/urls/WF022MG27W#YknkVYHMQO4w</a></div>
+                <div class="sub-2" id="t-b13-s2">- Link 2 Op.:  <a href="https://mega.nz/folder/1pEAyJRB#ZsvFzL9K-00y0iPqmwc8mQ">https://mega.nz/folder/1pEAyJRB#ZsvFzL9K-00y0iPqmwc8mQ</a></div>
+                <div class="sub-2" id="t-b13-s3">- Contém Motor <span id="cfg-motor-ver">cpuminer-opt-26.1</span> e Gerenciador MinerIsma <span id="cfg-full-ver">v2.0.2</span> - <span id="cfg-ver-date">10/2026</span>.</div>
+            </div>
+        </div>
+
+        <!-- >>> CAMPO 4 DE REGISTRO BLOCKCHAIN E HASHES (3 QUADROS ALINHADOS) <<< -->
+        <div class="entry">
+            <div class="topic" id="t-b14-top">→ Registro Blockchain Polygon para Propriedade Intelectual de MinerIsma.</div>
+            <div class="entry-body">
+                <div class="sub-2" id="t-b14-s1">- Último Hash do empacotamento para → <span id="cfg-rar-name-1">BTC_MinerIsma_v1.9.7.rar</span> :</div>
+                <div class="sub-2 hash-box">SHA256: <span id="cfg-sha256">B0544ADBDFEF71E03A757E0B28D25FACB02E41EA2DDE2BB5C99C0E38CD9C077F</span></div>
+                <div class="sub-2" id="t-b14-s2">- Última autenticação Hash Transação iD para <span id="cfg-rar-name-2">BTC_MinerIsma_v1.9.7.rar</span>:</div>
+                <div class="sub-2 hash-box" id="cfg-txid">0xc31388ae3d95fd4d24f22c583f402cf6da368861dcbf64aebc10562fc946a559</div>
+                <div class="sub-2" id="t-b14-s3">- Assinado por Wallet EVM:</div>
+                <div class="sub-2 hash-box" id="cfg-evm-wallet">0xF72C0Ee272eEf5c52018dA877ED2EF61c9434015</div>
+                <div class="sub-2" id="t-b14-s4">- Link Verificador em <a id="cfg-verifier-link" href="https://polygonscan.com/tx/0xc31388ae3d95fd4d24f22c583f402cf6da368861dcbf64aebc10562fc946a559">polygonscan.com</a></div>
+            </div>
+        </div>
+
+        <div class="divider">==========================================================================</div>
+
+        <div class="outro-donate" id="t-outro">
+            → Gostou? Apoie, Doe Bitcoin: <span class="wallet-addr">bc1qy2wuwjz0c5hcw4r835erf9w7kjz9kmzprvgd7m</span>
+        </div>
+
+        <div class="screen">
+            <div class="btc-art" aria-hidden="true">⠀⠀⠀⠀⣿⡇⠀⢸⣿⡇⠀⠀⠀⠀
+⠸⠿⣿⣿⣿⡿⠿⠿⣿⣿⣿⣶⣄⠀
+⠀⠀⢸⣿⣿⡇⠀⠀⠀⠈⣿⣿⣿⣿
+⠀⠀⢸⣿⣿⡇⠀⠀⢀⣠⣿⣿⣿⠟
+⠀⠀⢸⣿⣿⡿⠿⠿⠿⣿⣿⣥⣄⠀
+⠀⠀⢸⣿⣿⡇⠀⠀⠀⠀⢻⣿⣿⣧
+⠀⠀⢸⣿⣿⡇⠀⠀⠀⠀⣼⣿⣿⣿
+⢰⣶⣿⣿⣿⣷⣶⣶⣾⣿⣿⠿⠟⠀
+⠀⠀⠀⠀⣿⡇⠀⢸⣿⡇⠀⠀⠀⠀</div>
+        </div>
+
+        <div class="final-wish" id="t-final">Boa mineração!</div>
+
+        <!-- >>> MEDALHAO DA PICARETA MINERISMA SOBRE OS MINERIOS FINAIS <<< -->
+        <div class="mast-footer">
+            <div class="coin coin-pickaxe" aria-hidden="true">
+                <svg viewBox="0 0 32 32" width="72" height="72">
+                    <!-- Fundo circular Laranja Bitcoin e anel interno -->
+                    <circle cx="16" cy="16" r="15.5" fill="#F7931A"/>
+                    <circle cx="16" cy="16" r="13.2" fill="none" stroke="#FFE0A8" stroke-width="0.8" stroke-opacity="0.45"/>
+
+                    <!-- Sombra de profundidade da picareta -->
+                    <g transform="translate(0.9, 0.9)">
+                        <line x1="7.5" y1="24.5" x2="21.5" y2="10.5" stroke="#6E3B00" stroke-width="2.8" stroke-linecap="round"/>
+                        <path d="M 9.0 8.2 Q 22.8 9.2 23.8 23.0 Q 18.0 14.0 9.0 8.2 Z" fill="#6E3B00" stroke="#6E3B00" stroke-width="0.7" stroke-linejoin="round"/>
+                    </g>
+
+                    <!-- Cabo da Picareta Branca -->
+                    <line x1="7.5" y1="24.5" x2="21.5" y2="10.5" stroke="#FFFFFF" stroke-width="2.8" stroke-linecap="round"/>
+                    <!-- Cabeca da Picareta (Curvada no topo e afinada nas duas pontas) -->
+                    <path d="M 9.0 8.2 Q 22.8 9.2 23.8 23.0 Q 18.0 14.0 9.0 8.2 Z" fill="#FFFFFF" stroke="#FFFFFF" stroke-width="0.7" stroke-linejoin="round"/>
+                </svg>
+                <span class="shine"></span>
+            </div>
+            <div class="ores ores-end" aria-hidden="true">
+                <span class="ore ore-stone"></span><span class="ore ore-gold"></span><span class="ore ore-bright"></span><span class="ore ore-gold"></span><span class="ore ore-stone"></span>
+            </div>
+        </div>
+    </div>
+</div>
+</div>
+</div>
+
+<!-- =====================================================================
+     DICIONARIO MULTILINGUE (PT / EN / ES) E APLICACAO AUTOMATICA DE DADOS
+     ===================================================================== -->
+<script>
+    var CURRENT_TUT_LANG = "PT";
+
+    var TUTORIAL_I18N = {
+        PT: {
+            "t-main-title" : '*  MinerIsma: Mineração Solo de Bitcoin ao estilo <span class="quote">"Lottery"</span>  *',
+            "t-sub-title"  : 'Tutorial para Windows - MinerIsma_<span id="cfg-ver-title">v2.0</span>',
+            "t-b1-top"     : '→ MinerIsma é um gerenciador: Grátis, fácil e inclusivo à Mineração Cripto.',
+            "t-b1-s1"      : '- Dá remota possibilidade de descobrir um Bloco BTC, <span class="cash">&#36;</span> valendo muito <span class="cash">&#36;</span>;',
+            "t-b1-s2"      : '- Usa o incrível, <span class="ref">auditado</span> e seguro motor minerador cpuminer-opt de JayDDee;',
+            "t-b1-s3"      : '- Não há pagamentos, deixe rodando e com Sorte quebre um Bloco Bitcoin.',
+            "t-b2-top"     : '→ Em Documentos crie a pasta <span class="ref">MINER</span> e no Antivírus crie uma EXCEÇÃO para ela.',
+            "t-b2-s1"      : '- Não é malware, mineradores são alvo de preconceito. O Código é aberto!',
+            "t-b2-s2"      : '- <span class="quote">"Carros já foram proibidos em Birmingham-UK, pois os bandidos usavam"</span>.',
+            "t-b2-s3"      : '- No Windows: Segurança do Windows &gt; Proteção contra vírus e ameaças &gt;',
+            "t-b2-s4"      : 'Gerenciar configurações &gt; Exclusões &gt; Adicionar ou remover exclusões.',
+            "t-b2-s5"      : '- Faça isso também no Antivírus, e desative alguns minutos para baixar.',
+            "t-b3-top"     : '→ Baixe <span class="quote">"MinerIsma_v1.x.exe"</span> direto na pasta <span class="ref">MINER</span> em Documentos, e Execute.',
+            "t-b3-s1"      : '- Se o Windows <span class="quote">"proteger"</span>, → <span class="quote">"Mais informações"</span> e <span class="quote">"Execute assim mesmo"</span>;',
+            "t-b3-s2"      : '- A pasta <span class="ref">\'BTC_MinerIsma\'</span> é criada, o programa inicia: insira sua carteira;',
+            "t-b3-s3"      : '- Após 1ª vez, o MinerIsma inicia junto do S.O. oculto com ícone no Tray;',
+            "t-b3-s4"      : '→ Atualizando Versão: Apenas baixe/execute Nova versão na mesma pasta <span class="ref">MINER</span>.',
+            "t-b5-top"     : '→ Em Carteira necessária, insira seu endereço BTC. Ou mude no ícone no tray.',
+            "t-b5-s1"      : '- Se não possuir uma, baixe a <a href="https://bluewallet.io/">Blue Wallet</a> no link, é boa e fácil;',
+            "t-b5-s2"      : '- Guarde BEM as 12 palavras, Papel e Caneta! Nada de Foto ou Notas;',
+            "t-b5-s3"      : '- Tudo minúscula, não erre, confira 2x, não pronuncie as palavras;',
+            "t-b5-s4"      : '- Em <span class="ref">\'Receber\'</span> na Blue Wallet, copie o seu novo endereço Bitcoin;',
+            "t-b5-s5"      : '→ Na janela da Carteira, preencha o Endereço, o Trabalhador, e Salve.',
+            "t-b6-top"     : '→ Acesse com botão direito, no ícone na seta do Tray, ao lado do relógio;',
+            "t-b6-s1"      : '- Lá, explore configurações, monitoramento, aprendizado e curiosidades.',
+            "t-b6-s2"      : '- Não recomendo aqui produtos ou investimentos, é apenas aprendizado.',
+            "t-b6-s3"      : '- Os links anexos são apenas minhas experiências agradáveis, de meu uso.',
+            "t-b6-s4"      : '- Ajuste Delay do Miner para carregar o S.O. e internet antes do Miner.',
+            "t-b6-s5"      : '- O processo de mineração requer internet, mas o consumo é irrisório.',
+            "t-b7-top"     : '→ Use MinerIsma por sua conta e risco! Pode superaquecer, e gasta energia.',
+            "t-b8-top"     : '→ Usando opção de mais threads da CPU, teste acompanhando a temperatura.',
+            "t-b8-s1"      : '- Em Notebooks use na rede elétrica, menos threads e boa ventilação.',
+            "t-b8-s2"      : '- Pause mineração no ícone/Tray, quando há outra grande demanda no Pc.',
+            "t-b8-s3"      : '- Modo Pulsar: Mecanismo termoeficiente para quando usar mais threads.',
+            "t-b9-top"     : '→ Não há garantia de Prêmio, aliás, é bem improvável. Mas possível. Fé! <span class="cash">&#36;</span>',
+            "t-b9-s1"      : '- É como um bilhete de loteria a cada ~10min! <span class="cash">&#36;&#36;</span>, mas contra milhares;',
+            "t-b9-s2"      : '- Se milhões de cálculos casar a Hash do Pc, libera novo Bloco na Rede <span class="cash">&#36;</span>',
+            "t-b9-s3"      : '- Não há garantia de Aviso efetivo, verifique sua Carteira com o tempo;',
+            "t-b10-top"    : '→ Muito além do Prêmio: Rodar um Miner de Bitcoin é um ato libertário!',
+            "t-b10-s1"     : '- Você fortalece a descentralização financeira, contra opressão mundial.',
+            "t-b10-s2"     : '- O Bitcoin foi idealizado por Satoshi Nakamoto, para trazer liberdade.',
+            "t-b11-top"    : '→ <span class="quote">"Se você tem menos de 40 anos, o Bitcoin é seu novo Ouro"</span>, Kevin Warsh.',
+            "t-b11-s1"     : '- Desinflacionário, e um dos maiores ativos do planeta, pense Bitcoin.',
+            "t-b11-s2"     : '- Evolua na Mineração, use sua GPU e ganhe em Bitcoin com a <a href="https://www.kryptex.com/?ref=2103d720">Kryptex</a> <span class="cash">&#36;&#36;</span>',
+            "t-b12-top"    : '→ Ganhou? Apoie, Doe Bitcoin: <span class="wallet-addr">bc1qy2wuwjz0c5hcw4r835erf9w7kjz9kmzprvgd7m</span>',
+            "t-b12-s1"     : '- Suporte MinerIsma: emcis77@proton.me',
+            "t-b12-s2"     : '- Motor cpuminer-opt: <a href="https://github.com/jayddee/cpuminer-opt/releases">https://github.com/jayddee/cpuminer-opt/releases</a>',
+            "t-b12-s3"     : '- Doações ao <span class="ref">\'motor\'</span> cpuminer: BTC: <span class="wallet-addr">12tdvfF7KmAsihBXQXynT6E6th2c2pByTT</span>',
+            "t-b13-top"    : '→ Últimas Versões (MinerIsma fase Alpha): Atualizações: Links 1 e 2 opção:',
+            "t-b13-s1"     : '- Link 1:  <a href="https://drive.proton.me/urls/WF022MG27W#YknkVYHMQO4w">https://drive.proton.me/urls/WF022MG27W#YknkVYHMQO4w</a>',
+            "t-b13-s2"     : '- Link 2 Op.:  <a href="https://mega.nz/folder/1pEAyJRB#ZsvFzL9K-00y0iPqmwc8mQ">https://mega.nz/folder/1pEAyJRB#ZsvFzL9K-00y0iPqmwc8mQ</a>',
+            "t-b13-s3"     : '- Contém Motor <span id="cfg-motor-ver">cpuminer-opt-26.1</span> e Gerenciador MinerIsma <span id="cfg-full-ver">v2.0.2</span> - <span id="cfg-ver-date">10/2026</span>.',
+            "t-b14-top"    : '→ Registro Blockchain Polygon para Propriedade Intelectual de MinerIsma.',
+            "t-b14-s1"     : '- Último Hash do empacotamento para → <span id="cfg-rar-name-1">BTC_MinerIsma_v1.9.7.rar</span> :',
+            "t-b14-s2"     : '- Última autenticação Hash Transação iD para <span id="cfg-rar-name-2">BTC_MinerIsma_v1.9.7.rar</span>:',
+            "t-b14-s3"     : '- Assinado por Wallet EVM:',
+            "t-b14-s4"     : '- Link Verificador em <a id="cfg-verifier-link" href="https://polygonscan.com/tx/0xc31388ae3d95fd4d24f22c583f402cf6da368861dcbf64aebc10562fc946a559">polygonscan.com</a>',
+            "t-outro"      : '→ Gostou? Apoie, Doe Bitcoin: <span class="wallet-addr">bc1qy2wuwjz0c5hcw4r835erf9w7kjz9kmzprvgd7m</span>',
+            "t-final"      : 'Boa mineração!'
+        },
+        EN: {
+            "t-main-title" : '*  MinerIsma: <span class="quote">"Lottery"</span> Style Solo Bitcoin Mining  *',
+            "t-sub-title"  : 'Tutorial for Windows - MinerIsma_<span id="cfg-ver-title">v2.0</span>',
+            "t-b1-top"     : '→ MinerIsma is a manager: Free, easy, and inclusive access to Crypto Mining.',
+            "t-b1-s1"      : '- Gives a remote chance of finding a BTC Block, <span class="cash">&#36;</span> worth a lot <span class="cash">&#36;</span>;',
+            "t-b1-s2"      : '- Uses the incredible, <span class="ref">audited</span>, and safe cpuminer-opt mining engine by JayDDee;',
+            "t-b1-s3"      : '- There are no payouts; let it run and with Luck solve a Bitcoin Block.',
+            "t-b2-top"     : '→ In Documents create folder <span class="ref">MINER</span> and add an EXCLUSION in Antivirus.',
+            "t-b2-s1"      : '- It is not malware; miners are targets of bias. The Code is open-source!',
+            "t-b2-s2"      : '- <span class="quote">"Cars were once banned in Birmingham-UK, because outlaws used them"</span>.',
+            "t-b2-s3"      : '- On Windows: Windows Security &gt; Virus &amp; threat protection &gt;',
+            "t-b2-s4"      : 'Manage settings &gt; Exclusions &gt; Add or remove exclusions.',
+            "t-b2-s5"      : '- Do this in your Antivirus as well, and disable it for a few minutes to download.',
+            "t-b3-top"     : '→ Download <span class="quote">"MinerIsma_v1.x.exe"</span> into <span class="ref">MINER</span> folder in Documents and Run.',
+            "t-b3-s1"      : '- If Windows <span class="quote">"protects"</span> your PC, → <span class="quote">"More info"</span> and <span class="quote">"Run anyway"</span>;',
+            "t-b3-s2"      : '- The <span class="ref">\'BTC_MinerIsma\'</span> folder is created, the program starts: enter your wallet;',
+            "t-b3-s3"      : '- After the 1st time, MinerIsma starts with the OS hidden in the Tray icon;',
+            "t-b3-s4"      : '→ Updating Version: Simply download/run the New version in the same <span class="ref">MINER</span> folder.',
+            "t-b5-top"     : '→ When Wallet is required, enter your BTC address. Or change it via Tray icon.',
+            "t-b5-s1"      : '- If you don\'t have one, download <a href="https://bluewallet.io/">Blue Wallet</a> at the link, it\'s good and easy;',
+            "t-b5-s2"      : '- SAFELY store the 12 words, Pen and Paper! No Photos or Digital Notes;',
+            "t-b5-s3"      : '- All lowercase, make no mistakes, check 2x, do not speak the words aloud;',
+            "t-b5-s4"      : '- Under <span class="ref">\'Receive\'</span> in Blue Wallet, copy your new Bitcoin address;',
+            "t-b5-s5"      : '→ In the Wallet window, fill in the Address, the Worker, and Save.',
+            "t-b6-top"     : '→ Right-click the icon in the system Tray arrow, next to the clock;',
+            "t-b6-s1"      : '- There, explore settings, monitoring, learning, and curiosities.',
+            "t-b6-s2"      : '- I do not recommend products or investments here; it is purely for learning.',
+            "t-b6-s3"      : '- The attached links are simply pleasant experiences from my own personal use.',
+            "t-b6-s4"      : '- Adjust Miner Delay so the OS and internet load before the Miner.',
+            "t-b6-s5"      : '- The mining process requires internet, but data usage is negligible.',
+            "t-b7-top"     : '→ Use MinerIsma at your own risk! It can overheat and consumes power.',
+            "t-b8-top"     : '→ When using more CPU threads, test while monitoring temperature.',
+            "t-b8-s1"      : '- On Laptops use AC power, fewer threads, and good ventilation.',
+            "t-b8-s2"      : '- Pause mining from the Tray icon when running heavy tasks on the PC.',
+            "t-b8-s3"      : '- Pulse Mode: Thermal-efficient mechanism when using more threads.',
+            "t-b9-top"     : '→ No guarantee of a Reward; in fact, it\'s very unlikely. Yet possible. Faith! <span class="cash">&#36;</span>',
+            "t-b9-s1"      : '- It\'s like a lottery ticket every ~10min! <span class="cash">&#36;&#36;</span>, competing against thousands;',
+            "t-b9-s2"      : '- If millions of calculations match the target Hash, a new Block is found <span class="cash">&#36;</span>',
+            "t-b9-s3"      : '- Effective Alert is not guaranteed; check your Wallet periodically;',
+            "t-b10-top"    : '→ Far beyond the Reward: Running a Bitcoin Miner is a libertarian act!',
+            "t-b10-s1"     : '- You strengthen financial decentralization against global oppression.',
+            "t-b10-s2"     : '- Bitcoin was envisioned by Satoshi Nakamoto to bring freedom.',
+            "t-b11-top"    : '→ <span class="quote">"If you\'re under 40, Bitcoin is your new Gold"</span>, Kevin Warsh.',
+            "t-b11-s1"     : '- Disinflationary, and one of the largest assets on the planet—think Bitcoin.',
+            "t-b11-s2"     : '- Level up in Mining, use your GPU and earn in Bitcoin with <a href="https://www.kryptex.com/?ref=2103d720">Kryptex</a> <span class="cash">&#36;&#36;</span>',
+            "t-b12-top"    : '→ Won? Support &amp; Donate Bitcoin: <span class="wallet-addr">bc1qy2wuwjz0c5hcw4r835erf9w7kjz9kmzprvgd7m</span>',
+            "t-b12-s1"     : '- MinerIsma Support: emcis77@proton.me',
+            "t-b12-s2"     : '- Engine cpuminer-opt: <a href="https://github.com/jayddee/cpuminer-opt/releases">https://github.com/jayddee/cpuminer-opt/releases</a>',
+            "t-b12-s3"     : '- Donations to cpuminer <span class="ref">\'engine\'</span>: BTC: <span class="wallet-addr">12tdvfF7KmAsihBXQXynT6E6th2c2pByTT</span>',
+            "t-b13-top"    : '→ Latest Versions (MinerIsma Alpha phase): Updates: Option Links 1 &amp; 2:',
+            "t-b13-s1"     : '- Link 1:  <a href="https://drive.proton.me/urls/WF022MG27W#YknkVYHMQO4w">https://drive.proton.me/urls/WF022MG27W#YknkVYHMQO4w</a>',
+            "t-b13-s2"     : '- Link 2 Opt.:  <a href="https://mega.nz/folder/1pEAyJRB#ZsvFzL9K-00y0iPqmwc8mQ">https://mega.nz/folder/1pEAyJRB#ZsvFzL9K-00y0iPqmwc8mQ</a>',
+            "t-b13-s3"     : '- Contains Engine <span id="cfg-motor-ver">cpuminer-opt-26.1</span> and Manager MinerIsma <span id="cfg-full-ver">v2.0.2</span> - <span id="cfg-ver-date">10/2026</span>.',
+            "t-b14-top"    : '→ Polygon Blockchain Record for MinerIsma Intellectual Property.',
+            "t-b14-s1"     : '- Latest package Hash for → <span id="cfg-rar-name-1">BTC_MinerIsma_v2.0.2.rar</span> :',
+            "t-b14-s2"     : '- Latest Transaction iD Hash authentication for <span id="cfg-rar-name-2">BTC_MinerIsma_v2.0.2.rar</span>:',
+            "t-b14-s3"     : '- Signed by EVM Wallet:',
+            "t-b14-s4"     : '- Verification Link on <a id="cfg-verifier-link" href="https://polygonscan.com/tx/0xc31388ae3d95fd4d24f22c583f402cf6da368861dcbf64aebc10562fc946a559">polygonscan.com</a>',
+            "t-outro"      : '→ Liked it? Support &amp; Donate Bitcoin: <span class="wallet-addr">bc1qy2wuwjz0c5hcw4r835erf9w7kjz9kmzprvgd7m</span>',
+            "t-final"      : 'Happy mining!'
+        },
+        ES: {
+            "t-main-title" : '*  MinerIsma: Minería Solo de Bitcoin al estilo <span class="quote">"Lottery"</span>  *',
+            "t-sub-title"  : 'Tutorial para Windows - MinerIsma_<span id="cfg-ver-title">v2.0</span>',
+            "t-b1-top"     : '→ MinerIsma es un gestor: Gratis, fácil e inclusivo a la Minería Cripto.',
+            "t-b1-s1"      : '- Da una remota posibilidad de descubrir un Bloque BTC, <span class="cash">&#36;</span> valiendo mucho <span class="cash">&#36;</span>;',
+            "t-b1-s2"      : '- Usa el increíble, <span class="ref">auditado</span> y seguro motor minero cpuminer-opt de JayDDee;',
+            "t-b1-s3"      : '- No hay pagos, déjalo corriendo y con Suerte resuelve un Bloque Bitcoin.',
+            "t-b2-top"     : '→ En Documentos crea la carpeta <span class="ref">MINER</span> y añade EXCEPCIÓN en Antivirus.',
+            "t-b2-s1"      : '- No es malware, los mineros sufren prejuicios. ¡El Código es abierto!',
+            "t-b2-s2"      : '- <span class="quote">"Los autos ya fueron prohibidos en Birmingham-UK, porque los bandidos los usaban"</span>.',
+            "t-b2-s3"      : '- En Windows: Seguridad de Windows &gt; Protección contra virus y amenazas &gt;',
+            "t-b2-s4"      : 'Administrar la configuración &gt; Exclusiones &gt; Agregar o quitar exclusiones.',
+            "t-b2-s5"      : '- Haz esto también en tu Antivirus, y desactívalo unos minutos para descargar.',
+            "t-b3-top"     : '→ Descarga <span class="quote">"MinerIsma_v1.x.exe"</span> en la carpeta <span class="ref">MINER</span> en Documentos y Ejecuta.',
+            "t-b3-s1"      : '- Si Windows <span class="quote">"protege"</span> tu PC, → <span class="quote">"Más información"</span> y <span class="quote">"Ejecutar de todas formas"</span>;',
+            "t-b3-s2"      : '- Se crea la carpeta <span class="ref">\'BTC_MinerIsma\'</span>, el programa inicia: ingresa tu billetera;',
+            "t-b3-s3"      : '- Tras la 1ª vez, MinerIsma inicia junto con el S.O. oculto con icono en el Tray;',
+            "t-b3-s4"      : '→ Actualizar Versión: Descarga/ejecuta la nueva en la misma carpeta <span class="ref">MINER</span>.',
+            "t-b5-top"     : '→ En Billetera requerida, ingresa tu dirección BTC. O cámbiala en el icono del Tray.',
+            "t-b5-s1"      : '- Si no tienes una, descarga <a href="https://bluewallet.io/">Blue Wallet</a> en el enlace, es buena y fácil;',
+            "t-b5-s2"      : '- ¡Guarda BIEN las 12 palabras, Papel y Lápiz! Nada de Fotos o Notas;',
+            "t-b5-s3"      : '- Todo en minúscula, no te equivoques, revisa 2x, no pronuncies las palabras;',
+            "t-b5-s4"      : '- En <span class="ref">\'Recibir\'</span> en Blue Wallet, copia tu nueva dirección Bitcoin;',
+            "t-b5-s5"      : '→ En la ventana de la Billetera, completa la Dirección, el Trabajador, y Guarda.',
+            "t-b6-top"     : '→ Accede con clic derecho en el icono de la flecha del Tray, junto al reloj;',
+            "t-b6-s1"      : '- Allí, explora configuraciones, monitoreo, aprendizaje y curiosidades.',
+            "t-b6-s2"      : '- No recomiendo aquí productos ni inversiones, es solo aprendizaje.',
+            "t-b6-s3"      : '- Los enlaces adjuntos son solo experiencias agradables, de mi propio uso.',
+            "t-b6-s4"      : '- Ajusta el Delay del Miner para cargar el S.O. e internet antes del Miner.',
+            "t-b6-s5"      : '- El proceso de minería requiere internet, pero el consumo es insignificante.',
+            "t-b7-top"     : '→ ¡Usa MinerIsma bajo tu propio riesgo! Puede sobrecalentar y consume energía.',
+            "t-b8-top"     : '→ Al usar la opción de más threads de CPU, prueba vigilando la temperatura.',
+            "t-b8-s1"      : '- En Portátiles úsalo conectado a la corriente, menos threads y buena ventilación.',
+            "t-b8-s2"      : '- Pausa la minería en el icono del Tray cuando haya otra gran demanda en el PC.',
+            "t-b8-s3"      : '- Modo Pulsar: Mecanismo termoeficiente para cuando uses más threads.',
+            "t-b9-top"     : '→ No hay garantía de Premio, de hecho, es muy improbable. Pero posible. ¡Fe! <span class="cash">&#36;</span>',
+            "t-b9-s1"      : '- ¡Es como un billete de lotería cada ~10min! <span class="cash">&#36;&#36;</span>, pero contra miles;',
+            "t-b9-s2"      : '- Si millones de cálculos aciertan el Hash, libera un nuevo Bloque en la Red <span class="cash">&#36;</span>',
+            "t-b9-s3"      : '- No hay garantía de Aviso efectivo, verifica tu Billetera con el tiempo;',
+            "t-b10-top"    : '→ ¡Mucho más allá del Premio: Ejecutar un Miner de Bitcoin es un acto libertario!',
+            "t-b10-s1"     : '- Fortaleces la descentralización financiera contra la opresión mundial.',
+            "t-b10-s2"     : '- Bitcoin fue idealizado por Satoshi Nakamoto para traer libertad.',
+            "t-b11-top"    : '→ <span class="quote">"Si tienes menos de 40 años, Bitcoin es tu nuevo Oro"</span>, Kevin Warsh.',
+            "t-b11-s1"     : '- Desinflacionario, y uno de los mayores activos del planeta, piensa en Bitcoin.',
+            "t-b11-s2"     : '- Evoluciona en la Minería, usa tu GPU y gana en Bitcoin con <a href="https://www.kryptex.com/?ref=2103d720">Kryptex</a> <span class="cash">&#36;&#36;</span>',
+            "t-b12-top"    : '→ ¿Ganaste? Apoya, Dona Bitcoin: <span class="wallet-addr">bc1qy2wuwjz0c5hcw4r835erf9w7kjz9kmzprvgd7m</span>',
+            "t-b12-s1"     : '- Soporte MinerIsma: emcis77@proton.me',
+            "t-b12-s2"     : '- Motor cpuminer-opt: <a href="https://github.com/jayddee/cpuminer-opt/releases">https://github.com/jayddee/cpuminer-opt/releases</a>',
+            "t-b12-s3"     : '- Donaciones al <span class="ref">\'motor\'</span> cpuminer: BTC: <span class="wallet-addr">12tdvfF7KmAsihBXQXynT6E6th2c2pByTT</span>',
+            "t-b13-top"    : '→ Últimas Versiones (MinerIsma fase Alpha): Actualizaciones: Enlaces 1 y 2:',
+            "t-b13-s1"     : '- Enlace 1:  <a href="https://drive.proton.me/urls/WF022MG27W#YknkVYHMQO4w">https://drive.proton.me/urls/WF022MG27W#YknkVYHMQO4w</a>',
+            "t-b13-s2"     : '- Enlace 2 Op.:  <a href="https://mega.nz/folder/1pEAyJRB#ZsvFzL9K-00y0iPqmwc8mQ">https://mega.nz/folder/1pEAyJRB#ZsvFzL9K-00y0iPqmwc8mQ</a>',
+            "t-b13-s3"     : '- Contiene Motor <span id="cfg-motor-ver">cpuminer-opt-26.1</span> y Gestor MinerIsma <span id="cfg-full-ver">v2.0.2</span> - <span id="cfg-ver-date">10/2026</span>.',
+            "t-b14-top"    : '→ Registro Blockchain Polygon para Propiedad Intelectual de MinerIsma.',
+            "t-b14-s1"     : '- Último Hash de empaquetado para → <span id="cfg-rar-name-1">BTC_MinerIsma_v1.9.7.rar</span> :',
+            "t-b14-s2"     : '- Última autenticación Hash Transacción iD para <span id="cfg-rar-name-2">BTC_MinerIsma_v1.9.7.rar</span>:',
+            "t-b14-s3"     : '- Firmado por Wallet EVM:',
+            "t-b14-s4"     : '- Enlace Verificador en <a id="cfg-verifier-link" href="https://polygonscan.com/tx/0xc31388ae3d95fd4d24f22c583f402cf6da368861dcbf64aebc10562fc946a559">polygonscan.com</a>',
+            "t-outro"      : '→ ¿Te gustó? Apoya, Dona Bitcoin: <span class="wallet-addr">bc1qy2wuwjz0c5hcw4r835erf9w7kjz9kmzprvgd7m</span>',
+            "t-final"      : '¡Buena minería!'
+        }
+    };
+
+    function applyMinerIsmaCfg() {
+        if (typeof MINERISMA_CFG === "undefined") return;
+        function setTxt(id, val) {
+            var el = document.getElementById(id);
+            if (el && val) el.innerText = val;
+        }
+        document.title = "MinerIsma " + MINERISMA_CFG.VersaoCurta + " - Tutorial";
+        setTxt("cfg-ver-title",  MINERISMA_CFG.VersaoCurta);
+        setTxt("cfg-ver-folder", MINERISMA_CFG.VersaoCurta);
+        setTxt("cfg-motor-ver",  MINERISMA_CFG.VersaoMotor);
+        setTxt("cfg-full-ver",   MINERISMA_CFG.VersaoCompleta);
+        setTxt("cfg-ver-date",   MINERISMA_CFG.MesAnoVersao);
+        setTxt("cfg-rar-name-1", MINERISMA_CFG.ArquivoRar);
+        setTxt("cfg-rar-name-2", MINERISMA_CFG.ArquivoRar);
+        setTxt("cfg-sha256",     MINERISMA_CFG.HashSha256);
+        setTxt("cfg-txid",       MINERISMA_CFG.HashTxId);
+        setTxt("cfg-evm-wallet", MINERISMA_CFG.WalletAssinante);
+
+        if (CURRENT_TUT_LANG === "EN" && MINERISMA_CFG.DataTopoEN) {
+            setTxt("t-date", MINERISMA_CFG.DataTopoEN);
+        } else if (CURRENT_TUT_LANG === "ES" && MINERISMA_CFG.DataTopoES) {
+            setTxt("t-date", MINERISMA_CFG.DataTopoES);
+        } else if (MINERISMA_CFG.DataTopoPT) {
+            setTxt("t-date", MINERISMA_CFG.DataTopoPT);
+        }
+
+        var linkEl = document.getElementById("cfg-verifier-link");
+        if (linkEl) {
+            if (MINERISMA_CFG.NomeExplorador) linkEl.innerText = MINERISMA_CFG.NomeExplorador;
+            if (MINERISMA_CFG.UrlVerificador) linkEl.href = MINERISMA_CFG.UrlVerificador;
+        }
+    }
+
+    function setTutorialLang(langCode) {
+        var code = (langCode || "PT").toUpperCase();
+        if (!TUTORIAL_I18N[code]) code = "PT";
+        CURRENT_TUT_LANG = code;
+
+        var dict = TUTORIAL_I18N[code];
+        for (var id in dict) {
+            if (dict.hasOwnProperty(id)) {
+                var el = document.getElementById(id);
+                if (el) el.innerHTML = dict[id];
+            }
+        }
+
+        var langs = ["PT", "EN", "ES"];
+        for (var i = 0; i < langs.length; i++) {
+            var btn = document.getElementById("btn-lang-" + langs[i]);
+            if (btn) {
+                btn.className = (langs[i] === code) ? "lang-btn active" : "lang-btn";
+            }
+        }
+
+        applyMinerIsmaCfg();
+    }
+
+    // Inicializacao automatica na abertura
+    applyMinerIsmaCfg();
+</script>
+
+</body>
+</html>

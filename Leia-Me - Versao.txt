@@ -1,0 +1,95 @@
+Bitcoin, 27 de Outubro de 2026
+ 
+ 
+   *  MinerIsma: Mineração Solo de Bitcoin ao estilo "Lottery"  *
+              Tutorial para Windows - MinerIsma_v2.0.2
+ 
+→ MinerIsma é um gerenciador: Grátis, fácil e inclusivo à Mineração Cripto.
+  - Dá remota possibilidade de descobrir um Bloco BTC, $ valendo muito $;
+  - Usa o incrível, auditado e seguro motor minerador cpuminer-opt de JayDDee;
+  - Não há pagamentos, deixe rodando e com Sorte quebre um Bloco Bitcoin.
+ 
+→ Em Documentos crie a pasta MINER e no Antivírus crie uma EXCEÇÃO para ela.
+  - Não é malware, mineradores são alvo de preconceito. O Código é aberto!
+  -"Carros já foram proibidos em Birmingham-UK, pois os bandidos usavam".
+  - No Windows: Segurança do Windows > Proteção contra vírus e ameaças >
+  Gerenciar configurações > Exclusões > Adicionar ou remover exclusões.
+  - Faça isso também no Antivírus, e desative alguns minutos para baixar.
+ 
+→ Baixe "MinerIsma_v1.x.exe" direto na pasta MINER em Documentos, e Execute.
+  - Se o Windows "proteger", → "Mais informações" e "Execute assim mesmo";
+  - A pasta 'BTC_MinerIsma' é criada, o programa inicia: insira sua carteira;
+  - Após 1ª vez, o MinerIsma inicia junto do S.O. oculto com ícone no Tray;
+→ Atualizando Versão: Apenas baixe/execute Nova versão na mesma pasta MINER.
+ 
+→ Em Carteira necessária, insira seu endereço BTC. Ou mude no ícone no tray.
+  - Se não possuir uma, baixe a Blue Wallet no link, é boa e fácil;
+  - Guarde BEM as 12 palavras, Papel e Caneta! Nada de Foto ou Notas;
+  - Tudo minúscula, não erre, confira 2x, não pronuncie as palavras;
+  - Em 'Receber' na Blue Wallet, copie o seu novo endereço Bitcoin;
+  → Na janela da Carteira, preencha o Endereço, o Trabalhador, e Salve.
+  
+→ Acesse com botão direito, no ícone na seta do Tray, ao lado do relógio;
+  - Lá, explore configurações, monitoramento, aprendizado e curiosidades.
+  - Não recomendo aqui produtos ou investimentos, é apenas aprendizado.
+  - Os links anexos são apenas minhas experiências agradáveis, de meu uso.
+  - Ajuste Delay do Miner para carregar o S.O. e internet antes do Miner.
+  - O processo de mineração requer internet, mas o consumo é irrisório."
+  
+→ Use MinerIsma por sua conta e risco! Pode superaquecer, e gasta energia.
+→ Usando opção de mais threads da CPU, teste acompanhando a temperatura.
+  - Em Notebooks use na rede elétrica, menos threads e boa ventilação.
+  - Pause mineração no ícone/Tray, quando há outra grande demanda no Pc.
+  - Modo Pulsar: Mecanismo termoeficiente para quando usar mais threads.
+  
+→ Não há garantia de Prêmio, aliás, é bem improvável. Mas possível. Fé! $
+  - É como um bilhete de loteria a cada ~10min! $$, mas contra milhares;
+  - Se milhões de cálculos casar a Hash do Pc, libera novo Bloco na Rede$
+  - Não há garantia de Aviso efetivo, verifique sua Carteira com o tempo;
+  
+→ Muito além do Prêmio: Rodar um Miner de Bitcoin é um ato libertário! 
+  - Você fortalece a descentralização financeira, contra opressão mundial.
+  - O Bitcoin foi idealizado por Satoshi Nakamoto, para trazer liberdade.
+ 
+→ "Se você tem menos de 40 anos, o Bitcoin é seu novo Ouro", Kevin Warsh.
+  - Desinflacionario, e um dos maiores ativos do planeta, pense Bitcoin.
+  - Evolua na Mineração, use sua GPU e ganhe em Bitcoin com a Kryptex $$
+ 
+→ Ganhou? Apoie, Doe Bitcoin: bc1qy2wuwjz0c5hcw4r835erf9w7kjz9kmzprvgd7m
+  - Suporte MinerIsma: 	emcis77@proton.me	
+  - Motor cpuminer-opt: https://github.com/jayddee/cpuminer-opt/releases
+  - Doações ao 'motor' cpuminer: BTC: 12tdvfF7KmAsihBXQXynT6E6th2c2pByTT
+ 
+→ Últimas Versões (MinerIsma fase Alpha): Atualizações: Links 1 e 2 opção:
+  - Link 1:  https://drive.proton.me/urls/WF022MG27W#YknkVYHMQO4w
+  - Link 2 Op.:  https://mega.nz/folder/1pEAyJRB#ZsvFzL9K-00y0iPqmwc8mQ
+  - Contém, Motor cpuminer-opt-26.1 e Gerenciador MinerIsma v2.0.2 - 10/2026.
+ 
+→ Registro Blockchain Polygon para Propriedade Intelectual de MinerIsma.
+  - Último Hash do empacotamento para → BTC_MinerIsma_v1.9.7.rar : 
+ SHA256: 903463835AF1E04C1C215CD88052DFB4A423D599B17FBCD9B7A238E985C1DDE7
+  - Última autenticação Hash Transação iD para BTC_MinerIsma_v1.9.7.rar:
+  0x832537a1b1dc4f5632bb12c64f291862b666ec14208ba19faf1b3b1f1413641b
+  - Assinado por Wallet EVM: 0xF72C0Ee272eEf5c52018dA877ED2EF61c9434015
+  - Link Verificador em polygonscan.com 
+(https://polygonscan.com/tx/0x832537a1b1dc4f5632bb12c64f291862b666ec14208ba19faf1b3b1f1413641b)
+==========================================================================
+ 
+ 
+→ Gostou? Apoie, Doe Bitcoin: bc1qy2wuwjz0c5hcw4r835erf9w7kjz9kmzprvgd7m
+ 
+ 
+⠀⠀⠀⠀⣿⡇⠀⢸⣿⡇⠀⠀⠀⠀
+⠸⠿⣿⣿⣿⡿⠿⠿⣿⣿⣿⣶⣄⠀
+⠀⠀⢸⣿⣿⡇⠀⠀⠀⠈⣿⣿⣿⣿
+⠀⠀⢸⣿⣿⡇⠀⠀⢀⣠⣿⣿⣿⠟
+⠀⠀⢸⣿⣿⡿⠿⠿⠿⣿⣿⣥⣄⠀
+⠀⠀⢸⣿⣿⡇⠀⠀⠀⠀⢻⣿⣿⣧
+⠀⠀⢸⣿⣿⡇⠀⠀⠀⠀⣼⣿⣿⣿
+⢰⣶⣿⣿⣿⣷⣶⣶⣾⣿⣿⠿⠟⠀
+⠀⠀⠀⠀⣿⡇⠀⢸⣿⡇⠀⠀⠀⠀
+ 
+ 
+   Boa mineração!
+ 
+ 
