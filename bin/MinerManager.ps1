@@ -1,15 +1,15 @@
 # ============================================================================
-# MinerManager.ps1 - MinerIsma v2.0.2 - Alpha (Gerenciador Solo com Tray Icon)
+# MinerManager.ps1 - MinerIsma v2.0.4 - Alpha (Gerenciador Solo com Tray Icon)
 # ============================================================================
 # REGISTRO DE PROPRIEDADE INTELECTUAL EM BLOCKCHAIN (PROVA DE EXISTENCIA)
-# [REGISTRO #06 - BASE CONSOLIDADA V1.9.7 - Alpha]
-# Data do Registro : 25/10/2026
+# [REGISTRO #07 - BASE CONSOLIDADA V2.0.2 - Alpha]
+# Data do Registro : 27/10/2026
 # Autor / Carteira : 0xF72C0Ee272eEf5c52018dA877ED2EF61c9434015 (MetaMask / EVM)
-# Pacote Base (RAR): BTC_MinerIsma_v1.9.7.rar
-# Hash SHA-256     : 903463835AF1E04C1C215CD88052DFB4A423D599B17FBCD9B7A238E985C1DDE7
+# Pacote Base (RAR): BTC_MinerIsma_v2.0.2.rar
+# Hash SHA-256     : DCB09E2FA5F611B0EC35D8E69A4CA704A37EA40FC09261EC8CE7CCA3B842F626
 # Rede Blockchain  : Polygon Mainnet
-# Transacao (TxID) : 0x832537a1b1dc4f5632bb12c64f291862b666ec14208ba19faf1b3b1f1413641b
-# Link Verificador : https://polygonscan.com/tx/0x832537a1b1dc4f5632bb12c64f291862b666ec14208ba19faf1b3b1f1413641b
+# Transacao (TxID) : 0xb317f63abadfd1abd2192a46ee38f37a2eef57dc0554af8721139e85a104a54b
+# Link Verificador : https://polygonscan.com/tx/0xb317f63abadfd1abd2192a46ee38f37a2eef57dc0554af8721139e85a104a54b
 # Historico detalhado disponivel em: resources\REGISTRO_PROPRIEDADE_INTELECTUAL.txt
 # ============================================================================
 
@@ -18,12 +18,13 @@
 # ================================================================
 #  1. CONFIGURACOES GERAIS E CONEXAO
 # ================================================================
-$global:Wallet               = "minha_carteira.WORKER"   # <<< TROQUE pela sua Carteira e Trabalhador
+$global:Wallet               = "bc1qd329mvq6zswu07p8czd0hcx8vvxev8t35hdaky.PCISMA"   # <<< TROQUE pela sua Carteira e Trabalhador
 $global:PoolUrl              = "stratum+tcp://public-pool.io:3333"
 
 $global:MinerExeName         = "cpuminer-avx2-sha.exe"   
 $global:LauncherFileName     = "START_MinerIsma.exe"     # Nome do seu arquivo Lancador na pasta raiz
 $global:TutorialFileName     = "Tutorial.html"           # Nome do arquivo HTML na pasta resources
+$global:CustomIconFileName   = "iconeMinerIsmaFull4b.ico"# Icone 256x256 na pasta resources
 $global:SoundFileKMS         = "alerta_de_bloco-KMS.mp3"
 $global:SoundFileSenna       = "alerta_de_bloco-Senna.mp3"
 $global:SoundFileMforN       = "alerta_de_bloco-MforN.mp3"
@@ -33,6 +34,14 @@ $global:DefaultStartupDelay  = 5         # << Delay padrao (5s) ao iniciar manua
 $global:StartupDelaySeconds  = $global:DefaultStartupDelay
 $global:TtfWarmupSeconds     = 60        # << Segundos iniciais ignorados no log TTF para evitar distorcoes de partida
 $global:ExtraArgs            = "--cpu-priority=1"   
+
+# --- Link de Checagem Silenciosa de Nova Versao (Texto puro ex.: 2.0.5) ---
+$global:VersionCheckUrl      = "https://rentry.co/MinerIsma-V"
+
+# --- Links Explicativos sobre o Halving (Com Fallback Automatico 1 -> 2 -> 3) ---
+$global:UrlHalving1          = "https://boletimbitcoin.com/halving-bitcoin/"
+$global:UrlHalving2          = "https://br.investing.com/academy/crypto/halving-bitcoin/"
+$global:UrlHalving3          = "https://bitcoin-org.translate.goog/en/halving?_x_tr_sl=en&_x_tr_tl=pt&_x_tr_hl=pt&_x_tr_pto=sge"
 
 # --- Filtro Inteligente de TTF (Dias limite baseados na qtd de Threads em uso) ---
 $global:TtfThresholds = @{
@@ -47,10 +56,11 @@ $global:TtfThresholds = @{
     1  = 1277   # 3,5 anos
 }
 
-# --- Links da Web: Submenu Bitcoin Links ---
+# --- Links da Web: Submenu Bitcoin Links (Com Fallback Proton -> Mega) ---
 $global:BtcPriceUrl          = "https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd"
 $global:UrlPoolDashboard     = "https://web.public-pool.io/#/app/"
 $global:UrlDriveUpdates      = "https://drive.proton.me/urls/WF022MG27W#YknkVYHMQO4w"
+$global:UrlMegaUpdates       = "https://mega.nz/folder/1pEAyJRB#ZsvFzL9K-00y0iPqmwc8mQ"
 $global:UrlMempool           = "https://mempool.space/pt/"
 $global:UrlTimeline          = "https://chaintimeline.com/"
 $global:UrlMercadoCripto     = "https://mercado.bitnada.com.br/"
@@ -62,6 +72,7 @@ $global:UrlMissao1Btc        = "https://missao-1-btc.onrender.com/"
 $global:UrlAposentadoriaBtc  = "https://aaronlil.github.io/btc-retirement-planner/"
 $global:UrlBitcoinMaps       = "https://btcmap.org/"
 $global:UrlTutorial          = ""   # <<< Preencha futuramente com o link web de MinerIsma na web
+$global:UrlWhitepaper        = "https://bitcoin.org/files/bitcoin-paper/bitcoin_pt_br.pdf"
 $global:UrlGpuMiner          = "https://www.kryptex.com/?ref=2103d720"
 $global:UrlCryptoBubbles     = "https://cryptobubbles.net/pt"
 
@@ -192,6 +203,8 @@ $lblAvgSubPT    = "(at" + [char]0x00E9 + " um Bloco / Sorte)"
 $lblHalvPT1     = "Pr" + [char]0x00F3 + "ximo Halving em "
 $lblHalvES1     = "Pr" + [char]0x00F3 + "ximo Halving en "
 $lblAreaPT      = "Link de download copiado para a " + [char]0x00E1 + "rea de transfer" + [char]0x00EA + "ncia!"
+$lblUsefulPT    = "Links " + [char]0x00DA + "teis"
+$lblUsefulES    = "Enlaces " + [char]0x00DA + "tiles"
 
 $global:Language = "PT"
 $global:LangTable = @{
@@ -200,6 +213,7 @@ $global:LangTable = @{
         BtcNowPrefix     = "itcoin agora: US$ "
         BtcLinks         = "itcoin Links"
         MenuChannels     = "Canais Cripto"
+        UsefulLinksHdr   = $lblUsefulPT
         GameDesafios     = "Cripto Desafios $"
         GameBoard        = "TotheMoon Tabuleiro"
         LinkPool         = "Seu Miner na Pool"
@@ -296,6 +310,7 @@ $global:LangTable = @{
         BtcNowPrefix     = "itcoin now: US$ "
         BtcLinks         = "itcoin Links"
         MenuChannels     = "Crypto Channels"
+        UsefulLinksHdr   = "Useful Links"
         GameDesafios     = "Crypto Challenges $"
         GameBoard        = "TotheMoon Board Game"
         LinkPool         = "Your Miner on Pool"
@@ -392,6 +407,7 @@ $global:LangTable = @{
         BtcNowPrefix     = "itcoin ahora: US$ "
         BtcLinks         = "itcoin Links"
         MenuChannels     = "Canales Cripto"
+        UsefulLinksHdr   = $lblUsefulES
         GameDesafios     = "Desafios Cripto $"
         GameBoard        = "TotheMoon Juego de Mesa"
         LinkPool         = "Tu Miner en la Pool"
@@ -502,15 +518,20 @@ Add-Type -AssemblyName System.Drawing
 Add-Type -AssemblyName PresentationCore
 [System.Windows.Forms.Application]::EnableVisualStyles()
 
-$global:AppVersion        = "MinerIsma_v2.0.2 - Alpha"
-$global:ShortVersion      = "MinerIsma v2.0"
-$global:BtcSym            = [string][char]0x20BF
-$global:BoltSym           = [string][char]0x26A1
-$global:StarSym           = [string][char]0x2605
-$global:Theme             = "Dark" # Padrao inicial de fabrica (Dark = Obsidiana / Light = Perola)
-$global:ColorObsidian     = [System.Drawing.Color]::FromArgb(16, 21, 28)
-$global:ColorPearl        = [System.Drawing.Color]::FromArgb(244, 241, 234)
-$global:ColorBronzeBorder = [System.Drawing.Color]::FromArgb(90, 60, 24)
+$global:AppVersion          = "MinerIsma_v2.0.4 - Alpha"
+$global:VersionNumber       = "2.0.4"
+$global:ShortVersion        = "MinerIsma v2.0"
+$global:BtcSym              = [string][char]0x20BF
+$global:BoltSym             = [string][char]0x26A1
+$global:StarSym             = [string][char]0x2605
+$global:UpdateSym           = [string][char]0x21BB
+$global:UpdateAvailable     = $false
+$global:LatestRemoteVersion = ""
+$global:VersionCheckDone    = $false
+$global:Theme               = "Dark" # Padrao inicial de fabrica (Dark = Obsidiana / Light = Perola)
+$global:ColorObsidian       = [System.Drawing.Color]::FromArgb(16, 21, 28)
+$global:ColorPearl          = [System.Drawing.Color]::FromArgb(244, 241, 234)
+$global:ColorBronzeBorder   = [System.Drawing.Color]::FromArgb(90, 60, 24)
 
 # Estrutura de Pastas: bin (atual), Raiz (pai), resources e Backup Oficial em AppData\Local\MinerIsma
 $global:BasePath         = $PSScriptRoot
@@ -533,6 +554,7 @@ $global:LegacyTtfLogFile = Join-Path $global:ResPath "TTF_BLOCO_LOG.txt"
 $global:ErrorLog         = Join-Path $global:ResPath "MinerManager_ERROS.log"
 $global:ConfigFile       = Join-Path $global:ResPath "MinerIsma_Config.json"
 $global:TutorialFile     = Join-Path $global:ResPath $global:TutorialFileName
+$global:CustomIconPath   = Join-Path $global:ResPath $global:CustomIconFileName
 
 # Caminhos de Backup Automatico em $env:LOCALAPPDATA\MinerIsma
 $global:BackupConfigFile = Join-Path $global:BackupDir "MinerIsma_Config.json"
@@ -671,7 +693,7 @@ $global:LogQueue           = New-Object System.Collections.Concurrent.Concurrent
 $global:RecentLines        = New-Object System.Collections.Generic.Queue[string]
 
 # ============================================================
-# API DO WINDOWS (THREADS + DWM + MENU E SCROLLBAR CLARO/ESCURO)
+# API DO WINDOWS (THREADS + DWM + ICONE TASKBAR + MENU E SCROLLBAR)
 # ============================================================
 Add-Type -ReferencedAssemblies System.Windows.Forms, System.Drawing -TypeDefinition @"
 using System;
@@ -692,9 +714,14 @@ public class ProcCtl {
     [DllImport("kernel32.dll")] public static extern uint SuspendThread(IntPtr hThread);
     [DllImport("kernel32.dll")] public static extern int ResumeThread(IntPtr hThread);
     [DllImport("kernel32.dll")] public static extern bool CloseHandle(IntPtr h);
+    [DllImport("kernel32.dll")] public static extern IntPtr GetConsoleWindow();
     [DllImport("dwmapi.dll")] public static extern int DwmSetWindowAttribute(IntPtr hwnd, int attr, ref int attrValue, int attrSize);
     [DllImport("dwmapi.dll")] public static extern int DwmGetWindowAttribute(IntPtr hwnd, int attr, out DwmRect rect, int rectSize);
     [DllImport("user32.dll")] public static extern IntPtr SendMessage(IntPtr hWnd, int msg, IntPtr wParam, IntPtr lParam);
+    [DllImport("user32.dll", SetLastError = true, CharSet = CharSet.Auto)]
+    public static extern IntPtr LoadImage(IntPtr hinst, string lpszName, uint uType, int cxDesired, int cyDesired, uint fuLoad);
+    [DllImport("shell32.dll", SetLastError = true)]
+    public static extern int SetCurrentProcessExplicitAppUserModelID([MarshalAs(UnmanagedType.LPWStr)] string AppID);
 }
 
 public class ObsidianVScrollBar : Control {
@@ -861,6 +888,7 @@ public class ObsidianVScrollBar : Control {
 public class ObsidianMenuColors : ProfessionalColorTable {
     public static bool IsLightMode = false;
     public static string CurrentLangBadge = "BR";
+    public static bool IsUpdateAvailable = false;
 
     private Color BgColor     { get { return IsLightMode ? Color.FromArgb(244, 241, 234) : Color.FromArgb(16, 21, 28); } }
     private Color MarginColor { get { return IsLightMode ? Color.FromArgb(232, 226, 214) : Color.FromArgb(10, 14, 20); } }
@@ -902,8 +930,9 @@ public class ObsidianMenuRenderer : ToolStripProfessionalRenderer {
     }
     protected override void OnRenderItemText(ToolStripItemTextRenderEventArgs e) {
         if (e.Item != null && e.Item.Name == "HeaderItem") {
-            e.TextRectangle = new Rectangle(4, 0, Math.Max(80, e.Item.Width - 78), e.Item.Height);
-            e.TextFormat = TextFormatFlags.Left | TextFormatFlags.VerticalCenter;
+            int leftAlignedX = Math.Max(28, e.TextRectangle.Left);
+            e.TextRectangle = new Rectangle(leftAlignedX, 0, Math.Max(80, e.Item.Width - leftAlignedX - 96), e.Item.Height);
+            e.TextFormat = TextFormatFlags.Left | TextFormatFlags.VerticalCenter | TextFormatFlags.NoPadding;
             base.OnRenderItemText(e);
 
             Graphics g = e.Graphics;
@@ -912,8 +941,10 @@ public class ObsidianMenuRenderer : ToolStripProfessionalRenderer {
             int boxY   = (e.Item.Height - boxH) / 2;
             int langW  = 26;
             int themeW = 24;
+            int updW   = 22;
             int langX  = e.Item.Width - langW - 18;
             int themeX = langX - themeW - 4;
+            int updX   = themeX - updW - 4;
 
             Rectangle rTheme = new Rectangle(themeX, boxY, themeW, boxH);
             Rectangle rLang  = new Rectangle(langX, boxY, langW, boxH);
@@ -934,6 +965,20 @@ public class ObsidianMenuRenderer : ToolStripProfessionalRenderer {
 
             using (Font fLang = new Font("Segoe UI", 8.25f, FontStyle.Bold)) {
                 TextRenderer.DrawText(g, ObsidianMenuColors.CurrentLangBadge, fLang, rLang, symCol, TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter | TextFormatFlags.NoPadding);
+            }
+
+            if (ObsidianMenuColors.IsUpdateAvailable) {
+                Rectangle rUpd = new Rectangle(updX, boxY, updW, boxH);
+                Color updCol = ObsidianMenuColors.IsLightMode ? Color.FromArgb(18, 125, 48) : Color.FromArgb(50, 225, 90);
+                using (SolidBrush bUpd = new SolidBrush(boxBg)) {
+                    g.FillRectangle(bUpd, rUpd);
+                }
+                using (Pen pUpd = new Pen(updCol, 1)) {
+                    g.DrawRectangle(pUpd, rUpd.X, rUpd.Y, rUpd.Width - 1, rUpd.Height - 1);
+                }
+                using (Font fUpd = new Font("Segoe UI", 9.5f, FontStyle.Bold)) {
+                    TextRenderer.DrawText(g, "\u21BB", fUpd, rUpd, updCol, TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter | TextFormatFlags.NoPadding);
+                }
             }
             return;
         }
@@ -985,6 +1030,11 @@ public class ObsidianMenuRenderer : ToolStripProfessionalRenderer {
 }
 "@
 
+# Registra identidade propria do MinerIsma no Shell do Windows para substituir o icone do PowerShell na Barra de Tarefas
+try {
+    [ProcCtl]::SetCurrentProcessExplicitAppUserModelID("MinerIsma.SoloMiner.v2.0.4") | Out-Null
+} catch {}
+
 function Get-WindowBgColor {
     if ($global:Theme -eq "Light") { return $global:ColorPearl }
     return $global:ColorObsidian
@@ -1011,7 +1061,16 @@ function Set-WindowDarkTheme {
     try {
         $isLight = ($global:Theme -eq "Light")
         $Form.BackColor = Get-WindowBgColor
+        $Form.ShowIcon = $true
+        if ($null -ne $global:AppIcon) {
+            $Form.Icon = $global:AppIcon
+        }
         $hwnd = $Form.Handle
+        $hBig = if ($global:HIconBig -ne [IntPtr]::Zero) { $global:HIconBig } elseif ($null -ne $global:AppIcon) { $global:AppIcon.Handle } else { [IntPtr]::Zero }
+        $hSml = if ($global:HIconSmall -ne [IntPtr]::Zero) { $global:HIconSmall } elseif ($null -ne $global:AppIcon) { $global:AppIcon.Handle } else { [IntPtr]::Zero }
+        if ($hSml -ne [IntPtr]::Zero) { [ProcCtl]::SendMessage($hwnd, 0x0080, [IntPtr]0, $hSml) | Out-Null }
+        if ($hBig -ne [IntPtr]::Zero) { [ProcCtl]::SendMessage($hwnd, 0x0080, [IntPtr]1, $hBig) | Out-Null }
+
         $dark = if ($isLight) { 0 } else { 1 }
         [ProcCtl]::DwmSetWindowAttribute($hwnd, 20, [ref]$dark, 4) | Out-Null
         [ProcCtl]::DwmSetWindowAttribute($hwnd, 19, [ref]$dark, 4) | Out-Null
@@ -1090,12 +1149,14 @@ function Set-MenuObsidianTheme {
     $isLight = ($global:Theme -eq "Light")
     [ObsidianMenuColors]::IsLightMode = $isLight
     [ObsidianMenuColors]::CurrentLangBadge = if ($global:Language -eq "PT") { "BR" } else { $global:Language }
+    [ObsidianMenuColors]::IsUpdateAvailable = $global:UpdateAvailable
 
     $bgCol       = if ($isLight) { $global:ColorPearl } else { $global:ColorObsidian }
     $txtCol      = if ($isLight) { [System.Drawing.Color]::FromArgb(26, 20, 14) } else { [System.Drawing.Color]::FromArgb(230, 237, 243) }
     $btcCol      = if ($isLight) { [System.Drawing.Color]::FromArgb(205, 102, 0) } else { [System.Drawing.Color]::FromArgb(255, 247, 147, 26) }
     $lightOrgCol = if ($isLight) { [System.Drawing.Color]::FromArgb(215, 115, 20) } else { [System.Drawing.Color]::FromArgb(255, 185, 95) }
     $goldCol     = if ($isLight) { [System.Drawing.Color]::FromArgb(180, 95, 0) } else { [System.Drawing.Color]::FromArgb(255, 209, 102) }
+    $updGreenCol = if ($isLight) { [System.Drawing.Color]::FromArgb(18, 125, 48) } else { [System.Drawing.Color]::FromArgb(50, 225, 90) }
 
     $MenuStrip.Renderer  = New-Object ObsidianMenuRenderer
     $MenuStrip.BackColor = $bgCol
@@ -1118,8 +1179,10 @@ function Set-MenuObsidianTheme {
             $item.DropDown.ForeColor = $txtCol
             foreach ($sub in $item.DropDownItems) {
                 $sub.BackColor = $bgCol
-                if ($sub -eq $global:lblDelayHeader) {
+                if ($sub -in @($global:lblDelayHeader, $global:lblLinksHeader1, $global:lblLinksHeader2, $global:lblLinksHeader3)) {
                     $sub.ForeColor = $lightOrgCol
+                } elseif (($sub -eq $global:lnkUpdates) -and $global:UpdateAvailable) {
+                    $sub.ForeColor = $updGreenCol
                 } else {
                     $sub.ForeColor = $txtCol
                 }
@@ -1146,6 +1209,49 @@ function Set-AppTheme {
     $global:LogQueue.Enqueue("[SISTEMA] Tema visual alterado para: $NewTheme")
 }
 
+# ============================================================
+# FALLBACK INTELIGENTE DE LINKS (PROTON -> MEGA / HALVING / RENTRY)
+# ============================================================
+function Test-UrlReachable {
+    param([string]$Url)
+    if ([string]::IsNullOrWhiteSpace($Url)) { return $false }
+    $cleanUrl = ($Url -replace '#.*$', '').Trim()
+    $curlExe = Join-Path $env:SystemRoot "System32\curl.exe"
+    if (Test-Path -LiteralPath $curlExe) {
+        try {
+            $httpCode = & $curlExe -s -L -o NUL -w "%{http_code}" --max-time 3 -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/124.0.0.0" $cleanUrl 2>$null
+            if ($httpCode -match "^(2\d\d|3\d\d)$") { return $true }
+        } catch {}
+    }
+    try {
+        $req = [System.Net.HttpWebRequest]::Create($cleanUrl)
+        $req.Method = "GET"
+        $req.Timeout = 2500
+        $req.UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/124.0.0.0"
+        $res = $req.GetResponse()
+        $res.Close()
+        return $true
+    } catch {}
+    return $false
+}
+
+function Get-BestUpdateUrl {
+    if (Test-UrlReachable $global:UrlDriveUpdates) {
+        return [string]$global:UrlDriveUpdates
+    }
+    if (-not [string]::IsNullOrWhiteSpace($global:UrlMegaUpdates)) {
+        return [string]$global:UrlMegaUpdates
+    }
+    return [string]$global:UrlDriveUpdates
+}
+
+function Open-UpdateDownloadLink {
+    $bestUrl = Get-BestUpdateUrl
+    if (-not [string]::IsNullOrWhiteSpace($bestUrl)) {
+        try { Start-Process $bestUrl } catch {}
+    }
+}
+
 $global:shareBalloonTimer = New-Object System.Windows.Forms.Timer
 $global:shareBalloonTimer.Interval = 150
 $global:shareBalloonTimer.Add_Tick({
@@ -1157,10 +1263,137 @@ $global:shareBalloonTimer.Add_Tick({
 
 function Invoke-ShareMinerIsma {
     try {
-        [System.Windows.Forms.Clipboard]::SetText([string]$global:UrlDriveUpdates)
-        $global:LogQueue.Enqueue("[SISTEMA] $(Get-Text 'ShareCopiedMsg') ($($global:UrlDriveUpdates))")
+        $shareUrl = Get-BestUpdateUrl
+        [System.Windows.Forms.Clipboard]::SetText([string]$shareUrl)
+        $global:LogQueue.Enqueue("[SISTEMA] $(Get-Text 'ShareCopiedMsg') ($shareUrl)")
         $global:shareBalloonTimer.Stop()
         $global:shareBalloonTimer.Start()
+    } catch {}
+}
+
+function Open-HalvingLink {
+    $candidates = @($global:UrlHalving1, $global:UrlHalving2, $global:UrlHalving3)
+    foreach ($u in $candidates) {
+        if ([string]::IsNullOrWhiteSpace($u)) { continue }
+        if (Test-UrlReachable $u) {
+            try { Start-Process $u } catch {}
+            return
+        }
+    }
+    if (-not [string]::IsNullOrWhiteSpace($global:UrlHalving1)) {
+        try { Start-Process $global:UrlHalving1 } catch {}
+    }
+}
+
+function Fetch-UrlTextContent {
+    param([string]$Url)
+    if ([string]::IsNullOrWhiteSpace($Url)) { return "" }
+    $curlExe = Join-Path $env:SystemRoot "System32\curl.exe"
+    if (Test-Path -LiteralPath $curlExe) {
+        try {
+            $out = & $curlExe -s -L --max-time 4 -H "Cache-Control: no-cache" -H "Pragma: no-cache" -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36" $Url 2>$null
+            if ($null -ne $out) {
+                $txt = ($out -join "`n").Trim()
+                if (-not [string]::IsNullOrWhiteSpace($txt)) { return $txt }
+            }
+        } catch {}
+    }
+    try {
+        try { [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Tls12 -bor 3072 -bor 12288 } catch {}
+        $req = [System.Net.HttpWebRequest]::Create($Url)
+        $req.Method = "GET"
+        $req.Timeout = 4000
+        $req.UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        $req.Headers.Add("Cache-Control", "no-cache")
+        $res = $req.GetResponse()
+        $stream = $res.GetResponseStream()
+        $reader = New-Object System.IO.StreamReader($stream)
+        $txt = $reader.ReadToEnd()
+        $reader.Close()
+        $stream.Close()
+        $res.Close()
+        if (-not [string]::IsNullOrWhiteSpace($txt)) { return $txt.Trim() }
+    } catch {}
+    return ""
+}
+
+function Extract-VersionFromText {
+    param([string]$Content)
+    if ([string]::IsNullOrWhiteSpace($Content)) { return $null }
+    $searchTarget = $Content
+
+    # Se o retorno for pagina HTML do Rentry, extrai especificamente o texto postado pelo usuario
+    if ($Content -match "(?i)<html|<!doctype") {
+        if ($Content -match '(?is)<div[^>]*class="[^"]*entry-text[^"]*"[^>]*>(.*?)</div>') {
+            $searchTarget = $Matches[1] -replace '<[^>]+>', ' '
+        } elseif ($Content -match '(?is)<article[^>]*>(.*?)</article>') {
+            $searchTarget = $Matches[1] -replace '<[^>]+>', ' '
+        } elseif ($Content -match '(?is)<meta[^>]*name="description"[^>]*content="([^"]+)"') {
+            $searchTarget = $Matches[1]
+        } else {
+            return $null
+        }
+    }
+
+    if ($searchTarget -match "(?i)\bv?(\d+\.\d+(?:\.\d+)*)\b") {
+        return $Matches[1]
+    }
+    return $null
+}
+
+function Check-MinerUpdate {
+    if ([string]::IsNullOrWhiteSpace($global:VersionCheckUrl)) { return }
+    try {
+        $baseUrl = $global:VersionCheckUrl.Trim().TrimEnd('/')
+        $urlsToTry = @()
+        if ($baseUrl -match "^https?://rentry\.(co|org)/[^/]+$") {
+            $urlsToTry += ($baseUrl + "/raw")
+            $altHost = if ($baseUrl -match "rentry\.co") { $baseUrl -replace "rentry\.co", "rentry.org" } else { $baseUrl -replace "rentry\.org", "rentry.co" }
+            $urlsToTry += ($altHost + "/raw")
+            $urlsToTry += $baseUrl
+            $urlsToTry += $altHost
+        } else {
+            $urlsToTry += $baseUrl
+        }
+
+        $remoteVerStr = $null
+        foreach ($u in $urlsToTry) {
+            $raw = Fetch-UrlTextContent $u
+            $parsedVer = Extract-VersionFromText $raw
+            if (-not [string]::IsNullOrWhiteSpace($parsedVer)) {
+                $remoteVerStr = $parsedVer
+                break
+            }
+        }
+
+        if (-not [string]::IsNullOrWhiteSpace($remoteVerStr)) {
+            $vRemote = [version]$remoteVerStr
+            $vLocal  = [version]$global:VersionNumber
+            if ($vRemote -gt $vLocal) {
+                $wasAvail = $global:UpdateAvailable
+                $global:UpdateAvailable     = $true
+                $global:LatestRemoteVersion = $remoteVerStr
+                [ObsidianMenuColors]::IsUpdateAvailable = $true
+                if ($null -ne $global:lnkUpdates) {
+                    $global:lnkUpdates.Text = "$($global:UpdateSym) $(Get-Text 'LinkUpdates') (v$remoteVerStr)"
+                }
+                Set-MenuObsidianTheme $menu
+                if (-not $wasAvail) {
+                    $global:LogQueue.Enqueue("[SISTEMA] Nova versao disponivel para download: v$remoteVerStr (atual: v$($global:VersionNumber))")
+                }
+            } else {
+                $global:UpdateAvailable = $false
+                [ObsidianMenuColors]::IsUpdateAvailable = $false
+                if ($null -ne $global:lnkUpdates) {
+                    $global:lnkUpdates.Text = Get-Text "LinkUpdates"
+                }
+                Set-MenuObsidianTheme $menu
+                if (-not $global:VersionCheckDone) {
+                    $global:LogQueue.Enqueue("[SISTEMA] Checagem de atualizacao: v$($global:VersionNumber) atualizada (remota: v$remoteVerStr)")
+                }
+            }
+            $global:VersionCheckDone = $true
+        }
     } catch {}
 }
 
@@ -1297,7 +1530,9 @@ function Show-Tutorial {
     $tutForm.MinimumSize = New-Object System.Drawing.Size(820, 600)
     $tutForm.StartPosition = "CenterScreen"
     $tutForm.BackColor = $winBg
-    $tutForm.Icon = $global:notifyIcon.Icon
+    $tutForm.ShowIcon = $true
+    $tutForm.ShowInTaskbar = $true
+    $tutForm.Icon = $global:AppIcon
 
     $bottomPanel = New-Object System.Windows.Forms.Panel
     $bottomPanel.Dock = "Bottom"
@@ -1381,9 +1616,11 @@ function Show-WalletConfig {
     $walletForm.Size = New-Object System.Drawing.Size(580, 380)
     $walletForm.StartPosition = "CenterScreen"
     $walletForm.BackColor = Get-WindowBgColor
-    $walletForm.FormBorderStyle = "FixedDialog"
+    $walletForm.FormBorderStyle = "FixedSingle"
     $walletForm.MaximizeBox = $false
-    $walletForm.Icon = $global:notifyIcon.Icon
+    $walletForm.ShowIcon = $true
+    $walletForm.ShowInTaskbar = $true
+    $walletForm.Icon = $global:AppIcon
 
     $colorBitcoin = Get-AccentOrangeColor
     $txtPrimary   = Get-PrimaryTextColor
@@ -1660,9 +1897,11 @@ function Show-TtfStats {
     $statForm.Size = New-Object System.Drawing.Size(580, 380)
     $statForm.StartPosition = "CenterScreen"
     $statForm.BackColor = Get-WindowBgColor
-    $statForm.FormBorderStyle = "FixedDialog"
+    $statForm.FormBorderStyle = "FixedSingle"
     $statForm.MaximizeBox = $false
-    $statForm.Icon = $global:notifyIcon.Icon
+    $statForm.ShowIcon = $true
+    $statForm.ShowInTaskbar = $true
+    $statForm.Icon = $global:AppIcon
 
     $isLight      = ($global:Theme -eq "Light")
     $cardBgCol    = if ($isLight) { [System.Drawing.Color]::FromArgb(236, 231, 220) } else { [System.Drawing.Color]::FromArgb(12, 17, 24) }
@@ -1735,7 +1974,9 @@ function Show-TtfStats {
     $lblHalving.TextAlign = [System.Drawing.ContentAlignment]::MiddleCenter
     $lblHalving.BackColor = $cardBgCol
     $lblHalving.ForeColor = $colorSubInfo
-    $lblHalving.Font = New-Object System.Drawing.Font("Segoe UI", 9.5, [System.Drawing.FontStyle]::Bold)
+    $lblHalving.Cursor = [System.Windows.Forms.Cursors]::Hand
+    $lblHalving.Font = New-Object System.Drawing.Font("Segoe UI", 9.5, ([System.Drawing.FontStyle]::Bold -bor [System.Drawing.FontStyle]::Underline))
+    $lblHalving.Add_Click({ Open-HalvingLink })
 
     # --- PAINEL DIREITO (X=288, Y=14, W=252, H=130): Calculo da Sorte / TTF ---
     $lblAvgHdr = New-Object System.Windows.Forms.Label
@@ -1950,9 +2191,11 @@ function Invoke-BlockAlert {
     $alertForm.Size = New-Object System.Drawing.Size(580, 380)
     $alertForm.StartPosition = "CenterScreen"
     $alertForm.BackColor = Get-WindowBgColor
-    $alertForm.FormBorderStyle = "FixedDialog"
+    $alertForm.FormBorderStyle = "FixedSingle"
     $alertForm.MaximizeBox = $false
-    $alertForm.Icon = $global:notifyIcon.Icon
+    $alertForm.ShowIcon = $true
+    $alertForm.ShowInTaskbar = $true
+    $alertForm.Icon = $global:AppIcon
 
     $colorBitcoin = Get-AccentOrangeColor
     $txtPrimary   = Get-PrimaryTextColor
@@ -2045,7 +2288,7 @@ function Invoke-BlockAlert {
 }
 
 # ============================================================
-# API NATIVA DO BITCOIN (COINGECKO) E ICONE DO TRAY
+# API NATIVA DO BITCOIN (COINGECKO) E ICONE DO TRAY / TASKBAR
 # ============================================================
 function Update-BtcPrice {
     try {
@@ -2053,7 +2296,7 @@ function Update-BtcPrice {
         $req = [System.Net.WebRequest]::Create($url)
         $req.Method = "GET"
         $req.Timeout = 3000
-        $req.UserAgent = "MinerIsma/2.0.2"
+        $req.UserAgent = "MinerIsma/2.0.4"
         
         $res = $req.GetResponse()
         $stream = $res.GetResponseStream()
@@ -2094,8 +2337,61 @@ function New-TrayIcon {
     return [System.Drawing.Icon]::FromHandle($bmp.GetHicon())
 }
 
+$global:HIconBig   = [IntPtr]::Zero
+$global:HIconSmall = [IntPtr]::Zero
+
+function Get-MinerIsmaIcon {
+    $candidates = @(
+        $global:CustomIconPath,
+        (Join-Path $global:RootPath $global:CustomIconFileName),
+        (Join-Path $global:BasePath $global:CustomIconFileName)
+    )
+    foreach ($p in $candidates) {
+        if (($null -ne $p) -and (Test-Path -LiteralPath $p)) {
+            try {
+                $hBig = [ProcCtl]::LoadImage([IntPtr]::Zero, $p, 1, 256, 256, 0x0010)
+                if ($hBig -eq [IntPtr]::Zero) {
+                    $hBig = [ProcCtl]::LoadImage([IntPtr]::Zero, $p, 1, 0, 0, 0x0010 -bor 0x0040)
+                }
+                $hSml = [ProcCtl]::LoadImage([IntPtr]::Zero, $p, 1, 32, 32, 0x0010)
+                if ($hBig -ne [IntPtr]::Zero) { $global:HIconBig = $hBig }
+                if ($hSml -ne [IntPtr]::Zero) { $global:HIconSmall = $hSml }
+                if ($hBig -ne [IntPtr]::Zero) {
+                    return [System.Drawing.Icon]::FromHandle($hBig)
+                }
+            } catch {}
+            try {
+                $icoObj = New-Object System.Drawing.Icon($p)
+                $global:HIconBig   = $icoObj.Handle
+                $global:HIconSmall = $icoObj.Handle
+                return $icoObj
+            } catch {}
+            try {
+                $bmpObj = New-Object System.Drawing.Bitmap($p)
+                $hBmp   = $bmpObj.GetHicon()
+                $global:HIconBig   = $hBmp
+                $global:HIconSmall = $hBmp
+                return [System.Drawing.Icon]::FromHandle($hBmp)
+            } catch {}
+        }
+    }
+    $fallbackIco = New-TrayIcon
+    $global:HIconBig   = $fallbackIco.Handle
+    $global:HIconSmall = $fallbackIco.Handle
+    return $fallbackIco
+}
+
+$global:AppIcon = Get-MinerIsmaIcon
+try {
+    $conHwnd = [ProcCtl]::GetConsoleWindow()
+    if ($conHwnd -ne [IntPtr]::Zero -and $null -ne $global:AppIcon) {
+        [ProcCtl]::SendMessage($conHwnd, 0x0080, [IntPtr]0, $global:HIconSmall) | Out-Null
+        [ProcCtl]::SendMessage($conHwnd, 0x0080, [IntPtr]1, $global:HIconBig) | Out-Null
+    }
+} catch {}
+
 $global:notifyIcon = New-Object System.Windows.Forms.NotifyIcon
-$global:notifyIcon.Icon = New-TrayIcon
+$global:notifyIcon.Icon = $global:AppIcon
 $global:notifyIcon.Text = "$($global:ShortVersion)" + [Environment]::NewLine + (Get-Text "TrayWaitStart")
 $global:notifyIcon.Visible = $true
 
@@ -2103,9 +2399,10 @@ $global:logForm = New-Object System.Windows.Forms.Form
 $global:logForm.Text = "$($global:ShortVersion) - Console"
 $global:logForm.Size = New-Object System.Drawing.Size(900, 520)
 $global:logForm.StartPosition = "CenterScreen"
-$global:logForm.ShowInTaskbar = $false
+$global:logForm.ShowIcon = $true
+$global:logForm.ShowInTaskbar = $true
 $global:logForm.BackColor = Get-WindowBgColor
-$global:logForm.Icon = $global:notifyIcon.Icon
+$global:logForm.Icon = $global:AppIcon
 
 # Painel que oculta os 17px da barra branca nativa do RichTextBox e exibe a ObsidianVScrollBar em Bronze/Obsidiana
 $global:logHostPanel = New-Object System.Windows.Forms.Panel
@@ -2371,7 +2668,7 @@ function Start-MinerTask {
 }
 
 # ============================================================
-# MENUS DO TRAY E SUBMENUS (V2.0.2 - Alpha)
+# MENUS DO TRAY E SUBMENUS (V2.0.4 - Alpha)
 # ============================================================
 $menu = New-Object System.Windows.Forms.ContextMenuStrip
 
@@ -2380,8 +2677,8 @@ $global:notifyIcon.Add_MouseClick({
     if ($e.Button -eq [System.Windows.Forms.MouseButtons]::Left) { Toggle-LogWindow }
 })
 
-# 1. Cabecalho Laranja como ToolStripMenuItem Nativo (com Submenu de Idioma e Setinha Lateral)
-$headerItem = New-Object System.Windows.Forms.ToolStripMenuItem("  $($global:ShortVersion)                        ")
+# 1. Cabecalho Laranja alinhado na margem do texto + [↻] (se houver update), [☾]/[☀] e [BR] ▸
+$headerItem = New-Object System.Windows.Forms.ToolStripMenuItem("$($global:ShortVersion)                              ")
 $headerItem.Name = "HeaderItem"
 $headerItem.Padding = New-Object System.Windows.Forms.Padding(0, 4, 0, 4)
 $headerItem.ForeColor = [System.Drawing.Color]::FromArgb(255, 247, 147, 26)
@@ -2409,7 +2706,10 @@ foreach ($entry in $langOptions.GetEnumerator()) {
 $headerItem.Add_MouseDown({
     param($sender, $e)
     if ($e.Button -eq [System.Windows.Forms.MouseButtons]::Left) {
-        if (($e.X -ge ($sender.Width - 74)) -and ($e.X -lt ($sender.Width - 44))) {
+        if ($global:UpdateAvailable -and ($e.X -ge ($sender.Width - 100)) -and ($e.X -lt ($sender.Width - 74))) {
+            Open-UpdateDownloadLink
+        }
+        elseif (($e.X -ge ($sender.Width - 74)) -and ($e.X -lt ($sender.Width - 44))) {
             $nextTheme = if ($global:Theme -eq "Light") { "Dark" } else { "Light" }
             Set-AppTheme $nextTheme
         }
@@ -2427,7 +2727,7 @@ $global:btcPriceItem.Font = New-Object System.Drawing.Font("Segoe UI", 9, [Syste
 $menu.Items.Add($global:btcPriceItem) | Out-Null
 $menu.Items.Add("-") | Out-Null
 
-# 3A. Submenu Bitcoin Links
+# 3A. Submenu Bitcoin Links (Ordem: Pool, Atualizacoes, Web -> Links Uteis -> Demais Links)
 $global:itemLinksMenu = New-Object System.Windows.Forms.ToolStripMenuItem("$($global:BtcSym)$(Get-Text 'BtcLinks')")
 
 $global:lnkPool = $global:itemLinksMenu.DropDownItems.Add((Get-Text "LinkPool"))
@@ -2438,7 +2738,22 @@ $global:lnkPool.Add_Click({
 })
 
 $global:lnkUpdates = $global:itemLinksMenu.DropDownItems.Add((Get-Text "LinkUpdates"))
-$global:lnkUpdates.Add_Click({ Start-Process $global:UrlDriveUpdates })
+$global:lnkUpdates.Add_Click({ Open-UpdateDownloadLink })
+
+$global:lnkWeb = $global:itemLinksMenu.DropDownItems.Add((Get-Text "LinkWeb"))
+$global:lnkWeb.Add_Click({
+    if (-not [string]::IsNullOrWhiteSpace($global:UrlTutorial)) {
+        Start-Process $global:UrlTutorial
+    } else {
+        [System.Windows.Forms.MessageBox]::Show((Get-Text "MsgWebSoon"), "$($global:ShortVersion) - Web", 0, 64) | Out-Null
+    }
+})
+
+$global:itemLinksMenu.DropDownItems.Add("-") | Out-Null
+$global:lblLinksHeader1 = New-Object System.Windows.Forms.ToolStripLabel((Get-Text "UsefulLinksHdr"))
+$global:lblLinksHeader1.Font = New-Object System.Drawing.Font("Segoe UI", 9, [System.Drawing.FontStyle]::Bold)
+$global:itemLinksMenu.DropDownItems.Add($global:lblLinksHeader1) | Out-Null
+$global:itemLinksMenu.DropDownItems.Add("-") | Out-Null
 
 $global:lnkMempool = $global:itemLinksMenu.DropDownItems.Add((Get-Text "LinkMempool"))
 $global:lnkMempool.Add_Click({ Start-Process $global:UrlMempool })
@@ -2470,14 +2785,8 @@ $global:lnkRetireBtc.Add_Click({ Start-Process $global:UrlAposentadoriaBtc })
 $global:lnkBtcMaps = $global:itemLinksMenu.DropDownItems.Add((Get-Text "LinkBtcMaps"))
 $global:lnkBtcMaps.Add_Click({ Start-Process $global:UrlBitcoinMaps })
 
-$global:lnkWeb = $global:itemLinksMenu.DropDownItems.Add((Get-Text "LinkWeb"))
-$global:lnkWeb.Add_Click({
-    if (-not [string]::IsNullOrWhiteSpace($global:UrlTutorial)) {
-        Start-Process $global:UrlTutorial
-    } else {
-        [System.Windows.Forms.MessageBox]::Show((Get-Text "MsgWebSoon"), "$($global:ShortVersion) - Web", 0, 64) | Out-Null
-    }
-})
+$global:lnkWhitepaper = $global:itemLinksMenu.DropDownItems.Add("Whitepaper Satoshi")
+$global:lnkWhitepaper.Add_Click({ Start-Process $global:UrlWhitepaper })
 
 $global:lnkGpuMiner = $global:itemLinksMenu.DropDownItems.Add((Get-Text "LinkGpuMiner"))
 $global:lnkGpuMiner.Add_Click({ Start-Process $global:UrlGpuMiner })
@@ -2487,8 +2796,13 @@ $global:lnkBubbles.Add_Click({ Start-Process $global:UrlCryptoBubbles })
 
 $menu.Items.Add($global:itemLinksMenu) | Out-Null
 
-# 3B. Submenu Bitcoin Games (entre Bitcoin Links e Canais Cripto)
+# 3B. Submenu Bitcoin Games (Com subtitulo "Links Uteis")
 $global:itemGamesMenu = New-Object System.Windows.Forms.ToolStripMenuItem("$($global:BtcSym)itcoin Games")
+
+$global:lblLinksHeader2 = New-Object System.Windows.Forms.ToolStripLabel((Get-Text "UsefulLinksHdr"))
+$global:lblLinksHeader2.Font = New-Object System.Drawing.Font("Segoe UI", 9, [System.Drawing.FontStyle]::Bold)
+$global:itemGamesMenu.DropDownItems.Add($global:lblLinksHeader2) | Out-Null
+$global:itemGamesMenu.DropDownItems.Add("-") | Out-Null
 
 $global:game21M = $global:itemGamesMenu.DropDownItems.Add("21 Million")
 $global:game21M.Add_Click({ Open-GameWindow $global:UrlGame21Million })
@@ -2510,8 +2824,14 @@ $global:gameSunnyLand.Add_Click({ Open-GameWindow $global:UrlGameSunnyLand })
 
 $menu.Items.Add($global:itemGamesMenu) | Out-Null
 
-# 3C. Submenu Canais Cripto (14 canais do YouTube)
+# 3C. Submenu Canais Cripto (Com subtitulo "Links Uteis" + 14 canais do YouTube)
 $global:itemChannelsMenu = New-Object System.Windows.Forms.ToolStripMenuItem((Get-Text "MenuChannels"))
+
+$global:lblLinksHeader3 = New-Object System.Windows.Forms.ToolStripLabel((Get-Text "UsefulLinksHdr"))
+$global:lblLinksHeader3.Font = New-Object System.Drawing.Font("Segoe UI", 9, [System.Drawing.FontStyle]::Bold)
+$global:itemChannelsMenu.DropDownItems.Add($global:lblLinksHeader3) | Out-Null
+$global:itemChannelsMenu.DropDownItems.Add("-") | Out-Null
+
 foreach ($entry in $global:CryptoChannels.GetEnumerator()) {
     $chName = [string]$entry.Key
     $chUrl  = [string]$entry.Value
@@ -2825,6 +3145,7 @@ $global:itemExit.Add_Click({
     $timer.Stop()
     $startTimer.Stop()
     $btcTimer.Stop()
+    $updateCheckTimer.Stop()
     $global:shareBalloonTimer.Stop()
     if (($global:CurrentProc) -and (-not ($global:CurrentProc.HasExited))) {
         $global:StopRequested = $true
@@ -2858,11 +3179,18 @@ function Set-AppLanguage {
 
     $global:itemLinksMenu.Text    = "$($global:BtcSym)$(Get-Text 'BtcLinks')"
     $global:itemChannelsMenu.Text = Get-Text "MenuChannels"
+    $global:lblLinksHeader1.Text  = Get-Text "UsefulLinksHdr"
+    $global:lblLinksHeader2.Text  = Get-Text "UsefulLinksHdr"
+    $global:lblLinksHeader3.Text  = Get-Text "UsefulLinksHdr"
     $global:gameDesafios.Text     = Get-Text "GameDesafios"
     $global:gameBoard.Text        = Get-Text "GameBoard"
 
-    $global:lnkPool.Text       = Get-Text "LinkPool"
-    $global:lnkUpdates.Text    = Get-Text "LinkUpdates"
+    $global:lnkPool.Text = Get-Text "LinkPool"
+    if ($global:UpdateAvailable -and (-not [string]::IsNullOrWhiteSpace($global:LatestRemoteVersion))) {
+        $global:lnkUpdates.Text = "$($global:UpdateSym) $(Get-Text 'LinkUpdates') (v$($global:LatestRemoteVersion))"
+    } else {
+        $global:lnkUpdates.Text = Get-Text "LinkUpdates"
+    }
     $global:lnkMempool.Text    = Get-Text "LinkMempool"
     $global:lnkTimeline.Text   = Get-Text "LinkTimeline"
     $global:lnkMonitor.Text    = Get-Text "LinkMonitor"
@@ -2911,7 +3239,8 @@ function Set-AppLanguage {
 
 # Atualizacao dinamica dos checks ao abrir o menu
 $menu.Add_Opening({
-    [ObsidianMenuColors]::CurrentLangBadge = if ($global:Language -eq "PT") { "BR" } else { $global:Language }
+    [ObsidianMenuColors]::CurrentLangBadge  = if ($global:Language -eq "PT") { "BR" } else { $global:Language }
+    [ObsidianMenuColors]::IsUpdateAvailable = $global:UpdateAvailable
     foreach ($n in $threadItems.Keys) {
         $threadItems[$n].Checked = ($n -eq $global:CurrentThreads)
     }
@@ -2930,7 +3259,7 @@ $menu.Add_Opening({
 $global:notifyIcon.ContextMenuStrip = $menu
 
 # ============================================================
-# TIMERS DE INICIO, PRECO E LEITURA PRINCIPAL
+# TIMERS DE INICIO, PRECO, CHECAGEM DE VERSAO E LEITURA PRINCIPAL
 # ============================================================
 Initialize-CpuDetection
 
@@ -2950,6 +3279,15 @@ $btcTimer.Interval = 60000 # 60 segundos exatos
 $btcTimer.Add_Tick({ Update-BtcPrice })
 $btcTimer.Start()
 Update-BtcPrice # Dispara imediatamente na primeira abertura
+
+# Timer de Checagem Silenciosa de Atualizacao (1a checagem 3s apos abrir e depois a cada 6 horas)
+$updateCheckTimer = New-Object System.Windows.Forms.Timer
+$updateCheckTimer.Interval = 3000
+$updateCheckTimer.Add_Tick({
+    $updateCheckTimer.Interval = 21600000 # 6 horas
+    Check-MinerUpdate
+})
+$updateCheckTimer.Start()
 
 $timer = New-Object System.Windows.Forms.Timer
 $timer.Interval = 300

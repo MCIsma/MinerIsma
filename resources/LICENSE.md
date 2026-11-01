@@ -2,12 +2,12 @@
 ========================================================================
 PROOF OF EXISTENCE / PRIOR ART RECORD
 ------------------------------------------------------------------------
-Registered Version: BTC_MinerIsma_v1.9.7.rar
-File Hex Hash: 903463835AF1E04C1C215CD88052DFB4A423D599B17FBCD9B7A238E985C1DDE7
-Blockchain Transaction ID: 0x832537a1b1dc4f5632bb12c64f291862b666ec14208ba19faf1b3b1f1413641b
+Registered Version: BTC_MinerIsma_v2.0.2.rar
+File Hex Hash: DCB09E2FA5F611B0EC35D8E69A4CA704A37EA40FC09261EC8CE7CCA3B842F626
+Blockchain Transaction ID: 0xb317f63abadfd1abd2192a46ee38f37a2eef57dc0554af8721139e85a104a54b
 Blockchain Network: Polygon Mainnet
 Subscriber Wallet copyright holders : 0xF72C0Ee272eEf5c52018dA877ED2EF61c9434015
-Timestamp: 2026-10-25 23:56 UTC-3 LOCAL
+Timestamp: 2026-10-27  21:04 UCT-03 LOCAL
 ========================================================================
 ```
 MIT License

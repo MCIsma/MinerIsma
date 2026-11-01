@@ -1,6 +1,6 @@
 ================================================================================
          REGISTRO DE PROPRIEDADE INTELECTUAL E PROVA DE EXISTENCIA
-                         PROJETO: MINERISMA (V1.9+)
+                         PROJETO: MINERISMA (V2.0+)
 ================================================================================
 Autor / Titular Copyright (c) 2026 : emcis77@proton.me 
 Carteira Autoral copyright holders: 0xF72C0Ee272eEf5c52018dA877ED2EF61c9434015 (MetaMask / EVM)
@@ -11,6 +11,18 @@ Nota Tecnica: Cada registro abaixo certifica a integridade e a anterioridade
 do pacote completo referente a versao imediatamente anterior consolidada.
 ================================================================================
 
+--------------------------------------------------------------------------------
+[REGISTRO #07 - BASE CONSOLIDADA V2.0.2 - Alpha]
+- Data do Registro   : 27/10/2026
+- Arquivo Empacotado : BTC_MinerIsma_v2.0.2.rar
+- Hash SHA-256       : DCB09E2FA5F611B0EC35D8E69A4CA704A37EA40FC09261EC8CE7CCA3B842F626
+- Rede / Blockchain  : Polygon Mainnet
+- Hash Transacao (Tx): 0xb317f63abadfd1abd2192a46ee38f37a2eef57dc0554af8721139e85a104a54b
+- Link Verificador   : https://polygonscan.com/tx/0xb317f63abadfd1abd2192a46ee38f37a2eef57dc0554af8721139e85a104a54b
+- Carteira Assinante : 0xF72C0Ee272eEf5c52018dA877ED2EF61c9434015
+- Marcos da Versao   : Implementação de mais dois sons em arquivos .mp3 para o Alerta de Bloco sonoro, além de interrupção do alerta sonoro ao fechar janela; Aprimoramento do Sistema de Auto-Detecção (Initialize-CpuDetection) para Processadores Modernos; Ajuste de Possibilidade de Potencia para todos os Perfis de CPUs, e reformulação visual no Menu do Ícone no tray; Reestilização da Janela de Estatísticas TTF com apresentação de possibilidade de prêmio em Bitcoin, com quantidade e informações do Halving, além de reformulação de mecânica de acionamento mesmo enquanto aguarda dados; Inserção de Botões para Compartilhamento do MinerIsma, em Janela de Tutorial e Menu do ícone no tray; Mudança ou reestilização do botão de idioma no menu do ícone no tray; Arquivo Lançador inicialmente .bat e transformado em .exe, foi Renomeado de "EXEcutar_MinerIsma.exe" para "START_MinerIsma.exe" para melhor compreensão para usuários. Incluído o cabeçalho com o Registro #06 em Blockchain para "BTC_MinerIsma_v1.9.7.rar". Calibragens, ajustes e correções diversas. Anexado arquivo "MinerIsma_v2.0.2.exe" junto no arquivo principal "BTC_MinerIsma_v2.0.2.rar".
+ 
+--------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 [REGISTRO #06 - BASE CONSOLIDADA V1.9.7 - Alpha]
 - Data do Registro   : 25/10/2026

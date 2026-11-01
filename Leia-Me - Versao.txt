@@ -1,8 +1,8 @@
-Bitcoin, 27 de Outubro de 2026
+Bitcoin, 29 de Outubro de 2026
  
  
    *  MinerIsma: Mineração Solo de Bitcoin ao estilo "Lottery"  *
-              Tutorial para Windows - MinerIsma_v2.0.2
+              Tutorial para Windows - MinerIsma_v2.0.4
  
 → MinerIsma é um gerenciador: Grátis, fácil e inclusivo à Mineração Cripto.
   - Dá remota possibilidade de descobrir um Bloco BTC, $ valendo muito $;
@@ -63,16 +63,16 @@ Bitcoin, 27 de Outubro de 2026
 → Últimas Versões (MinerIsma fase Alpha): Atualizações: Links 1 e 2 opção:
   - Link 1:  https://drive.proton.me/urls/WF022MG27W#YknkVYHMQO4w
   - Link 2 Op.:  https://mega.nz/folder/1pEAyJRB#ZsvFzL9K-00y0iPqmwc8mQ
-  - Contém, Motor cpuminer-opt-26.1 e Gerenciador MinerIsma v2.0.2 - 10/2026.
+  - Contém, Motor cpuminer-opt-26.1 e Gerenciador MinerIsma v2.0.4 - 10/2026.
  
 → Registro Blockchain Polygon para Propriedade Intelectual de MinerIsma.
-  - Último Hash do empacotamento para → BTC_MinerIsma_v1.9.7.rar : 
- SHA256: 903463835AF1E04C1C215CD88052DFB4A423D599B17FBCD9B7A238E985C1DDE7
-  - Última autenticação Hash Transação iD para BTC_MinerIsma_v1.9.7.rar:
-  0x832537a1b1dc4f5632bb12c64f291862b666ec14208ba19faf1b3b1f1413641b
+  - Último Hash do empacotamento para → BTC_MinerIsma_v2.0.2.rar : 
+ SHA256: DCB09E2FA5F611B0EC35D8E69A4CA704A37EA40FC09261EC8CE7CCA3B842F626
+  - Última autenticação Hash Transação iD para BTC_MinerIsma_v2.0.2.rar:
+  0xb317f63abadfd1abd2192a46ee38f37a2eef57dc0554af8721139e85a104a54b
   - Assinado por Wallet EVM: 0xF72C0Ee272eEf5c52018dA877ED2EF61c9434015
   - Link Verificador em polygonscan.com 
-(https://polygonscan.com/tx/0x832537a1b1dc4f5632bb12c64f291862b666ec14208ba19faf1b3b1f1413641b)
+(https://polygonscan.com/tx/0xb317f63abadfd1abd2192a46ee38f37a2eef57dc0554af8721139e85a104a54b)
 ==========================================================================
  
  
