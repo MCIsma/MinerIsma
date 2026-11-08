@@ -1,132 +1,88 @@
 # ============================================================================
-# MinerManager.ps1 - MinerIsma v2.0.4 - Alpha (Gerenciador Solo com Tray Icon)
+# MinerManager.ps1 - MinerIsma v2.1.1 - Alpha (Gerenciador Solo com Tray Icon)
 # ============================================================================
 # REGISTRO DE PROPRIEDADE INTELECTUAL EM BLOCKCHAIN (PROVA DE EXISTENCIA)
-# [REGISTRO #07 - BASE CONSOLIDADA V2.0.2 - Alpha]
-# Data do Registro : 27/10/2026
+# [REGISTRO #08 - BASE CONSOLIDADA V2.0.4 - Alpha]
+# Data do Registro : 29/10/2026
 # Autor / Carteira : 0xF72C0Ee272eEf5c52018dA877ED2EF61c9434015 (MetaMask / EVM)
-# Pacote Base (RAR): BTC_MinerIsma_v2.0.2.rar
-# Hash SHA-256     : DCB09E2FA5F611B0EC35D8E69A4CA704A37EA40FC09261EC8CE7CCA3B842F626
+# Pacote Base (RAR): BTC_MinerIsma_v2.0.4.rar
+# Hash .rar SHA-256: (0x)D59C650C194ABD5B705A87BC3CA52AB2B0DBF898FDBDB8645893A8348FFC43E9
+# Hash .exe SHA-256: (0x)562FE5421EFF21B6D3FAC1D961AB70CE99D880ABBD4138DF4746A6302F158A4D  Registro_GitHub
 # Rede Blockchain  : Polygon Mainnet
-# Transacao (TxID) : 0xb317f63abadfd1abd2192a46ee38f37a2eef57dc0554af8721139e85a104a54b
-# Link Verificador : https://polygonscan.com/tx/0xb317f63abadfd1abd2192a46ee38f37a2eef57dc0554af8721139e85a104a54b
+# Transacao (TxID) : 0xbb6f434687e9b242248304dfc50acb855df03f616c0370c582d8eb4e2e36a89b
+# Link Verificador : https://polygonscan.com/tx/0xbb6f434687e9b242248304dfc50acb855df03f616c0370c582d8eb4e2e36a89b
+# Licenca do Codigo: GNU General Public License v3.0 (GPLv3) - resources\LICENSE
 # Historico detalhado disponivel em: resources\REGISTRO_PROPRIEDADE_INTELECTUAL.txt
 # ============================================================================
 
 [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Tls12
 
 # ================================================================
-#  1. CONFIGURACOES GERAIS E CONEXAO
+#  1. CONFIGURACOES ESSENCIAIS E PADROES DE FABRICA
 # ================================================================
-$global:Wallet               = "bc1qd329mvq6zswu07p8czd0hcx8vvxev8t35hdaky.PCISMA"   # <<< TROQUE pela sua Carteira e Trabalhador
-$global:PoolUrl              = "stratum+tcp://public-pool.io:3333"
+$global:Wallet               = "minha_carteira.WORKER"   # <<< TROQUE pela sua Carteira e Trabalhador
+$global:DefaultPoolUrl       = "stratum+tcp://public-pool.io:3333"
+$global:DefaultExtraArgs     = "--cpu-priority=1"
+$global:PoolUrl              = $global:DefaultPoolUrl
+$global:ExtraArgs            = $global:DefaultExtraArgs
 
-$global:MinerExeName         = "cpuminer-avx2-sha.exe"   
-$global:LauncherFileName     = "START_MinerIsma.exe"     # Nome do seu arquivo Lancador na pasta raiz
-$global:TutorialFileName     = "Tutorial.html"           # Nome do arquivo HTML na pasta resources
-$global:CustomIconFileName   = "iconeMinerIsmaFull4b.ico"# Icone 256x256 na pasta resources
+$global:MinerExeName         = "cpuminer-avx2-sha.exe"
+$global:LauncherFileName     = "START_MinerIsma.exe"
+$global:TutorialFileName     = "Tutorial.html"
+$global:CustomIconFileName   = "iconeMinerIsmaFull4b.ico"
+$global:DonateQrFileName     = "QRcode-LNURL-BTC_On-EVM-1800x580_450dpi.png"
+
 $global:SoundFileKMS         = "alerta_de_bloco-KMS.mp3"
 $global:SoundFileSenna       = "alerta_de_bloco-Senna.mp3"
 $global:SoundFileMforN       = "alerta_de_bloco-MforN.mp3"
 $global:SoundFileCoins       = "alerta_de_bloco-Coins.mp3"
-$global:SoundFileName        = $global:SoundFileKMS      # Audio padrao inicial (KMS)
-$global:DefaultStartupDelay  = 5         # << Delay padrao (5s) ao iniciar manualmente
+$global:SoundFileName        = $global:SoundFileKMS
+$global:SfxDonateRing        = "Apoie_sanic-collect-ring.mp3"
+$global:SfxShareHarpsichord  = "Compartilhar_freesound-winharpsichord.mp3"
+$global:SfxCelebrateMario    = "Comemorar_Super_Mario_Victory.mp3"
+
+$global:DefaultStartupDelay  = 5
 $global:StartupDelaySeconds  = $global:DefaultStartupDelay
-$global:TtfWarmupSeconds     = 60        # << Segundos iniciais ignorados no log TTF para evitar distorcoes de partida
-$global:ExtraArgs            = "--cpu-priority=1"   
+$global:TtfWarmupSeconds     = 60
 
-# --- Link de Checagem Silenciosa de Nova Versao (Texto puro ex.: 2.0.5) ---
+# --- Enderecos Oficiais de Doacao e Links de Sistema / Fallback ---
+$global:DonateAddrLightning  = "lnurl1dp68gurn8ghj7mnpd4jhxtnrda5kummn9e5k7tmvde6hymrs9a5hxmtp2alrwl"
+$global:DonateAddrBtcOnChain = "bc1qy2wuwjz0c5hcw4r835erf9w7kjz9kmzprvgd7m"
+$global:DonateAddrEvm        = "0xF72C0Ee272eEf5c52018dA877ED2EF61c9434015"
+
 $global:VersionCheckUrl      = "https://rentry.co/MinerIsma-V"
-
-# --- Links Explicativos sobre o Halving (Com Fallback Automatico 1 -> 2 -> 3) ---
-$global:UrlHalving1          = "https://boletimbitcoin.com/halving-bitcoin/"
-$global:UrlHalving2          = "https://br.investing.com/academy/crypto/halving-bitcoin/"
-$global:UrlHalving3          = "https://bitcoin-org.translate.goog/en/halving?_x_tr_sl=en&_x_tr_tl=pt&_x_tr_hl=pt&_x_tr_pto=sge"
-
-# --- Filtro Inteligente de TTF (Dias limite baseados na qtd de Threads em uso) ---
-$global:TtfThresholds = @{
-    10 = 240    # ~8 meses
-    8  = 300    # ~10 meses
-    7  = 330    # ~11 meses
-    6  = 365    # 1 ano
-    5  = 547    # 1,5 anos
-    4  = 730    # 2 anos
-    3  = 912    # 2,5 anos
-    2  = 1095   # 3 anos
-    1  = 1277   # 3,5 anos
-}
-
-# --- Links da Web: Submenu Bitcoin Links (Com Fallback Proton -> Mega) ---
 $global:BtcPriceUrl          = "https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd"
+$global:FiatPriceUrl         = "https://economia.awesomeapi.com.br/last/USD-BRL,USD-EUR"
 $global:UrlPoolDashboard     = "https://web.public-pool.io/#/app/"
 $global:UrlDriveUpdates      = "https://drive.proton.me/urls/WF022MG27W#YknkVYHMQO4w"
 $global:UrlMegaUpdates       = "https://mega.nz/folder/1pEAyJRB#ZsvFzL9K-00y0iPqmwc8mQ"
-$global:UrlMempool           = "https://mempool.space/pt/"
-$global:UrlTimeline          = "https://chaintimeline.com/"
-$global:UrlMercadoCripto     = "https://mercado.bitnada.com.br/"
+$global:UrlTutorial          = "https://github.com/MCIsma/MinerIsma"
 $global:UrlBlueWallet        = "https://bluewallet.io/"
-$global:UrlAprendaCripto     = "https://bitcoinpuzzles.io/pt/aulas"
-$global:UrlBitNoticias       = "https://bitnoticias.com.br/"
-$global:UrlCartaoCripto      = "https://usepicnic.com/br"
-$global:UrlMissao1Btc        = "https://missao-1-btc.onrender.com/"
-$global:UrlAposentadoriaBtc  = "https://aaronlil.github.io/btc-retirement-planner/"
-$global:UrlBitcoinMaps       = "https://btcmap.org/"
-$global:UrlTutorial          = ""   # <<< Preencha futuramente com o link web de MinerIsma na web
-$global:UrlWhitepaper        = "https://bitcoin.org/files/bitcoin-paper/bitcoin_pt_br.pdf"
-$global:UrlGpuMiner          = "https://www.kryptex.com/?ref=2103d720"
-$global:UrlCryptoBubbles     = "https://cryptobubbles.net/pt"
+$global:UrlCoinGecko         = "https://www.coingecko.com/pt-br"
+$global:UrlCalcConverter     = "https://coinmarketcap.com/pt-br/converter"
 
-# --- Links da Web: Submenu Bitcoin Games ---
-$global:UrlGame21Million     = "https://kwertykwerty2.itch.io/21-million-demo"
-$global:UrlGamePuzzle1000    = "https://bitcoinpuzzles.io/pt/puzzles/1000btc"
-$global:UrlGameDesafios      = "https://bitcoinpuzzles.io/pt"
-$global:UrlGamePuzzle71      = "https://krackpot.io/"
-$global:UrlGameToTheMoon     = "https://bitcoincreative.org/biblioteca/to-the-moon-jogo-de-tabuleiro/"
-$global:UrlGameSunnyLand     = "https://alzahira.itch.io/en-busca-del-bitcoin-en-sunnyland"
+$global:UrlHalving1          = "https://boletimbitcoin.com/halving-bitcoin/"
+$global:UrlHalving2          = "https://br.investing.com/academy/crypto/halving-bitcoin/"
+$global:UrlHalving3          = "https://bitcoin-org.translate.goog/en/halving?_x_tr_sl=en&_x_tr_tl=pt&_x_tr_hl=pt&_x_tr_pto=sge"
+$global:UrlLightningInfo1    = "https://kriptobr.com/lightning-network-o-que-e-e-como-usar-bitcoin-no-dia-a-dia"
+$global:UrlLightningInfo2    = "https://blog.areabitcoin.com.br/lightning-network"
 
-# --- Links da Web: Submenu Canais Cripto (YouTube) ---
-$trezoitaoName = "Renato Trezoit" + [char]0x00E3 + "o"
-$global:CryptoChannels = [ordered]@{
-    "Denny Torres"        = "https://www.youtube.com/@dennytorres"
-    "Bitnada"             = "https://www.youtube.com/@BitNada"
-    "Prometheus HODL"     = "https://www.youtube.com/@PROmetheusHODL"
-    "Area Bitcoin"        = "https://www.youtube.com/@AreaBitcoin"
-    "Juliano Caju"        = "https://www.youtube.com/@JulianoCaju"
-    "Joao Hazim"          = "https://www.youtube.com/@joaohazim"
-    "Vela Trader"         = "https://www.youtube.com/@VelaTrader"
-    "DK CriptoTrader"     = "https://www.youtube.com/@dkcriptotrader"
-    "Investidor 4.20"     = "https://www.youtube.com/@investidor4.20"
-    "Bitcoinheiros"       = "https://www.youtube.com/@Bitcoinheiros"
-    "Augusto Backes"      = "https://www.youtube.com/@AugustoBackes"
-    "Mestre Cacatal"      = "https://www.youtube.com/@mestrecacatal"
-    "Bernardo Pascowitch" = "https://www.youtube.com/@bernardo-pascowitch"
-    $trezoitaoName        = "https://www.youtube.com/@rotinadotrezoitao"
-}
+$global:TtfThresholds        = @{ 10 = 240; 8 = 300; 7 = 330; 6 = 365; 5 = 547; 4 = 730; 3 = 912; 2 = 1095; 1 = 1277 }
 
 # ================================================================
 #  2. INTELIGENCIA DE PERFIS DINAMICOS (Baseado na CPU)
 # ================================================================
 try {
-    $sysObj = Get-CimInstance Win32_ComputerSystem | Select-Object -First 1
-    $global:LogicalCores = $sysObj.NumberOfLogicalProcessors
+    $global:LogicalCores = (Get-CimInstance Win32_ComputerSystem | Select-Object -First 1).NumberOfLogicalProcessors
 } catch {
-    $global:LogicalCores = 12 # Fallback seguro
+    $global:LogicalCores = 12
 }
 
 $arrSym = [string][char]0x2192
-
 if ($global:LogicalCores -ge 24) {
-    # Perfil: CPUs 24 Threads ou mais
     $global:PowerHeaderTitle = "Power  |  CPU 24+ Threads"
-    $global:ThreadProfiles = [ordered]@{
-        10 = "0x555550"
-        8  = "0x155540"
-        6  = "0x155400"
-        5  = "0x155000"
-        4  = "0x154000"
-        3  = "0x150000"
-    }
-    $global:ThreadLabels = @{
+    $global:ThreadProfiles   = [ordered]@{ 10 = "0x555550"; 8 = "0x155540"; 6 = "0x155400"; 5 = "0x155000"; 4 = "0x154000"; 3 = "0x150000" }
+    $global:ThreadLabels     = @{
         10 = "~48% $arrSym" + "10....!.!.!.!.!.!.!.!.!.!."
         8  = "~38% $arrSym 8......!.!.!.!.!.!.!.!..."
         6  = "~28% $arrSym 6..........!.!.!.!.!.!..."
@@ -134,19 +90,10 @@ if ($global:LogicalCores -ge 24) {
         4  = "~20% $arrSym 4..............!.!.!.!..."
         3  = "~15% $arrSym 3................!.!.!..."
     }
-}
-elseif ($global:LogicalCores -ge 16) {
-    # Perfil: CPUs 16 a 20 Threads
+} elseif ($global:LogicalCores -ge 16) {
     $global:PowerHeaderTitle = "Power | CPU 16+ Threads"
-    $global:ThreadProfiles = [ordered]@{
-        7 = "0x5554"
-        6 = "0x5550"
-        5 = "0x5540"
-        4 = "0x1540"
-        3 = "0x1500"
-        2 = "0x1400"
-    }
-    $global:ThreadLabels = @{
+    $global:ThreadProfiles   = [ordered]@{ 7 = "0x5554"; 6 = "0x5550"; 5 = "0x5540"; 4 = "0x1540"; 3 = "0x1500"; 2 = "0x1400" }
+    $global:ThreadLabels     = @{
         7 = "~50% $arrSym 7 ..!.!.!.!.!.!.!."
         6 = "~42% $arrSym 6 ....!.!.!.!.!.!."
         5 = "~36% $arrSym 5 ......!.!.!.!.!."
@@ -154,35 +101,20 @@ elseif ($global:LogicalCores -ge 16) {
         3 = "~22% $arrSym 3 ........!.!.!..."
         2 = "~15% $arrSym 2 ..........!.!..."
     }
-}
-elseif ($global:LogicalCores -ge 12) {
-    # Perfil: CPUs 12 Threads
+} elseif ($global:LogicalCores -ge 12) {
     $global:PowerHeaderTitle = "Power | CPU 12 Threads"
-    $global:ThreadProfiles = [ordered]@{
-        5 = "0x554"
-        4 = "0x550"
-        3 = "0x150"
-        2 = "0x50"
-        1 = "0x010"
-    }
-    $global:ThreadLabels = @{
+    $global:ThreadProfiles   = [ordered]@{ 5 = "0x554"; 4 = "0x550"; 3 = "0x150"; 2 = "0x50"; 1 = "0x010" }
+    $global:ThreadLabels     = @{
         5 = "~46% $arrSym 5  ..!.!.!.!.!."
         4 = "~38% $arrSym 4  ....!.!.!.!."
         3 = "~28% $arrSym 3  ....!.!.!..."
         2 = "~20% $arrSym 2  ....!.!....."
         1 = "~10% $arrSym 1  ....!......."
     }
-}
-else {
-    # Perfil: CPUs 10 Threads ou menos
+} else {
     $global:PowerHeaderTitle = "Power | CPU 10-Threads"
-    $global:ThreadProfiles = [ordered]@{
-        4 = "0x154"
-        3 = "0x54"
-        2 = "0x50"
-        1 = "0x010"
-    }
-    $global:ThreadLabels = @{
+    $global:ThreadProfiles   = [ordered]@{ 4 = "0x154"; 3 = "0x54"; 2 = "0x50"; 1 = "0x010" }
+    $global:ThreadLabels     = @{
         4 = "~45% $arrSym  4  ..!.!.!.!."
         3 = "~35% $arrSym  3  ..!.!.!..."
         2 = "~22% $arrSym  2  ....!.!..."
@@ -191,360 +123,230 @@ else {
 }
 
 # ================================================================
-#  3. TABELA DE IDIOMAS (PT / EN / ES)
+#  3. TABELA DE IDIOMAS UNIFICADA (Indice 0 = PT | 1 = EN | 2 = ES)
 # ================================================================
-$lblMissaoPT    = "Miss" + [char]0x00E3 + "o 1 Bitcoin"
-$lblMissaoES    = "Misi" + [char]0x00F3 + "n 1 Bitcoin"
-$lblRetireES    = "Jubilaci" + [char]0x00F3 + "n BTC"
-$lblGpuMiner    = "GPU miner " + [char]0x2192 + " $$$"
-$lblPrizeHdrPT  = "Pr" + [char]0x00EA + "mio Atual do Bloco"
-$lblAvgHdrPT    = "Tempo M" + [char]0x00E9 + "dio Estimado"
-$lblAvgSubPT    = "(at" + [char]0x00E9 + " um Bloco / Sorte)"
-$lblHalvPT1     = "Pr" + [char]0x00F3 + "ximo Halving em "
-$lblHalvES1     = "Pr" + [char]0x00F3 + "ximo Halving en "
-$lblAreaPT      = "Link de download copiado para a " + [char]0x00E1 + "rea de transfer" + [char]0x00EA + "ncia!"
-$lblUsefulPT    = "Links " + [char]0x00DA + "teis"
-$lblUsefulES    = "Enlaces " + [char]0x00DA + "tiles"
+$boltChar        = [string][char]0x26A1
+$euroChar        = [string][char]0x20AC
+$warnChar        = [string][char]0x26A0
+$lblMissaoPT     = "Miss" + [char]0x00E3 + "o 1 Bitcoin"
+$lblMissaoES     = "Misi" + [char]0x00F3 + "n 1 Bitcoin"
+$lblRetireES     = "Jubilaci" + [char]0x00F3 + "n BTC"
+$lblGpuMiner     = "GPU miner " + [char]0x2192 + " $$$"
+$lblPrizeHdrPT   = "Pr" + [char]0x00EA + "mio Atual do Bloco"
+$lblAvgHdrPT     = "Tempo M" + [char]0x00E9 + "dio Estimado"
+$lblAvgSubPT     = "(at" + [char]0x00E9 + " um Bloco / Sorte)"
+$lblHalvPT1      = "Pr" + [char]0x00F3 + "ximo Halving em "
+$lblHalvES1      = "Pr" + [char]0x00F3 + "ximo Halving en "
+$lblAreaPT       = "Link de download copiado para a " + [char]0x00E1 + "rea de transfer" + [char]0x00EA + "ncia!"
+$lblUsefulPT     = "Links " + [char]0x00DA + "teis"
+$lblUsefulES     = "Enlaces " + [char]0x00DA + "tiles"
+$lblStatsMenuPT  = "Estat" + [char]0x00ED + "sticas: Sua Sorte"
+$lblStatsMenuES  = "Estad" + [char]0x00ED + "sticas: Tu Suerte"
+$lblBestCardPT   = "Melhor Aproxima" + [char]0x00E7 + [char]0x00E3 + "o"
+$lblBestCardES   = "Mejor Aproximaci" + [char]0x00F3 + "n"
+$lblSoloCardPT   = [char]0x00DA + "ltimo Bloco Minerado"
+$lblSoloCardES   = [char]0x00DA + "ltimo Bloque Minado"
+$lblSoloSubPT    = "(Por Minerador Solo igual a Voc" + [char]0x00EA + "!)"
+$lblSoloPrizePT  = "Pr" + [char]0x00EA + "mio:"
+$lblPadraoBtcPT  = "(BTC Padr" + [char]0x00E3 + "o)"
+$lblPadraoBtcES  = "(BTC Est" + [char]0x00E1 + "ndar)"
+$lblAddrCopiedPT = "Endere" + [char]0x00E7 + "o Copiado!"
+$lblAddrCopiedES = "Direcci" + [char]0x00F3 + "n Copiada!"
+$lblDonateCamPT  = "Certifique-se de que a c" + [char]0x00E2 + "mera capturou o QRcode da Rede desejada."
+$lblDonateCamES  = "Aseg" + [char]0x00FA + "rate de que la c" + [char]0x00E1 + "mara captur" + [char]0x00F3 + " el QRcode de la Red deseada."
+$lblLayer2Lgt    = "BTC Layer2:" + $boltChar + "Lightning"
 
 $global:Language = "PT"
 $global:LangTable = @{
-    PT = @{
-        BtcUpdating      = "itcoin agora: Atualizando..."
-        BtcNowPrefix     = "itcoin agora: US$ "
-        BtcLinks         = "itcoin Links"
-        MenuChannels     = "Canais Cripto"
-        UsefulLinksHdr   = $lblUsefulPT
-        GameDesafios     = "Cripto Desafios $"
-        GameBoard        = "TotheMoon Tabuleiro"
-        LinkPool         = "Seu Miner na Pool"
-        LinkUpdates      = "Atualizacoes MinerIsma"
-        LinkMempool      = "Mempool Bitcoin"
-        LinkTimeline     = "TimeLine Bitcoin"
-        LinkMonitor      = "Monitor Cripto"
-        LinkBlueWallet   = "Blue Wallet"
-        LinkLearn        = "Aprenda Cripto"
-        LinkNews         = "BitNoticias"
-        LinkGlobalAcc    = "Conta Global Cripto"
-        LinkMissao1Btc   = $lblMissaoPT
-        LinkRetireBtc    = "Aposentadoria BTC"
-        LinkBtcMaps      = "Bitcoin Maps"
-        LinkWeb          = "MinerIsma na web"
-        LinkGpuMiner     = $lblGpuMiner
-        LinkBubbles      = "Crypto Bubbles"
-        MsgWebSoon       = "A pagina do MinerIsma na web sera disponibilizada em breve."
-        MenuStartup      = "Iniciar com Windows"
-        DelayHeader      = "Delay:"
-        DelayDefault     = "Padrao"
-        MenuWallet       = "Sua Carteira Bitcoin"
-        MenuTestAlert    = "Testar Alerta de Bloco"
-        MenuTtfStats     = "Estatisticas TTF: Sua Sorte"
-        MenuLanguage     = "Idioma"
-        MenuTutorial     = "Tutorial MinerIsma"
-        MenuShare        = "Compartilhar MinerIsma"
-        ShareCopiedShort = "Link copiado!"
-        ShareCopiedMsg   = $lblAreaPT
-        TutorialWinTitle = "Tutorial"
-        MenuShowHide     = "Mostrar / Ocultar Miner"
-        MenuPause        = "Pausar Mineracao"
-        MenuResume       = "Retomar Mineracao"
-        PauseManual      = "Manual"
-        Pause1h          = "1 hora"
-        Pause2h          = "2 horas"
-        Pulse2h          = "Pulsar 2hx5"
-        Pulse4h          = "Pulsar 4hx5"
-        MenuExit         = "Fechar Mineracao"
-        TrayWaitStart    = "Aguardando inicio..."
-        TrayWaitWallet   = "AGUARDANDO CARTEIRA"
-        TrayCalculating  = "Calculando..."
-        TrayPaused       = "PAUSADO"
-        TrayPausedUntil  = "PAUSADO (ate"
-        TrayPulsePause   = "PAUSA (ate"
-        TrayResuming     = "Retomando..."
-        BalloonStart1    = "Gerenciador na bandeja. Mineracao inicia em"
-        BalloonStart2    = "segundos."
-        BtnSave          = "Salvar"
-        BtnSaveImg       = "Salvar Imagem"
-        BtnResetTtf      = "Zerar TTF"
-        BtnClose         = "Fechar"
-        BtnCreateWallet  = "Criar Carteira"
-        BtnCelebrate     = "Comemorar!"
-        WalletWinTitle   = "Sua Carteira Bitcoin"
-        WalletHeader     = "Configure endereco Bitcoin para iniciar Miner:"
-        WalletLblAddr    = "Insira seu endereco de carteira Bitcoin (Ex.: bc1...):"
-        WalletLblWorker  = "Insira seu Trabalhador (Ex.: Pc_Gamer):"
-        WalletWarn1      = "Endereco errado significa perder um possivel premio, confira!"
-        WalletWarn2      = "Para o Trabalhador, evite caracteres especiais, espacos e acentuacao"
-        WalletEmptyMsg   = "Por favor, insira um endereco de carteira Bitcoin."
-        WalletInvalid1   = "O endereco inserido nao parece ser uma carteira Bitcoin valida."
-        WalletInvalid2   = "Certifique-se de que ele comeca com '1', '3' ou 'bc1'."
-        TtfNoDataMsg     = "Ainda nao ha dados suficientes no log de TTF."
-        TtfWaitAvg       = "Aguardando..."
-        TtfNoDataBox1    = "Ainda nao ha dados suficientes para estatistica de sorte."
-        TtfNoDataBox2    = "Deixe o MinerIsma rodando para registrar suas aproximacoes!"
-        TtfResetConfirm  = "Deseja realmente zerar todo o historico de estatisticas TTF?"
-        TtfWinTitle      = "Estatisticas TTF (Estimativa do Bloco)"
-        TtfPrizeHeader   = $lblPrizeHdrPT
-        TtfPrizeBtc      = "3.125 BTC"
-        TtfPrizeUsdPref  = "$ ~US$ "
-        TtfPrizeUsdWait  = "$ Atualizando cotacao..."
-        TtfDrawInfo      = '"Sorteio" a cada ~10 min'
-        TtfHalving1      = $lblHalvPT1
-        TtfHalving2      = " Blocos"
-        TtfAvgHeader     = $lblAvgHdrPT
-        TtfAvgSub        = $lblAvgSubPT
-        TtfCountLbl      = "Registros Coletados:"
-        TtfBestLbl       = "Melhor Aproximacao (Recorde de Sorte):"
-        TtfDate          = "Data:"
-        TtfLuck          = "Sua Sorte:"
-        TtfPower         = "Poder:"
-        AlertWinTitle    = "SUCESSO ABSOLUTO"
-        AlertHeader      = "VOCE ENCONTROU UM BLOCO!!!"
-        AlertBlockHeight = "Bloco (altura):"
-        AlertCheckWallet = "Confira a carteira"
-        AlertRewardInfo  = "Seu premio em Bitcoin estara disponivel apos 100 Blocos (~24 horas)."
-        AlertLogInfo     = "Confira o registro no Log"
-        AlertInFolder    = "na pasta do MinerIsma."
-    }
-    EN = @{
-        BtcUpdating      = "itcoin now: Updating..."
-        BtcNowPrefix     = "itcoin now: US$ "
-        BtcLinks         = "itcoin Links"
-        MenuChannels     = "Crypto Channels"
-        UsefulLinksHdr   = "Useful Links"
-        GameDesafios     = "Crypto Challenges $"
-        GameBoard        = "TotheMoon Board Game"
-        LinkPool         = "Your Miner on Pool"
-        LinkUpdates      = "MinerIsma Updates"
-        LinkMempool      = "Bitcoin Mempool"
-        LinkTimeline     = "Bitcoin TimeLine"
-        LinkMonitor      = "Crypto Monitor"
-        LinkBlueWallet   = "Blue Wallet"
-        LinkLearn        = "Learn Crypto"
-        LinkNews         = "BitNoticias"
-        LinkGlobalAcc    = "Crypto Global Account"
-        LinkMissao1Btc   = "Mission 1 Bitcoin"
-        LinkRetireBtc    = "BTC Retirement"
-        LinkBtcMaps      = "Bitcoin Maps"
-        LinkWeb          = "MinerIsma on the Web"
-        LinkGpuMiner     = $lblGpuMiner
-        LinkBubbles      = "Crypto Bubbles"
-        MsgWebSoon       = "The MinerIsma web page will be available soon."
-        MenuStartup      = "Start with Windows"
-        DelayHeader      = "Delay:"
-        DelayDefault     = "Default"
-        MenuWallet       = "Your Bitcoin Wallet"
-        MenuTestAlert    = "Test Block Alert"
-        MenuTtfStats     = "TTF Stats: Your Luck"
-        MenuLanguage     = "Language"
-        MenuTutorial     = "MinerIsma Tutorial"
-        MenuShare        = "Share MinerIsma"
-        ShareCopiedShort = "Link copied!"
-        ShareCopiedMsg   = "Download link copied to clipboard!"
-        TutorialWinTitle = "Tutorial"
-        MenuShowHide     = "Show / Hide Miner"
-        MenuPause        = "Pause Mining"
-        MenuResume       = "Resume Mining"
-        PauseManual      = "Manual"
-        Pause1h          = "1 hour"
-        Pause2h          = "2 hours"
-        Pulse2h          = "Pulse 2hx5"
-        Pulse4h          = "Pulse 4hx5"
-        MenuExit         = "Exit Mining"
-        TrayWaitStart    = "Waiting to start..."
-        TrayWaitWallet   = "WAITING FOR WALLET"
-        TrayCalculating  = "Calculating..."
-        TrayPaused       = "PAUSED"
-        TrayPausedUntil  = "PAUSED (until"
-        TrayPulsePause   = "PAUSE (until"
-        TrayResuming     = "Resuming..."
-        BalloonStart1    = "Manager in system tray. Mining starts in"
-        BalloonStart2    = "seconds."
-        BtnSave          = "Save"
-        BtnSaveImg       = "Save Image"
-        BtnResetTtf      = "Reset TTF"
-        BtnClose         = "Close"
-        BtnCreateWallet  = "Create Wallet"
-        BtnCelebrate     = "Celebrate!"
-        WalletWinTitle   = "Your Bitcoin Wallet"
-        WalletHeader     = "Configure Bitcoin address to start Miner:"
-        WalletLblAddr    = "Enter your Bitcoin wallet address (e.g., bc1...):"
-        WalletLblWorker  = "Enter your Worker name (e.g., Gaming_PC):"
-        WalletWarn1      = "A wrong address means losing a possible reward, double-check!"
-        WalletWarn2      = "For the Worker name, avoid special characters, spaces, and accents"
-        WalletEmptyMsg   = "Please enter a Bitcoin wallet address."
-        WalletInvalid1   = "The entered address does not look like a valid Bitcoin wallet."
-        WalletInvalid2   = "Make sure it starts with '1', '3', or 'bc1'."
-        TtfNoDataMsg     = "Not enough data in the TTF log yet."
-        TtfWaitAvg       = "Waiting..."
-        TtfNoDataBox1    = "Not enough data for luck statistics yet."
-        TtfNoDataBox2    = "Keep MinerIsma running to record your estimates!"
-        TtfResetConfirm  = "Do you really want to reset all TTF statistics history?"
-        TtfWinTitle      = "TTF Statistics (Block Estimate)"
-        TtfPrizeHeader   = "Current Block Reward"
-        TtfPrizeBtc      = "3.125 BTC"
-        TtfPrizeUsdPref  = "$ ~US$ "
-        TtfPrizeUsdWait  = "$ Updating price..."
-        TtfDrawInfo      = '"Draw" every ~10 min'
-        TtfHalving1      = "Next Halving in "
-        TtfHalving2      = " Blocks"
-        TtfAvgHeader     = "Estimated Average Time"
-        TtfAvgSub        = "(until a Block / Luck)"
-        TtfCountLbl      = "Collected Records:"
-        TtfBestLbl       = "Closest Estimate (Luck Record):"
-        TtfDate          = "Date:"
-        TtfLuck          = "Your Luck:"
-        TtfPower         = "Power:"
-        AlertWinTitle    = "ABSOLUTE SUCCESS"
-        AlertHeader      = "YOU FOUND A BLOCK!!!"
-        AlertBlockHeight = "Block (height):"
-        AlertCheckWallet = "Check wallet"
-        AlertRewardInfo  = "Your Bitcoin reward will be available after 100 Blocks (~24 hours)."
-        AlertLogInfo     = "Check the record in Log"
-        AlertInFolder    = "in the MinerIsma folder."
-    }
-    ES = @{
-        BtcUpdating      = "itcoin ahora: Actualizando..."
-        BtcNowPrefix     = "itcoin ahora: US$ "
-        BtcLinks         = "itcoin Links"
-        MenuChannels     = "Canales Cripto"
-        UsefulLinksHdr   = $lblUsefulES
-        GameDesafios     = "Desafios Cripto $"
-        GameBoard        = "TotheMoon Juego de Mesa"
-        LinkPool         = "Tu Miner en la Pool"
-        LinkUpdates      = "Actualizaciones MinerIsma"
-        LinkMempool      = "Mempool Bitcoin"
-        LinkTimeline     = "TimeLine Bitcoin"
-        LinkMonitor      = "Monitor Cripto"
-        LinkBlueWallet   = "Blue Wallet"
-        LinkLearn        = "Aprende Cripto"
-        LinkNews         = "BitNoticias"
-        LinkGlobalAcc    = "Cuenta Global Cripto"
-        LinkMissao1Btc   = $lblMissaoES
-        LinkRetireBtc    = $lblRetireES
-        LinkBtcMaps      = "Bitcoin Maps"
-        LinkWeb          = "MinerIsma en la web"
-        LinkGpuMiner     = $lblGpuMiner
-        LinkBubbles      = "Crypto Bubbles"
-        MsgWebSoon       = "La pagina web de MinerIsma estara disponible pronto."
-        MenuStartup      = "Iniciar con Windows"
-        DelayHeader      = "Delay:"
-        DelayDefault     = "Por defecto"
-        MenuWallet       = "Tu Billetera Bitcoin"
-        MenuTestAlert    = "Probar Alerta de Bloque"
-        MenuTtfStats     = "Estadisticas TTF: Tu Suerte"
-        MenuLanguage     = "Idioma"
-        MenuTutorial     = "Tutorial MinerIsma"
-        MenuShare        = "Compartir MinerIsma"
-        ShareCopiedShort = "Enlace copiado!"
-        ShareCopiedMsg   = "Enlace de descarga copiado al portapapeles!"
-        TutorialWinTitle = "Tutorial"
-        MenuShowHide     = "Mostrar / Ocultar Miner"
-        MenuPause        = "Pausar Mineria"
-        MenuResume       = "Reanudar Mineria"
-        PauseManual      = "Manual"
-        Pause1h          = "1 hora"
-        Pause2h          = "2 horas"
-        Pulse2h          = "Pulsar 2hx5"
-        Pulse4h          = "Pulsar 4hx5"
-        MenuExit         = "Cerrar Mineria"
-        TrayWaitStart    = "Esperando inicio..."
-        TrayWaitWallet   = "ESPERANDO BILLETERA"
-        TrayCalculating  = "Calculando..."
-        TrayPaused       = "PAUSADO"
-        TrayPausedUntil  = "PAUSADO (hasta"
-        TrayPulsePause   = "PAUSA (hasta"
-        TrayResuming     = "Reanudando..."
-        BalloonStart1    = "Administrador en bandeja. La mineria inicia en"
-        BalloonStart2    = "segundos."
-        BtnSave          = "Guardar"
-        BtnSaveImg       = "Guardar Imagen"
-        BtnResetTtf      = "Reiniciar TTF"
-        BtnClose         = "Cerrar"
-        BtnCreateWallet  = "Crear Billetera"
-        BtnCelebrate     = "Celebrar!"
-        WalletWinTitle   = "Tu Billetera Bitcoin"
-        WalletHeader     = "Configura direccion Bitcoin para iniciar Miner:"
-        WalletLblAddr    = "Ingresa tu direccion de billetera Bitcoin (Ej.: bc1...):"
-        WalletLblWorker  = "Ingresa tu Trabajador (Ej.: Pc_Gamer):"
-        WalletWarn1      = "Una direccion erronea significa perder un posible premio, verifica!"
-        WalletWarn2      = "Para el Trabajador, evita caracteres especiales, espacios y acentos"
-        WalletEmptyMsg   = "Por favor, ingresa una direccion de billetera Bitcoin."
-        WalletInvalid1   = "La direccion ingresada no parece ser una billetera Bitcoin valida."
-        WalletInvalid2   = "Asegurate de que comience con '1', '3' o 'bc1'."
-        TtfNoDataMsg     = "Aun no hay datos suficientes en el registro TTF."
-        TtfWaitAvg       = "Esperando..."
-        TtfNoDataBox1    = "Aun no hay datos suficientes para estadisticas de suerte."
-        TtfNoDataBox2    = "Deja MinerIsma corriendo para registrar tus estimaciones!"
-        TtfResetConfirm  = "Realmente deseas reiniciar todo el historial de estadisticas TTF?"
-        TtfWinTitle      = "Estadisticas TTF (Estimacion de Bloque)"
-        TtfPrizeHeader   = "Premio Actual del Bloque"
-        TtfPrizeBtc      = "3.125 BTC"
-        TtfPrizeUsdPref  = "$ ~US$ "
-        TtfPrizeUsdWait  = "$ Actualizando cotizacion..."
-        TtfDrawInfo      = '"Sorteo" cada ~10 min'
-        TtfHalving1      = $lblHalvES1
-        TtfHalving2      = " Bloques"
-        TtfAvgHeader     = "Tiempo Promedio Estimado"
-        TtfAvgSub        = "(hasta un Bloque / Suerte)"
-        TtfCountLbl      = "Registros Recolectados:"
-        TtfBestLbl       = "Mejor Aproximacion (Record de Suerte):"
-        TtfDate          = "Fecha:"
-        TtfLuck          = "Tu Suerte:"
-        TtfPower         = "Poder:"
-        AlertWinTitle    = "EXITO ABSOLUTO"
-        AlertHeader      = "ENCONTRASTE UN BLOQUE!!!"
-        AlertBlockHeight = "Bloque (altura):"
-        AlertCheckWallet = "Verifica la billetera"
-        AlertRewardInfo  = "Tu premio en Bitcoin estara disponible tras 100 Bloques (~24 horas)."
-        AlertLogInfo     = "Verifica el registro en el Log"
-        AlertInFolder    = "en la carpeta de MinerIsma."
-    }
+    BtcUpdating       = @("itcoin agora: Atualizando...", "itcoin now: Updating...", "itcoin ahora: Actualizando...")
+    BtcNowPrefix      = @("itcoin agora: US$ ", "itcoin now: US$ ", "itcoin ahora: US$ ")
+    UsdUpdating       = @("Dolar agora: Atualizando...", "Dollar now: Updating...", "Dolar ahora: Actualizando...")
+    UsdNowPrefix      = @("Dolar agora: R$", "Dollar now: $euroChar", "Dolar ahora: $euroChar")
+    BtcLinks          = @("itcoin Links", "itcoin Links", "itcoin Links")
+    MenuChannels      = @("Canais Cripto", "Crypto Channels", "Canales Cripto")
+    MenuPortals       = @("Portais Cripto", "Crypto Portals", "Portales Cripto")
+    UsefulLinksHdr    = @($lblUsefulPT, "Useful Links", $lblUsefulES)
+    InspiringLinksHdr = @("Links Inspiradores", "Inspiring Links", "Enlaces Inspiradores")
+    TradersHdr        = @("Cripto Traders", "Crypto Traders", "Cripto Traders")
+    GameDesafios      = @("Cripto Desafios $", "Crypto Challenges $", "Desafios Cripto $")
+    GameBoard         = @("TotheMoon Tabuleiro", "TotheMoon Board Game", "TotheMoon Juego de Mesa")
+    MenuMinerPanel    = @("Painel do Minerador", "Miner Panel", "Panel del Minero")
+    LinkPool          = @("Seu Miner na Pool", "Your Miner on Pool", "Tu Miner en la Pool")
+    LinkUpdates       = @("Atualizacoes MinerIsma", "MinerIsma Updates", "Actualizaciones MinerIsma")
+    LinkMempool       = @("Mempool Bitcoin", "Bitcoin Mempool", "Mempool Bitcoin")
+    LinkTimeline      = @("TimeLine Bitcoin", "Bitcoin TimeLine", "TimeLine Bitcoin")
+    LinkMonitor       = @("Monitor Cripto", "Crypto Monitor", "Monitor Cripto")
+    LinkBlueWallet    = @("Blue Wallet", "Blue Wallet", "Blue Wallet")
+    LinkHardWallet    = @("Hard Wallet", "Hard Wallet", "Hard Wallet")
+    LinkP2pBtc        = @("P2P Bitcoin", "P2P Bitcoin", "P2P Bitcoin")
+    LinkContaBtc      = @("Conta Bitcoin", "Bitcoin Account", "Cuenta Bitcoin")
+    LinkAtomicBtc     = @("Troca Atomica BTC", "BTC Atomic Swap", "Intercambio Atomico BTC")
+    LinkLearn         = @("Aprenda Bitcoin", "Learn Bitcoin", "Aprende Bitcoin")
+    LinkBtcCore       = @("Bitcoin Core", "Bitcoin Core", "Bitcoin Core")
+    LinkNews          = @("BitNoticias", "BitNoticias", "BitNoticias")
+    LinkCoinGecko     = @("CoinGecko", "CoinGecko", "CoinGecko")
+    LinkGlobalAcc     = @("Conta Global Cripto", "Crypto Global Account", "Cuenta Global Cripto")
+    LinkMultiWallet   = @("Wallet Multimoedas", "Multi-coin Wallet", "Wallet Multimoneda")
+    LinkAtomicSwap    = @("Troca Atomica", "Atomic Swap", "Intercambio Atomico")
+    LinkRealizacao    = @("Realizacao Cripto", "Crypto Cashout", "Realizacion Cripto")
+    LinkMinerEvolua   = @("Mineracao:Evolua!", "Mining:Evolve!", "Mineria:Evoluciona!")
+    LinkMissao1Btc    = @($lblMissaoPT, "Mission 1 Bitcoin", $lblMissaoES)
+    LinkRetireBtc     = @("Aposentadoria BTC", "BTC Retirement", $lblRetireES)
+    LinkCalcCripto    = @("Calculadora Cripto", "Crypto Calculator", "Calculadora Cripto")
+    LinkBtcMaps       = @("Bitcoin Maps", "Bitcoin Maps", "Bitcoin Maps")
+    LinkWeb           = @("MinerIsma na web", "MinerIsma on the Web", "MinerIsma en la web")
+    LinkLayer2Lgt     = @($lblLayer2Lgt, $lblLayer2Lgt, $lblLayer2Lgt)
+    LinkWalletLgt     = @("Sua Wallet Lightning$boltChar", "Your Lightning Wallet$boltChar", "Tu Wallet Lightning$boltChar")
+    LinkGpuMiner      = @($lblGpuMiner, $lblGpuMiner, $lblGpuMiner)
+    LinkBubbles       = @("Crypto Bubbles", "Crypto Bubbles", "Crypto Bubbles")
+    MsgWebSoon        = @("A pagina do MinerIsma na web sera disponibilizada em breve.", "The MinerIsma web page will be available soon.", "La pagina web de MinerIsma estara disponible pronto.")
+    MenuStartup       = @("Iniciar com Windows", "Start with Windows", "Iniciar con Windows")
+    DelayHeader       = @("Delay:", "Delay:", "Delay:")
+    DelayDefault      = @("Padrao", "Default", "Por defecto")
+    MenuWallet        = @("Sua Carteira Bitcoin", "Your Bitcoin Wallet", "Tu Billetera Bitcoin")
+    MenuTestAlert     = @("Testar Alerta de Bloco", "Test Block Alert", "Probar Alerta de Bloque")
+    MenuTtfStats      = @($lblStatsMenuPT, "Stats: Your Luck", $lblStatsMenuES)
+    MenuDesktopIcon   = @("Criar Icone Desktop", "Create Desktop Icon", "Crear Icono Escritorio")
+    MenuAdvanced      = @("Avancado (PERIGO!)", "Advanced (DANGER!)", "Avanzado (PELIGRO!)")
+    MenuSupport       = @("Apoie este Projeto", "Support this Project", "Apoya este Proyecto")
+    MenuLanguage      = @("Idioma", "Language", "Idioma")
+    MenuTutorial      = @("Tutorial MinerIsma", "MinerIsma Tutorial", "Tutorial MinerIsma")
+    MenuShare         = @("Compartilhar MinerIsma", "Share MinerIsma", "Compartir MinerIsma")
+    MenuCopyLink      = @("Copiar Link", "Copy Link", "Copiar Enlace")
+    ShareCopiedShort  = @("Link copiado!", "Link copied!", "Enlace copiado!")
+    ShareCopiedMsg    = @($lblAreaPT, "Download link copied to clipboard!", "Enlace de descarga copiado al portapapeles!")
+    AddrCopiedShort   = @($lblAddrCopiedPT, "Address Copied!", $lblAddrCopiedES)
+    DonateWinTitle    = @("Apoie o Projeto MinerIsma, Doe:", "Support the MinerIsma Project, Donate:", "Apoya el Proyecto MinerIsma, Dona:")
+    DonateBtcSub      = @($lblPadraoBtcPT, "(BTC Standard)", $lblPadraoBtcES)
+    DonateCamWarn     = @($lblDonateCamPT, "Make sure your camera captured the desired Network QR code.", $lblDonateCamES)
+    TutorialWinTitle  = @("Tutorial", "Tutorial", "Tutorial")
+    MenuShowHide      = @("Mostrar / Ocultar Miner", "Show / Hide Miner", "Mostrar / Ocultar Miner")
+    MenuPause         = @("Pausar Mineracao", "Pause Mining", "Pausar Mineria")
+    MenuResume        = @("Retomar Mineracao", "Resume Mining", "Reanudar Mineria")
+    PauseManual       = @("Manual", "Manual", "Manual")
+    Pause1h           = @("1 hora", "1 hour", "1 hora")
+    Pause2h           = @("2 horas", "2 hours", "2 horas")
+    Pulse2h           = @("Pulsar 2hx5", "Pulse 2hx5", "Pulsar 2hx5")
+    Pulse4h           = @("Pulsar 4hx5", "Pulse 4hx5", "Pulsar 4hx5")
+    MenuExit          = @("Fechar Mineracao", "Exit Mining", "Cerrar Mineria")
+    TrayWaitStart     = @("Aguardando inicio...", "Waiting to start...", "Esperando inicio...")
+    TrayWaitWallet    = @("AGUARDANDO CARTEIRA", "WAITING FOR WALLET", "ESPERANDO BILLETERA")
+    TrayCalculating   = @("Calculando...", "Calculating...", "Calculando...")
+    TrayPaused        = @("PAUSADO", "PAUSED", "PAUSADO")
+    TrayPausedUntil   = @("PAUSADO (ate", "PAUSED (until", "PAUSADO (hasta")
+    TrayPulsePause    = @("PAUSA (ate", "PAUSE (until", "PAUSA (hasta")
+    TrayResuming      = @("Retomando...", "Resuming...", "Reanudando...")
+    BalloonStart1     = @("Gerenciador na bandeja. Mineracao inicia em", "Manager in system tray. Mining starts in", "Administrador en bandeja. La mineria inicia en")
+    BalloonStart2     = @("segundos.", "seconds.", "segundos.")
+    BtnSave           = @("Salvar", "Save", "Guardar")
+    BtnSaveImg        = @("Salvar Imagem", "Save Image", "Guardar Imagen")
+    BtnResetTtf       = @("Zerar TTF", "Reset TTF", "Reiniciar TTF")
+    BtnClose          = @("Fechar", "Close", "Cerrar")
+    BtnCreateWallet   = @("Criar Carteira", "Create Wallet", "Crear Billetera")
+    BtnCelebrate      = @("Comemorar!", "Celebrate!", "Celebrar!")
+    BtnSaveApply      = @("Salvar e Aplicar", "Save & Apply", "Guardar y Aplicar")
+    BtnRestoreDef     = @("Restaurar Padrao", "Restore Default", "Restaurar Patron")
+    AdvWinTitle       = @("Modo Avancado", "Advanced Mode", "Modo Avanzado")
+    AdvDangerHdr      = @("$warnChar ZONA DE PERIGO - MODO AVANCADO", "$warnChar DANGER ZONE - ADVANCED MODE", "$warnChar ZONA DE PELIGRO - MODO AVANZADO")
+    AdvWarn1          = @("- Atencao: Essas funcoes sao capazes de superaquecer ou desestabilizar o seu Pc!", "- Warning: These functions can overheat or destabilize your PC!", "- Atencion: Estas funciones pueden sobrecalentar o desestabilizar tu PC!")
+    AdvWarn2          = @("So altere caso voce tenha certeza do que esta fazendo, e ciente de seu risco!", "Only change if you are sure of what you are doing and aware of the risk!", "Solo modifica si estas seguro de lo que haces y consciente del riesgo!")
+    AdvWarn3          = @("* Mude Threads, Afinidades e Carteira somente nos menus proprios.", "* Change Threads, Affinity, and Wallet only in their respective menus.", "* Cambia Threads, Afinidad y Billetera solo en sus menus propios.")
+    AdvLblPool        = @("Endereco da Pool Solo (Ex.: stratum+tcp://public-pool.io:3333):", "Solo Pool Address (e.g., stratum+tcp://public-pool.io:3333):", "Direccion de Pool Solo (Ej.: stratum+tcp://public-pool.io:3333):")
+    AdvLblExtra       = @("Parametros Extras pertinentes ao motor cpuminer-opt:", "Extra Parameters for the cpuminer-opt engine:", "Parametros Extras pertinentes al motor cpuminer-opt:")
+    AdvLblPreview     = @("Somente Visualizacao (Comando Completo):", "Read-Only Preview (Full Command):", "Solo Visualizacion (Comando Completo):")
+    AdvConfirmMsg     = @("Confirmar alteracoes no Modo Avancado e reiniciar o minerador agora?", "Confirm Advanced Mode changes and restart the miner now?", "Confirmar cambios en Modo Avanzado y reiniciar el minero ahora?")
+    AdvRestoreMsg     = @("Deseja restaurar a Pool e os Parametros Extras para o padrao de fabrica?", "Do you want to restore Pool and Extra Parameters to factory defaults?", "Deseas restaurar la Pool y los Parametros Extras al patron de fabrica?")
+    AdvInvalidPool    = @("O endereco da Pool deve comecar com 'stratum+tcp://' ou 'stratum+ssl://'.", "Pool address must start with 'stratum+tcp://' or 'stratum+ssl://'.", "La direccion de la Pool debe comenzar con 'stratum+tcp://' o 'stratum+ssl://'.")
+    AdvForbiddenArgs  = @("Nao insira parametros de Threads (-t), Afinidade, Pool (-o) ou Carteira (-u) nos Parametros Extras. Use os menus proprios.", "Do not insert Thread (-t), Affinity, Pool (-o), or Wallet (-u) flags in Extra Parameters. Use their own menus.", "No ingreses parametros de Threads (-t), Afinidad, Pool (-o) o Billetera (-u) en Parametros Extras. Usa sus menus propios.")
+    WalletWinTitle    = @("Sua Carteira Bitcoin", "Your Bitcoin Wallet", "Tu Billetera Bitcoin")
+    WalletHeader      = @("Configure endereco Bitcoin para iniciar Miner:", "Configure Bitcoin address to start Miner:", "Configura direccion Bitcoin para iniciar Miner:")
+    WalletLblAddr     = @("Insira seu endereco de carteira Bitcoin (Ex.: bc1...):", "Enter your Bitcoin wallet address (e.g., bc1...):", "Ingresa tu direccion de billetera Bitcoin (Ej.: bc1...):")
+    WalletLblWorker   = @("Insira seu Trabalhador (Ex.: Pc_Gamer):", "Enter your Worker name (e.g., Gaming_PC):", "Ingresa tu Trabajador (Ej.: Pc_Gamer):")
+    WalletWarn1       = @("Endereco errado significa perder um possivel premio, confira!", "A wrong address means losing a possible reward, double-check!", "Una direccion erronea significa perder un posible premio, verifica!")
+    WalletWarn2       = @("Para o Trabalhador, evite caracteres especiais, espacos e acentuacao", "For the Worker name, avoid special characters, spaces, and accents", "Para el Trabajador, evita caracteres especiales, espacios y acentos")
+    WalletEmptyMsg    = @("Por favor, insira um endereco de carteira Bitcoin.", "Please enter a Bitcoin wallet address.", "Por favor, ingresa una direccion de billetera Bitcoin.")
+    WalletInvalid1    = @("O endereco inserido nao parece ser uma carteira Bitcoin valida.", "The entered address does not look like a valid Bitcoin wallet.", "La direccion ingresada no parece ser una billetera Bitcoin valida.")
+    WalletInvalid2    = @("Certifique-se de que ele comeca com '1', '3' ou 'bc1'.", "Make sure it starts with '1', '3', or 'bc1'.", "Asegurate de que comience con '1', '3' o 'bc1'.")
+    TtfWaitAvg        = @("Aguardando...", "Waiting...", "Esperando...")
+    TtfNoDataBox1     = @("Sem dados para estatistica.", "Not enough data for luck stats.", "Sin datos para estadisticas.")
+    TtfNoDataBox2     = @("Deixe o MinerIsma rodando!", "Keep MinerIsma running!", "Deja MinerIsma corriendo!")
+    TtfResetConfirm   = @("Deseja realmente zerar todo o historico de estatisticas TTF?", "Do you really want to reset all TTF statistics history?", "Realmente deseas reiniciar todo el historial de estadisticas TTF?")
+    TtfWinTitle       = @("Estatisticas TTF (Estimativa do Bloco)", "TTF Statistics (Block Estimate)", "Estadisticas TTF (Estimacion de Bloque)")
+    TtfPrizeHeader    = @($lblPrizeHdrPT, "Current Block Reward", "Premio Actual del Bloque")
+    TtfPrizeBtc       = @("3.125 BTC", "3.125 BTC", "3.125 BTC")
+    TtfPrizeUsdPref   = @("$ ~US$ ", "$ ~US$ ", "$ ~US$ ")
+    TtfPrizeUsdWait   = @("$ Atualizando cotacao...", "$ Updating price...", "$ Actualizando cotizacion...")
+    TtfDrawInfo       = @('"Sorteio" a cada ~10 min', '"Draw" every ~10 min', '"Sorteo" cada ~10 min')
+    TtfHalving1       = @($lblHalvPT1, "Next Halving in ", $lblHalvES1)
+    TtfHalving2       = @(" Blocos", " Blocks", " Bloques")
+    TtfAvgHeader      = @($lblAvgHdrPT, "Estimated Average Time", "Tiempo Promedio Estimado")
+    TtfAvgSub         = @($lblAvgSubPT, "(until a Block / Luck)", "(hasta un Bloque / Suerte)")
+    TtfCountLbl       = @("Registros Elegiveis:", "Eligible Records:", "Registros Elegibles:")
+    TtfBestLbl        = @($lblBestCardPT, "Closest Estimate", $lblBestCardES)
+    TtfBestSub        = @("(Recorde de Sua Sorte)", "(Your Luck Record)", "(Record de Tu Suerte)")
+    TtfSoloHeader     = @($lblSoloCardPT, "Latest Mined Block", $lblSoloCardES)
+    TtfSoloSub        = @($lblSoloSubPT, "(By a Solo Miner just like You!)", "(Por un Minero Solo igual a Ti!)")
+    TtfSoloBlockLbl   = @("Bloco:", "Block:", "Bloque:")
+    TtfSoloPrizeLbl   = @($lblSoloPrizePT, "Reward:", "Premio:")
+    TtfSoloWait       = @("Consultando rede Bitcoin...", "Querying Bitcoin network...", "Consultando red Bitcoin...")
+    TtfDate           = @("Data:", "Date:", "Fecha:")
+    TtfLuck           = @("Sua Sorte:", "Your Luck:", "Tu Suerte:")
+    TtfPower          = @("Poder:", "Power:", "Poder:")
+    AlertWinTitle     = @("SUCESSO ABSOLUTO", "ABSOLUTE SUCCESS", "EXITO ABSOLUTO")
+    AlertHeader       = @("VOCE ENCONTROU UM BLOCO!!!", "YOU FOUND A BLOCK!!!", "ENCONTRASTE UN BLOQUE!!!")
+    AlertBlockHeight  = @("Bloco (altura):", "Block (height):", "Bloque (altura):")
+    AlertCheckWallet  = @("Confira a carteira", "Check wallet", "Verifica la billetera")
+    AlertRewardInfo   = @("Seu premio em Bitcoin estara disponivel apos 100 Blocos (~24 horas).", "Your Bitcoin reward will be available after 100 Blocks (~24 hours).", "Tu premio en Bitcoin estara disponible tras 100 Bloques (~24 horas).")
+    AlertLogInfo      = @("Confira o registro no Log", "Check the record in Log", "Verifica el registro en el Log")
+    AlertInFolder     = @("na pasta do MinerIsma.", "in the MinerIsma folder.", "en la carpeta de MinerIsma.")
 }
 
 function Get-Text {
     param([string]$Key)
-    $langDict = $global:LangTable[$global:Language]
-    if ($null -eq $langDict) { $langDict = $global:LangTable["PT"] }
-    $val = $langDict[$Key]
-    if ([string]::IsNullOrWhiteSpace($val)) { return $Key }
-    return [string]$val
+    $arr = $global:LangTable[$Key]
+    if ($null -eq $arr) { return $Key }
+    if ($arr -is [array]) {
+        $idx = switch ($global:Language) { "EN" { 1 } "ES" { 2 } default { 0 } }
+        $val = $arr[$idx]
+        if ([string]::IsNullOrWhiteSpace($val)) { $val = $arr[0] }
+        return [string]$val
+    }
+    return [string]$arr
 }
 
 # ================================================================
-#  DAQUI PARA BAIXO NAO PRECISA EDITAR
+#  4. INICIALIZACAO DO SISTEMA E CAMINHOS
 # ================================================================
-Add-Type -AssemblyName System.Windows.Forms
-Add-Type -AssemblyName System.Drawing
-Add-Type -AssemblyName PresentationCore
+Add-Type -AssemblyName System.Windows.Forms, System.Drawing, PresentationCore
 [System.Windows.Forms.Application]::EnableVisualStyles()
 
-$global:AppVersion          = "MinerIsma_v2.0.4 - Alpha"
-$global:VersionNumber       = "2.0.4"
-$global:ShortVersion        = "MinerIsma v2.0"
+$global:AppVersion          = "MinerIsma_v2.1.1 - Alpha"
+$global:VersionNumber       = "2.1.1"
+$global:ShortVersion        = "MinerIsma v2.1.1"
 $global:BtcSym              = [string][char]0x20BF
 $global:BoltSym             = [string][char]0x26A1
 $global:StarSym             = [string][char]0x2605
-$global:UpdateSym           = [string][char]0x21BB
+$global:BlockSym            = [string][char]0x25A0
+$global:UpdateSym           = [string][char]0x27F3
+$global:GlobeSym            = [char]::ConvertFromUtf32(0x1F310)
 $global:UpdateAvailable     = $false
 $global:LatestRemoteVersion = ""
 $global:VersionCheckDone    = $false
-$global:Theme               = "Dark" # Padrao inicial de fabrica (Dark = Obsidiana / Light = Perola)
+$global:Theme               = "Dark"
 $global:ColorObsidian       = [System.Drawing.Color]::FromArgb(16, 21, 28)
 $global:ColorPearl          = [System.Drawing.Color]::FromArgb(244, 241, 234)
 $global:ColorBronzeBorder   = [System.Drawing.Color]::FromArgb(90, 60, 24)
 
-# Estrutura de Pastas: bin (atual), Raiz (pai), resources e Backup Oficial em AppData\Local\MinerIsma
 $global:BasePath         = $PSScriptRoot
 $global:RootPath         = Split-Path -Parent $global:BasePath
 $global:ResPath          = Join-Path $global:RootPath "resources"
-if (-not (Test-Path $global:ResPath)) {
-    try { New-Item -ItemType Directory -Path $global:ResPath -Force | Out-Null } catch {}
+$global:BackupDir        = Join-Path $env:LOCALAPPDATA "MinerIsma"
+foreach ($dir in @($global:ResPath, $global:BackupDir)) {
+    if (-not (Test-Path $dir)) { try { New-Item -ItemType Directory -Path $dir -Force | Out-Null } catch {} }
 }
 
-$global:BackupDir        = Join-Path $env:LOCALAPPDATA "MinerIsma"
-if (-not (Test-Path $global:BackupDir)) {
-    try { New-Item -ItemType Directory -Path $global:BackupDir -Force | Out-Null } catch {}
-}
+# Desbloqueia preventivamente todos os arquivos (.mp3, .html, .ico, .exe, .dll) contra restricoes Zone.Identifier do Windows
+try { Get-ChildItem -Path $global:RootPath -Recurse -File -ErrorAction SilentlyContinue | Unblock-File -ErrorAction SilentlyContinue } catch {}
 
 $global:MinerExe         = Join-Path $global:BasePath $global:MinerExeName
 $global:LauncherPath     = Join-Path $global:RootPath $global:LauncherFileName
@@ -555,26 +357,19 @@ $global:ErrorLog         = Join-Path $global:ResPath "MinerManager_ERROS.log"
 $global:ConfigFile       = Join-Path $global:ResPath "MinerIsma_Config.json"
 $global:TutorialFile     = Join-Path $global:ResPath $global:TutorialFileName
 $global:CustomIconPath   = Join-Path $global:ResPath $global:CustomIconFileName
-
-# Caminhos de Backup Automatico em $env:LOCALAPPDATA\MinerIsma
+$global:DonateQrPath     = Join-Path $global:ResPath $global:DonateQrFileName
 $global:BackupConfigFile = Join-Path $global:BackupDir "MinerIsma_Config.json"
 $global:BackupTtfLogFile = Join-Path $global:BackupDir "MinerIsma_TTF_LOG.txt"
 
-# 1. Migrador Automatico: Converte TTF_BLOCO_LOG.txt antigo para MinerIsma_TTF_LOG.txt
 try {
     if ((Test-Path -LiteralPath $global:LegacyTtfLogFile) -and (-not (Test-Path -LiteralPath $global:TtfLogFile))) {
         Move-Item -LiteralPath $global:LegacyTtfLogFile -Destination $global:TtfLogFile -Force -ErrorAction SilentlyContinue
     }
-} catch {}
-
-# 2. Fallback Inteligente na Partida: Restaura de AppData\Local\MinerIsma se ausente em resources, ou sincroniza 1x
-try {
     if ((-not (Test-Path -LiteralPath $global:ConfigFile)) -and (Test-Path -LiteralPath $global:BackupConfigFile)) {
         Copy-Item -LiteralPath $global:BackupConfigFile -Destination $global:ConfigFile -Force -ErrorAction SilentlyContinue
     } elseif (Test-Path -LiteralPath $global:ConfigFile) {
         Copy-Item -LiteralPath $global:ConfigFile -Destination $global:BackupConfigFile -Force -ErrorAction SilentlyContinue
     }
-
     if ((-not (Test-Path -LiteralPath $global:TtfLogFile)) -and (Test-Path -LiteralPath $global:BackupTtfLogFile)) {
         Copy-Item -LiteralPath $global:BackupTtfLogFile -Destination $global:TtfLogFile -Force -ErrorAction SilentlyContinue
     } elseif (Test-Path -LiteralPath $global:TtfLogFile) {
@@ -582,66 +377,47 @@ try {
     }
 } catch {}
 
-# Variaveis para Iniciar com Windows (Atalho Startup + Chave Run do Usuario)
-$global:StartupFolder = [Environment]::GetFolderPath("Startup")
-$global:ShortcutPath  = Join-Path $global:StartupFolder "MinerIsma.lnk"
-$global:RunRegKey     = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Run"
-$global:RunRegName    = "MinerIsma"
+$global:StartupFolder       = [Environment]::GetFolderPath("Startup")
+$global:ShortcutPath        = Join-Path $global:StartupFolder "MinerIsma.lnk"
+$global:DesktopFolder       = [Environment]::GetFolderPath("Desktop")
+$global:DesktopShortcutPath = Join-Path $global:DesktopFolder "MinerIsma.lnk"
+$global:RunRegKey           = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Run"
+$global:RunRegName          = "MinerIsma"
 
-# --- Inicio Padrao Inteligente (4 Threads para >= 16Th, 3 Threads para < 16Th) e Leitura do Config.json ---
-$global:DefaultThreads     = if ($global:LogicalCores -ge 16) { 4 } else { 3 }
-$global:ConfiguredDelay    = $global:DefaultStartupDelay
-$global:StartupInitialized = $false
-$global:StartupEnabled     = $true  # Habilitado por padrao na 1a vez
-$global:SavedPulseMode     = ""     # Desabilitado de fabrica, salvo se escolhido pelo usuario
-$global:CurrentBlockHeight = 0
+$global:DefaultThreads      = if ($global:LogicalCores -ge 16) { 4 } else { 3 }
+$global:ConfiguredDelay     = $global:DefaultStartupDelay
+$global:StartupInitialized  = $false
+$global:StartupEnabled      = $true
+$global:SavedPulseMode      = ""
+$global:CurrentBlockHeight  = 0
+$global:LastSoloBlockHeight = 0
+$global:LastSoloBlockTime   = ""
+$global:LastSoloBlockPool   = ""
+$global:LastSoloBlockReward = ""
 
 if (Test-Path $global:ConfigFile) {
     try {
         $cfg = Get-Content $global:ConfigFile -Raw | ConvertFrom-Json
-        if (($null -ne $cfg.LastThreads) -and ($global:ThreadProfiles.Contains([int]$cfg.LastThreads))) {
-            $global:DefaultThreads = [int]$cfg.LastThreads
-        }
+        if (($null -ne $cfg.LastThreads) -and ($global:ThreadProfiles.Contains([int]$cfg.LastThreads))) { $global:DefaultThreads = [int]$cfg.LastThreads }
         if (-not [string]::IsNullOrWhiteSpace($cfg.Wallet)) {
             $savedAddr = ($cfg.Wallet -replace '\..*?$', '').Trim()
-            if ((-not [string]::IsNullOrWhiteSpace($savedAddr)) -and ($savedAddr -ne "minha_carteira")) {
-                $global:Wallet = [string]$cfg.Wallet
-            }
+            if ((-not [string]::IsNullOrWhiteSpace($savedAddr)) -and ($savedAddr -ne "minha_carteira")) { $global:Wallet = [string]$cfg.Wallet }
         }
-        if ($null -ne $cfg.StartupDelay) {
-            $dVal = [int]$cfg.StartupDelay
-            if ($dVal -in @(5, 15, 30, 60)) {
-                $global:ConfiguredDelay = $dVal
-            }
-        }
-        if (-not [string]::IsNullOrWhiteSpace($cfg.SoundFileName)) {
-            if ($cfg.SoundFileName -in @($global:SoundFileKMS, $global:SoundFileSenna, $global:SoundFileMforN, $global:SoundFileCoins)) {
-                $global:SoundFileName = [string]$cfg.SoundFileName
-            }
-        }
-        if ($null -ne $cfg.StartupInitialized) {
-            $global:StartupInitialized = [bool]$cfg.StartupInitialized
-        }
-        if ($null -ne $cfg.StartupEnabled) {
-            $global:StartupEnabled = [bool]$cfg.StartupEnabled
-        }
-        if (-not [string]::IsNullOrWhiteSpace($cfg.PulseMode)) {
-            if ($cfg.PulseMode -in @("2hx5", "4hx5")) {
-                $global:SavedPulseMode = [string]$cfg.PulseMode
-            }
-        }
-        if (-not [string]::IsNullOrWhiteSpace($cfg.Language)) {
-            if ($cfg.Language -in @("PT", "EN", "ES")) {
-                $global:Language = [string]$cfg.Language
-            }
-        }
-        if (-not [string]::IsNullOrWhiteSpace($cfg.Theme)) {
-            if ($cfg.Theme -in @("Dark", "Light")) {
-                $global:Theme = [string]$cfg.Theme
-            }
-        }
-        if (($null -ne $cfg.LastBlockHeight) -and ([int]$cfg.LastBlockHeight -gt 840000)) {
-            $global:CurrentBlockHeight = [int]$cfg.LastBlockHeight
+        if (-not [string]::IsNullOrWhiteSpace($cfg.PoolUrl)) { $global:PoolUrl = [string]$cfg.PoolUrl }
+        if ($null -ne $cfg.ExtraArgs) { $global:ExtraArgs = [string]$cfg.ExtraArgs }
+        if ($null -ne $cfg.StartupDelay -and ([int]$cfg.StartupDelay -in @(5, 15, 30, 60))) { $global:ConfiguredDelay = [int]$cfg.StartupDelay }
+        if ($cfg.SoundFileName -in @($global:SoundFileKMS, $global:SoundFileSenna, $global:SoundFileMforN, $global:SoundFileCoins)) { $global:SoundFileName = [string]$cfg.SoundFileName }
+        if ($null -ne $cfg.StartupInitialized) { $global:StartupInitialized = [bool]$cfg.StartupInitialized }
+        if ($null -ne $cfg.StartupEnabled) { $global:StartupEnabled = [bool]$cfg.StartupEnabled }
+        if ($cfg.PulseMode -in @("2hx5", "4hx5")) { $global:SavedPulseMode = [string]$cfg.PulseMode }
+        if ($cfg.Language -in @("PT", "EN", "ES")) { $global:Language = [string]$cfg.Language }
+        if ($cfg.Theme -in @("Dark", "Light")) { $global:Theme = [string]$cfg.Theme }
+        if (($null -ne $cfg.LastBlockHeight) -and ([int]$cfg.LastBlockHeight -gt 840000)) { $global:CurrentBlockHeight = [int]$cfg.LastBlockHeight }
+        if (($null -ne $cfg.LastSoloBlockHeight) -and ([int]$cfg.LastSoloBlockHeight -gt 840000)) {
+            $global:LastSoloBlockHeight = [int]$cfg.LastSoloBlockHeight
+            $global:LastSoloBlockTime   = [string]$cfg.LastSoloBlockTime
+            $global:LastSoloBlockPool   = [string]$cfg.LastSoloBlockPool
+            $global:LastSoloBlockReward = [string]$cfg.LastSoloBlockReward
         }
     } catch {}
 }
@@ -664,18 +440,22 @@ $global:PulsePauseMins      = 0
 $global:PulseNextSwitch     = $null
 $global:LastBtcUsdFormatted = ""
 $global:LastBtcUsdValue     = 0.0
+$global:LastUsdBrlFormatted = ""
+$global:LastUsdEurFormatted = ""
 
-if ($global:SavedPulseMode -eq "2hx5") {
-    $global:PulseMode       = "2hx5"
-    $global:PulseActiveMins = 120
+# Referencias das janelas independentes (nao-modais)
+$global:tutForm    = $null
+$global:walletForm = $null
+$global:statForm   = $null
+$global:donForm    = $null
+$global:advForm    = $null
+$global:alertForm  = $null
+
+if ($global:SavedPulseMode -in @("2hx5", "4hx5")) {
+    $global:PulseMode       = $global:SavedPulseMode
+    $global:PulseActiveMins = if ($global:SavedPulseMode -eq "2hx5") { 120 } else { 240 }
     $global:PulsePauseMins  = 5
-    $global:PulseNextSwitch = (Get-Date).AddMinutes(120)
-}
-elseif ($global:SavedPulseMode -eq "4hx5") {
-    $global:PulseMode       = "4hx5"
-    $global:PulseActiveMins = 240
-    $global:PulsePauseMins  = 5
-    $global:PulseNextSwitch = (Get-Date).AddMinutes(240)
+    $global:PulseNextSwitch = (Get-Date).AddMinutes($global:PulseActiveMins)
 }
 
 $global:TtfLogAllowedAt    = (Get-Date).AddSeconds($global:TtfWarmupSeconds)
@@ -686,11 +466,26 @@ $global:RestartAt          = $null
 $global:CrashNotified      = $false
 $global:StopRequested      = $false
 $global:SoundPlayer        = $null
+$global:SfxPlayer          = $null
 $global:LastTtfLogged      = ""
 $global:DetectedMinerExe   = $global:MinerExeName
 $global:WalletWarningShown = $false
 $global:LogQueue           = New-Object System.Collections.Concurrent.ConcurrentQueue[string]
 $global:RecentLines        = New-Object System.Collections.Generic.Queue[string]
+
+function Play-EffectSound {
+    param([string]$SfxFileName)
+    if ([string]::IsNullOrWhiteSpace($SfxFileName)) { return }
+    try {
+        $sfxPath = Join-Path $global:ResPath $SfxFileName
+        if (Test-Path -LiteralPath $sfxPath) {
+            if ($null -ne $global:SfxPlayer) { try { $global:SfxPlayer.Stop(); $global:SfxPlayer.Close() } catch {} }
+            $global:SfxPlayer = New-Object System.Windows.Media.MediaPlayer
+            $global:SfxPlayer.Open([Uri]$sfxPath)
+            $global:SfxPlayer.Play()
+        }
+    } catch {}
+}
 
 # ============================================================
 # API DO WINDOWS (THREADS + DWM + ICONE TASKBAR + MENU E SCROLLBAR)
@@ -702,12 +497,7 @@ using System.Windows.Forms;
 using System.Runtime.InteropServices;
 
 [StructLayout(LayoutKind.Sequential)]
-public struct DwmRect {
-    public int Left;
-    public int Top;
-    public int Right;
-    public int Bottom;
-}
+public struct DwmRect { public int Left; public int Top; public int Right; public int Bottom; }
 
 public class ProcCtl {
     [DllImport("kernel32.dll")] public static extern IntPtr OpenThread(int access, bool inherit, uint tid);
@@ -731,7 +521,6 @@ public class ObsidianVScrollBar : Control {
     private bool isHoverThumb = false;
     private int dragOffsetY = 0;
     private int arrowHeight = 16;
-
     private Color borderCol = Color.FromArgb(90, 60, 24);
     private Color arrowCol  = Color.FromArgb(247, 147, 26);
 
@@ -740,110 +529,66 @@ public class ObsidianVScrollBar : Control {
         this.Width = 16;
         this.BackColor = Color.FromArgb(16, 21, 28);
     }
-
     private int GetVisibleLines() {
         if (TargetBox == null || TargetBox.Font == null) return 25;
-        int fh = Math.Max(12, TargetBox.Font.Height);
-        return Math.Max(1, TargetBox.ClientSize.Height / fh);
+        return Math.Max(1, TargetBox.ClientSize.Height / Math.Max(12, TargetBox.Font.Height));
     }
-
     private int GetTotalLines() {
         if (TargetBox == null || !TargetBox.IsHandleCreated) return 1;
-        int count = (int)ProcCtl.SendMessage(TargetBox.Handle, 0x00BA, IntPtr.Zero, IntPtr.Zero);
-        return Math.Max(1, count);
+        return Math.Max(1, (int)ProcCtl.SendMessage(TargetBox.Handle, 0x00BA, IntPtr.Zero, IntPtr.Zero));
     }
-
     private int GetFirstVisibleLine() {
         if (TargetBox == null || !TargetBox.IsHandleCreated) return 0;
         return Math.Max(0, (int)ProcCtl.SendMessage(TargetBox.Handle, 0x00CE, IntPtr.Zero, IntPtr.Zero));
     }
-
     private Rectangle GetThumbRect() {
         int trackTop = arrowHeight;
         int trackH = Math.Max(10, this.Height - (arrowHeight * 2));
         int total = GetTotalLines();
         int vis = GetVisibleLines();
-        if (total <= vis) {
-            return new Rectangle(2, trackTop, this.Width - 4, trackH);
-        }
+        if (total <= vis) return new Rectangle(2, trackTop, this.Width - 4, trackH);
         int thumbH = Math.Max(26, (int)((double)vis / total * trackH));
         int maxFirst = Math.Max(1, total - vis);
         int first = Math.Min(maxFirst, GetFirstVisibleLine());
         int availH = Math.Max(1, trackH - thumbH);
-        int thumbY = trackTop + (int)((double)first / maxFirst * availH);
-        return new Rectangle(2, thumbY, this.Width - 4, thumbH);
+        return new Rectangle(2, trackTop + (int)((double)first / maxFirst * availH), this.Width - 4, thumbH);
     }
-
     protected override void OnPaint(PaintEventArgs e) {
         Graphics g = e.Graphics;
         g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
-
         Color trackCol      = IsLightMode ? Color.FromArgb(232, 226, 214) : Color.FromArgb(16, 21, 28);
         Color thumbCol      = IsLightMode ? Color.FromArgb(196, 176, 148) : Color.FromArgb(42, 32, 20);
         Color thumbHoverCol = IsLightMode ? Color.FromArgb(168, 142, 108) : Color.FromArgb(68, 48, 26);
 
-        using (SolidBrush bTrack = new SolidBrush(trackCol)) {
-            g.FillRectangle(bTrack, this.ClientRectangle);
-        }
+        using (SolidBrush bTrack = new SolidBrush(trackCol)) { g.FillRectangle(bTrack, this.ClientRectangle); }
         using (Pen pBorder = new Pen(borderCol, 1)) {
             g.DrawLine(pBorder, 0, 0, 0, this.Height);
             g.DrawRectangle(pBorder, 0, 0, this.Width - 1, arrowHeight - 1);
             g.DrawRectangle(pBorder, 0, this.Height - arrowHeight, this.Width - 1, arrowHeight - 1);
         }
         using (SolidBrush bArrow = new SolidBrush(arrowCol)) {
-            Point[] upPts = new Point[] {
-                new Point(this.Width / 2, 4),
-                new Point(4, arrowHeight - 4),
-                new Point(this.Width - 4, arrowHeight - 4)
-            };
-            Point[] dnPts = new Point[] {
-                new Point(this.Width / 2, this.Height - 4),
-                new Point(4, this.Height - arrowHeight + 4),
-                new Point(this.Width - 4, this.Height - arrowHeight + 4)
-            };
-            g.FillPolygon(bArrow, upPts);
-            g.FillPolygon(bArrow, dnPts);
+            g.FillPolygon(bArrow, new Point[] { new Point(this.Width / 2, 4), new Point(4, arrowHeight - 4), new Point(this.Width - 4, arrowHeight - 4) });
+            g.FillPolygon(bArrow, new Point[] { new Point(this.Width / 2, this.Height - 4), new Point(4, this.Height - arrowHeight + 4), new Point(this.Width - 4, this.Height - arrowHeight + 4) });
         }
-
         Rectangle tr = GetThumbRect();
-        Color tCol = (isDragging || isHoverThumb) ? thumbHoverCol : thumbCol;
-        using (SolidBrush bThumb = new SolidBrush(tCol)) {
-            g.FillRectangle(bThumb, tr);
-        }
-        using (Pen pThumb = new Pen(borderCol, 1)) {
-            g.DrawRectangle(pThumb, tr.X, tr.Y, tr.Width - 1, tr.Height - 1);
-        }
+        using (SolidBrush bThumb = new SolidBrush((isDragging || isHoverThumb) ? thumbHoverCol : thumbCol)) { g.FillRectangle(bThumb, tr); }
+        using (Pen pThumb = new Pen(borderCol, 1)) { g.DrawRectangle(pThumb, tr.X, tr.Y, tr.Width - 1, tr.Height - 1); }
     }
-
     private void ScrollTargetLines(int deltaLines) {
         if (TargetBox == null || !TargetBox.IsHandleCreated || deltaLines == 0) return;
         ProcCtl.SendMessage(TargetBox.Handle, 0x00B6, IntPtr.Zero, (IntPtr)deltaLines);
         this.Invalidate();
     }
-
     protected override void OnMouseDown(MouseEventArgs e) {
         base.OnMouseDown(e);
         if (e.Button != MouseButtons.Left || TargetBox == null) return;
-        if (e.Y < arrowHeight) {
-            ScrollTargetLines(-3);
-            return;
-        }
-        if (e.Y > this.Height - arrowHeight) {
-            ScrollTargetLines(3);
-            return;
-        }
+        if (e.Y < arrowHeight) { ScrollTargetLines(-3); return; }
+        if (e.Y > this.Height - arrowHeight) { ScrollTargetLines(3); return; }
         Rectangle tr = GetThumbRect();
-        if (tr.Contains(e.Location)) {
-            isDragging = true;
-            dragOffsetY = e.Y - tr.Y;
-            this.Invalidate();
-        } else if (e.Y < tr.Y) {
-            ScrollTargetLines(-GetVisibleLines());
-        } else if (e.Y > tr.Bottom) {
-            ScrollTargetLines(GetVisibleLines());
-        }
+        if (tr.Contains(e.Location)) { isDragging = true; dragOffsetY = e.Y - tr.Y; this.Invalidate(); }
+        else if (e.Y < tr.Y) { ScrollTargetLines(-GetVisibleLines()); }
+        else if (e.Y > tr.Bottom) { ScrollTargetLines(GetVisibleLines()); }
     }
-
     protected override void OnMouseMove(MouseEventArgs e) {
         base.OnMouseMove(e);
         if (isDragging && TargetBox != null && TargetBox.IsHandleCreated) {
@@ -853,36 +598,15 @@ public class ObsidianVScrollBar : Control {
             int availH = Math.Max(1, trackH - tr.Height);
             int newThumbY = Math.Max(trackTop, Math.Min(trackTop + availH, e.Y - dragOffsetY));
             double ratio = (double)(newThumbY - trackTop) / availH;
-            int total = GetTotalLines();
-            int vis = GetVisibleLines();
-            int maxFirst = Math.Max(1, total - vis);
-            int targetFirst = (int)Math.Round(ratio * maxFirst);
-            int curFirst = GetFirstVisibleLine();
-            ScrollTargetLines(targetFirst - curFirst);
+            int maxFirst = Math.Max(1, GetTotalLines() - GetVisibleLines());
+            ScrollTargetLines((int)Math.Round(ratio * maxFirst) - GetFirstVisibleLine());
         } else {
             bool hov = GetThumbRect().Contains(e.Location);
-            if (hov != isHoverThumb) {
-                isHoverThumb = hov;
-                this.Invalidate();
-            }
+            if (hov != isHoverThumb) { isHoverThumb = hov; this.Invalidate(); }
         }
     }
-
-    protected override void OnMouseUp(MouseEventArgs e) {
-        base.OnMouseUp(e);
-        if (isDragging) {
-            isDragging = false;
-            this.Invalidate();
-        }
-    }
-
-    protected override void OnMouseLeave(EventArgs e) {
-        base.OnMouseLeave(e);
-        if (isHoverThumb) {
-            isHoverThumb = false;
-            this.Invalidate();
-        }
-    }
+    protected override void OnMouseUp(MouseEventArgs e) { base.OnMouseUp(e); if (isDragging) { isDragging = false; this.Invalidate(); } }
+    protected override void OnMouseLeave(EventArgs e) { base.OnMouseLeave(e); if (isHoverThumb) { isHoverThumb = false; this.Invalidate(); } }
 }
 
 public class ObsidianMenuColors : ProfessionalColorTable {
@@ -915,13 +639,18 @@ public class ObsidianMenuColors : ProfessionalColorTable {
 }
 
 public class ObsidianMenuRenderer : ToolStripProfessionalRenderer {
-    public ObsidianMenuRenderer() : base(new ObsidianMenuColors()) {
-        this.RoundedEdges = false;
-    }
-    protected override void OnRenderMenuItemBackground(ToolStripItemRenderEventArgs e) {
-        if (e.Item != null && e.Item.Name == "HeaderItem") {
-            return;
+    public ObsidianMenuRenderer() : base(new ObsidianMenuColors()) { this.RoundedEdges = false; }
+
+    private void DrawUpdateBadgeInLeftMargin(Graphics g, int itemHeight) {
+        Rectangle rUpd = new Rectangle(1, (itemHeight - 24) / 2 - 1, 24, 24);
+        Color updCol = ObsidianMenuColors.IsLightMode ? Color.FromArgb(0, 135, 175) : Color.Cyan;
+        using (Font fUpd = new Font("Segoe UI Symbol", 13.5f, FontStyle.Bold)) {
+            TextRenderer.DrawText(g, "\u27F3", fUpd, rUpd, updCol, TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter | TextFormatFlags.NoPadding);
         }
+    }
+
+    protected override void OnRenderMenuItemBackground(ToolStripItemRenderEventArgs e) {
+        if (e.Item != null && e.Item.Name == "HeaderItem") return;
         base.OnRenderMenuItemBackground(e);
     }
     protected override void OnRenderArrow(ToolStripArrowRenderEventArgs e) {
@@ -931,54 +660,37 @@ public class ObsidianMenuRenderer : ToolStripProfessionalRenderer {
     protected override void OnRenderItemText(ToolStripItemTextRenderEventArgs e) {
         if (e.Item != null && e.Item.Name == "HeaderItem") {
             int leftAlignedX = Math.Max(28, e.TextRectangle.Left);
-            e.TextRectangle = new Rectangle(leftAlignedX, 0, Math.Max(80, e.Item.Width - leftAlignedX - 96), e.Item.Height);
+            e.TextRectangle = new Rectangle(leftAlignedX, 0, Math.Max(80, e.Item.Width - leftAlignedX - 74), e.Item.Height);
             e.TextFormat = TextFormatFlags.Left | TextFormatFlags.VerticalCenter | TextFormatFlags.NoPadding;
             base.OnRenderItemText(e);
 
             Graphics g = e.Graphics;
             g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
-            int boxH   = 20;
-            int boxY   = (e.Item.Height - boxH) / 2;
-            int langW  = 26;
-            int themeW = 24;
-            int updW   = 22;
-            int langX  = e.Item.Width - langW - 18;
-            int themeX = langX - themeW - 4;
-            int updX   = themeX - updW - 4;
-
+            int boxH = 20, boxY = (e.Item.Height - boxH) / 2, langW = 26, themeW = 24;
+            int langX = e.Item.Width - langW - 18, themeX = langX - themeW - 4;
             Rectangle rTheme = new Rectangle(themeX, boxY, themeW, boxH);
             Rectangle rLang  = new Rectangle(langX, boxY, langW, boxH);
 
             Color boxBg  = ObsidianMenuColors.IsLightMode ? Color.FromArgb(232, 226, 214) : Color.FromArgb(26, 33, 44);
             Color symCol = ObsidianMenuColors.IsLightMode ? Color.FromArgb(205, 102, 0) : Color.FromArgb(247, 147, 26);
 
-            using (SolidBrush b = new SolidBrush(boxBg)) {
-                g.FillRectangle(b, rTheme);
-                g.FillRectangle(b, rLang);
-            }
+            using (SolidBrush b = new SolidBrush(boxBg)) { g.FillRectangle(b, rTheme); g.FillRectangle(b, rLang); }
             using (Pen p = new Pen(Color.FromArgb(90, 60, 24), 1)) {
                 g.DrawRectangle(p, rTheme.X, rTheme.Y, rTheme.Width - 1, rTheme.Height - 1);
                 g.DrawRectangle(p, rLang.X, rLang.Y, rLang.Width - 1, rLang.Height - 1);
             }
-            string sym = ObsidianMenuColors.IsLightMode ? "\u2600" : "\u263E";
-            TextRenderer.DrawText(g, sym, e.TextFont, rTheme, symCol, TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter | TextFormatFlags.NoPadding);
-
+            TextRenderer.DrawText(g, ObsidianMenuColors.IsLightMode ? "\u2600" : "\u263E", e.TextFont, rTheme, symCol, TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter | TextFormatFlags.NoPadding);
             using (Font fLang = new Font("Segoe UI", 8.25f, FontStyle.Bold)) {
                 TextRenderer.DrawText(g, ObsidianMenuColors.CurrentLangBadge, fLang, rLang, symCol, TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter | TextFormatFlags.NoPadding);
             }
-
+            if (ObsidianMenuColors.IsUpdateAvailable) DrawUpdateBadgeInLeftMargin(g, e.Item.Height);
+            return;
+        }
+        if (e.Item != null && e.Item.Name == "UpdateSubItem") {
+            base.OnRenderItemText(e);
             if (ObsidianMenuColors.IsUpdateAvailable) {
-                Rectangle rUpd = new Rectangle(updX, boxY, updW, boxH);
-                Color updCol = ObsidianMenuColors.IsLightMode ? Color.FromArgb(18, 125, 48) : Color.FromArgb(50, 225, 90);
-                using (SolidBrush bUpd = new SolidBrush(boxBg)) {
-                    g.FillRectangle(bUpd, rUpd);
-                }
-                using (Pen pUpd = new Pen(updCol, 1)) {
-                    g.DrawRectangle(pUpd, rUpd.X, rUpd.Y, rUpd.Width - 1, rUpd.Height - 1);
-                }
-                using (Font fUpd = new Font("Segoe UI", 9.5f, FontStyle.Bold)) {
-                    TextRenderer.DrawText(g, "\u21BB", fUpd, rUpd, updCol, TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter | TextFormatFlags.NoPadding);
-                }
+                e.Graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
+                DrawUpdateBadgeInLeftMargin(e.Graphics, e.Item.Height);
             }
             return;
         }
@@ -986,22 +698,16 @@ public class ObsidianMenuRenderer : ToolStripProfessionalRenderer {
             string txt = e.Text;
             int dotIdx = txt.IndexOf('.');
             if (dotIdx > 0) {
-                string prefix  = txt.Substring(0, dotIdx);
-                string pattern = txt.Substring(dotIdx);
-
+                string prefix = txt.Substring(0, dotIdx), pattern = txt.Substring(dotIdx);
                 int refPrefW = TextRenderer.MeasureText(e.Graphics, "~48% \u219210 ", e.TextFont, new Size(300, e.Item.Height), TextFormatFlags.NoPadding).Width;
                 int stepX    = Math.Max(4, TextRenderer.MeasureText(e.Graphics, "!", e.TextFont, new Size(50, e.Item.Height), TextFormatFlags.NoPadding).Width + 1);
 
-                Rectangle prefRect = new Rectangle(e.TextRectangle.Left, 0, refPrefW + 10, e.Item.Height);
-                TextRenderer.DrawText(e.Graphics, prefix, e.TextFont, prefRect, e.TextColor, TextFormatFlags.Left | TextFormatFlags.VerticalCenter | TextFormatFlags.NoPadding);
-
+                TextRenderer.DrawText(e.Graphics, prefix, e.TextFont, new Rectangle(e.TextRectangle.Left, 0, refPrefW + 10, e.Item.Height), e.TextColor, TextFormatFlags.Left | TextFormatFlags.VerticalCenter | TextFormatFlags.NoPadding);
                 Color bangCol = ObsidianMenuColors.IsLightMode ? Color.FromArgb(205, 102, 0) : Color.FromArgb(247, 147, 26);
                 int startX = e.TextRectangle.Left + refPrefW;
                 for (int i = 0; i < pattern.Length; i++) {
                     string ch = pattern.Substring(i, 1);
-                    Color cCol = (ch == "!") ? bangCol : e.TextColor;
-                    Rectangle chRect = new Rectangle(startX + (i * stepX), 0, stepX + 4, e.Item.Height);
-                    TextRenderer.DrawText(e.Graphics, ch, e.TextFont, chRect, cCol, TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter | TextFormatFlags.NoPadding);
+                    TextRenderer.DrawText(e.Graphics, ch, e.TextFont, new Rectangle(startX + (i * stepX), 0, stepX + 4, e.Item.Height), (ch == "!") ? bangCol : e.TextColor, TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter | TextFormatFlags.NoPadding);
                 }
                 return;
             }
@@ -1012,59 +718,83 @@ public class ObsidianMenuRenderer : ToolStripProfessionalRenderer {
         Graphics g = e.Graphics;
         g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
         Rectangle r = e.ImageRectangle;
-        Color chkBg = ObsidianMenuColors.IsLightMode ? Color.FromArgb(255, 236, 209) : Color.FromArgb(40, 28, 14);
-        using (SolidBrush b = new SolidBrush(chkBg)) {
-            g.FillRectangle(b, r);
-        }
-        using (Pen pBorder = new Pen(Color.FromArgb(247, 147, 26), 1)) {
-            g.DrawRectangle(pBorder, r.X, r.Y, r.Width - 1, r.Height - 1);
-        }
+        using (SolidBrush b = new SolidBrush(ObsidianMenuColors.IsLightMode ? Color.FromArgb(255, 236, 209) : Color.FromArgb(40, 28, 14))) { g.FillRectangle(b, r); }
+        using (Pen pBorder = new Pen(Color.FromArgb(247, 147, 26), 1)) { g.DrawRectangle(pBorder, r.X, r.Y, r.Width - 1, r.Height - 1); }
         using (Pen pCheck = new Pen(Color.FromArgb(247, 147, 26), 2)) {
-            g.DrawLines(pCheck, new Point[] {
-                new Point(r.Left + 3, r.Top + r.Height / 2),
-                new Point(r.Left + r.Width / 2 - 1, r.Bottom - 4),
-                new Point(r.Right - 3, r.Top + 4)
-            });
+            g.DrawLines(pCheck, new Point[] { new Point(r.Left + 3, r.Top + r.Height / 2), new Point(r.Left + r.Width / 2 - 1, r.Bottom - 4), new Point(r.Right - 3, r.Top + 4) });
         }
     }
 }
 "@
 
-# Registra identidade propria do MinerIsma no Shell do Windows para substituir o icone do PowerShell na Barra de Tarefas
-try {
-    [ProcCtl]::SetCurrentProcessExplicitAppUserModelID("MinerIsma.SoloMiner.v2.0.4") | Out-Null
-} catch {}
+try { [ProcCtl]::SetCurrentProcessExplicitAppUserModelID("MinerIsma.SoloMiner.v2.1.1") | Out-Null } catch {}
 
-function Get-WindowBgColor {
-    if ($global:Theme -eq "Light") { return $global:ColorPearl }
-    return $global:ColorObsidian
+# ============================================================
+# FUNCOES HELPER DE INTERFACE, TEMA E CONTROLES VISUAIS
+# ============================================================
+function Get-WindowBgColor      { if ($global:Theme -eq "Light") { return $global:ColorPearl } return $global:ColorObsidian }
+function Get-CardBgColor        { if ($global:Theme -eq "Light") { return [System.Drawing.Color]::FromArgb(236, 231, 220) } return [System.Drawing.Color]::FromArgb(12, 17, 24) }
+function Get-VisorBgColor       { if ($global:Theme -eq "Light") { return [System.Drawing.Color]::FromArgb(228, 222, 210) } return [System.Drawing.Color]::FromArgb(9, 13, 18) }
+function Get-PrimaryTextColor   { if ($global:Theme -eq "Light") { return [System.Drawing.Color]::FromArgb(26, 20, 14) } return [System.Drawing.Color]::White }
+function Get-SecondaryTextColor { if ($global:Theme -eq "Light") { return [System.Drawing.Color]::FromArgb(85, 70, 55) } return [System.Drawing.Color]::LightGray }
+function Get-AccentOrangeColor  { if ($global:Theme -eq "Light") { return [System.Drawing.Color]::FromArgb(205, 102, 0) } return [System.Drawing.Color]::FromArgb(255, 247, 147, 26) }
+function Get-GoldTextColor      { if ($global:Theme -eq "Light") { return [System.Drawing.Color]::FromArgb(180, 90, 0) } return [System.Drawing.Color]::Gold }
+function Get-CyanTextColor      { if ($global:Theme -eq "Light") { return [System.Drawing.Color]::FromArgb(0, 130, 165) } return [System.Drawing.Color]::Cyan }
+function Get-GreenTextColor     { if ($global:Theme -eq "Light") { return [System.Drawing.Color]::FromArgb(18, 125, 48) } return [System.Drawing.Color]::LimeGreen }
+function Get-DangerTextColor    { if ($global:Theme -eq "Light") { return [System.Drawing.Color]::FromArgb(195, 30, 15) } return [System.Drawing.Color]::FromArgb(255, 85, 55) }
+
+function New-UiLabel {
+    param([string]$Text, [int]$X, [int]$Y, [int]$W = 0, [int]$H = 0, $Font, $ForeCol, $BackCol = $null)
+    $lbl = New-Object System.Windows.Forms.Label
+    $lbl.Text = $Text
+    $lbl.Location = New-Object System.Drawing.Point($X, $Y)
+    if ($W -gt 0 -and $H -gt 0) {
+        $lbl.Size = New-Object System.Drawing.Size($W, $H)
+        $lbl.AutoSize = $false
+        $lbl.TextAlign = [System.Drawing.ContentAlignment]::MiddleCenter
+    } else {
+        $lbl.AutoSize = $true
+    }
+    if ($null -ne $BackCol) { $lbl.BackColor = $BackCol }
+    $lbl.ForeColor = $ForeCol
+    $lbl.Font = $Font
+    return $lbl
 }
 
-function Get-PrimaryTextColor {
-    if ($global:Theme -eq "Light") { return [System.Drawing.Color]::FromArgb(26, 20, 14) }
-    return [System.Drawing.Color]::White
-}
-
-function Get-SecondaryTextColor {
-    if ($global:Theme -eq "Light") { return [System.Drawing.Color]::FromArgb(85, 70, 55) }
-    return [System.Drawing.Color]::LightGray
-}
-
-function Get-AccentOrangeColor {
-    if ($global:Theme -eq "Light") { return [System.Drawing.Color]::FromArgb(205, 102, 0) }
-    return [System.Drawing.Color]::FromArgb(255, 247, 147, 26)
+function Set-TutorialWebScrollbarTheme {
+    if ($null -eq $script:tut_web -or $script:tut_web.IsDisposed) { return }
+    try {
+        $doc = $script:tut_web.Document
+        if ($null -ne $doc) {
+            $cssRules = if ($global:Theme -eq "Light") {
+                "scrollbar-face-color: #C4B094 !important; scrollbar-track-color: #E8E2D6 !important; scrollbar-arrow-color: #F7931A !important; scrollbar-highlight-color: #5A3C18 !important; scrollbar-shadow-color: #5A3C18 !important; scrollbar-3dlight-color: #E8E2D6 !important; scrollbar-darkshadow-color: #5A3C18 !important;"
+            } else {
+                "scrollbar-face-color: #2A2014 !important; scrollbar-track-color: #10151C !important; scrollbar-arrow-color: #F7931A !important; scrollbar-highlight-color: #5A3C18 !important; scrollbar-shadow-color: #5A3C18 !important; scrollbar-3dlight-color: #10151C !important; scrollbar-darkshadow-color: #0A0E14 !important;"
+            }
+            if ($null -ne $doc.Body) { $doc.Body.Style = $cssRules }
+            $htmlEls = $doc.GetElementsByTagName("html")
+            if ($null -ne $htmlEls -and $htmlEls.Count -gt 0) { $htmlEls[0].Style = $cssRules }
+            $styleEl = $doc.GetElementById("MinerIsmaScrollTheme")
+            if ($null -eq $styleEl) {
+                $styleEl = $doc.CreateElement("style")
+                $styleEl.Id = "MinerIsmaScrollTheme"
+                $heads = $doc.GetElementsByTagName("head")
+                if ($null -ne $heads -and $heads.Count -gt 0) { $heads[0].AppendChild($styleEl) | Out-Null }
+                elseif ($null -ne $doc.Body) { $doc.Body.AppendChild($styleEl) | Out-Null }
+            }
+            try { $styleEl.DomElement.styleSheet.cssText = "html, body { $cssRules }" } catch {}
+        }
+    } catch {}
 }
 
 function Set-WindowDarkTheme {
     param([System.Windows.Forms.Form]$Form)
-    if ($null -eq $Form) { return }
+    if ($null -eq $Form -or $Form.IsDisposed) { return }
     try {
         $isLight = ($global:Theme -eq "Light")
         $Form.BackColor = Get-WindowBgColor
         $Form.ShowIcon = $true
-        if ($null -ne $global:AppIcon) {
-            $Form.Icon = $global:AppIcon
-        }
+        if ($null -ne $global:AppIcon) { $Form.Icon = $global:AppIcon }
         $hwnd = $Form.Handle
         $hBig = if ($global:HIconBig -ne [IntPtr]::Zero) { $global:HIconBig } elseif ($null -ne $global:AppIcon) { $global:AppIcon.Handle } else { [IntPtr]::Zero }
         $hSml = if ($global:HIconSmall -ne [IntPtr]::Zero) { $global:HIconSmall } elseif ($null -ne $global:AppIcon) { $global:AppIcon.Handle } else { [IntPtr]::Zero }
@@ -1075,18 +805,15 @@ function Set-WindowDarkTheme {
         [ProcCtl]::DwmSetWindowAttribute($hwnd, 20, [ref]$dark, 4) | Out-Null
         [ProcCtl]::DwmSetWindowAttribute($hwnd, 19, [ref]$dark, 4) | Out-Null
 
-        if ($isLight) {
-            $borderColor  = 0x00183C5A
-            $captionColor = 0x00D6E2E8
-            $textColor    = 0x00005CC4
-        } else {
-            $borderColor  = 0x0014202A
-            $captionColor = 0x00140E0A
-            $textColor    = 0x001A93F7
-        }
+        $borderColor  = if ($isLight) { 0x00183C5A } else { 0x0014202A }
+        $captionColor = if ($isLight) { 0x00D6E2E8 } else { 0x00140E0A }
+        $textColor    = if ($isLight) { 0x00005CC4 } else { 0x001A93F7 }
         [ProcCtl]::DwmSetWindowAttribute($hwnd, 34, [ref]$borderColor, 4) | Out-Null
         [ProcCtl]::DwmSetWindowAttribute($hwnd, 35, [ref]$captionColor, 4) | Out-Null
         [ProcCtl]::DwmSetWindowAttribute($hwnd, 36, [ref]$textColor, 4) | Out-Null
+        if ($Form.Tag -is [scriptblock]) { & $Form.Tag }
+        $Form.Invalidate($true)
+        $Form.Refresh()
     } catch {}
 }
 
@@ -1102,25 +829,16 @@ function Copy-WindowScreenImage {
         $dwmRect = New-Object DwmRect
         $res = [ProcCtl]::DwmGetWindowAttribute($Form.Handle, 9, [ref]$dwmRect, [System.Runtime.InteropServices.Marshal]::SizeOf($dwmRect))
         if (($res -eq 0) -and (($dwmRect.Right - $dwmRect.Left) -gt 100)) {
-            $x = $dwmRect.Left
-            $y = $dwmRect.Top
-            $w = $dwmRect.Right - $dwmRect.Left
-            $h = $dwmRect.Bottom - $dwmRect.Top
+            $x = $dwmRect.Left; $y = $dwmRect.Top; $w = $dwmRect.Right - $dwmRect.Left; $h = $dwmRect.Bottom - $dwmRect.Top
         } else {
-            $x = $Form.Bounds.X
-            $y = $Form.Bounds.Y
-            $w = $Form.Bounds.Width
-            $h = $Form.Bounds.Height
+            $x = $Form.Bounds.X; $y = $Form.Bounds.Y; $w = $Form.Bounds.Width; $h = $Form.Bounds.Height
         }
-
         $bmp = New-Object System.Drawing.Bitmap($w, $h)
         $g = [System.Drawing.Graphics]::FromImage($bmp)
         $g.CopyFromScreen($x, $y, 0, 0, (New-Object System.Drawing.Size($w, $h)))
         $g.Dispose()
         return $bmp
-    } catch {
-        return $null
-    }
+    } catch { return $null }
 }
 
 function Set-ObsidianButtonStyle {
@@ -1156,7 +874,7 @@ function Set-MenuObsidianTheme {
     $btcCol      = if ($isLight) { [System.Drawing.Color]::FromArgb(205, 102, 0) } else { [System.Drawing.Color]::FromArgb(255, 247, 147, 26) }
     $lightOrgCol = if ($isLight) { [System.Drawing.Color]::FromArgb(215, 115, 20) } else { [System.Drawing.Color]::FromArgb(255, 185, 95) }
     $goldCol     = if ($isLight) { [System.Drawing.Color]::FromArgb(180, 95, 0) } else { [System.Drawing.Color]::FromArgb(255, 209, 102) }
-    $updGreenCol = if ($isLight) { [System.Drawing.Color]::FromArgb(18, 125, 48) } else { [System.Drawing.Color]::FromArgb(50, 225, 90) }
+    $updCyanCol  = if ($isLight) { [System.Drawing.Color]::FromArgb(0, 135, 175) } else { [System.Drawing.Color]::Cyan }
 
     $MenuStrip.Renderer  = New-Object ObsidianMenuRenderer
     $MenuStrip.BackColor = $bgCol
@@ -1164,28 +882,20 @@ function Set-MenuObsidianTheme {
 
     foreach ($item in $MenuStrip.Items) {
         $item.BackColor = $bgCol
-        if ($item -eq $headerItem) {
-            $item.ForeColor = $btcCol
-        } elseif ($item -eq $global:btcPriceItem) {
-            $item.ForeColor = $goldCol
-        } elseif ($item -eq $global:lblPowerHeader) {
-            $item.ForeColor = $lightOrgCol
-        } else {
-            $item.ForeColor = $txtCol
-        }
+        if ($item -eq $headerItem) { $item.ForeColor = $btcCol }
+        elseif ($item -eq $global:btcPriceItem) { $item.ForeColor = $goldCol }
+        elseif ($item -eq $global:lblPowerHeader) { $item.ForeColor = $lightOrgCol }
+        else { $item.ForeColor = $txtCol }
 
         if ($item -is [System.Windows.Forms.ToolStripMenuItem] -and $item.HasDropDownItems) {
             $item.DropDown.BackColor = $bgCol
             $item.DropDown.ForeColor = $txtCol
             foreach ($sub in $item.DropDownItems) {
                 $sub.BackColor = $bgCol
-                if ($sub -in @($global:lblDelayHeader, $global:lblLinksHeader1, $global:lblLinksHeader2, $global:lblLinksHeader3)) {
-                    $sub.ForeColor = $lightOrgCol
-                } elseif (($sub -eq $global:lnkUpdates) -and $global:UpdateAvailable) {
-                    $sub.ForeColor = $updGreenCol
-                } else {
-                    $sub.ForeColor = $txtCol
-                }
+                if ($sub.Name -eq "SubHeaderLabel") { $sub.ForeColor = $lightOrgCol }
+                elseif ($sub -eq $global:usdBrlPriceItem) { $sub.ForeColor = $goldCol }
+                elseif (($sub -eq $global:lnkUpdates) -and $global:UpdateAvailable) { $sub.ForeColor = $updCyanCol }
+                else { $sub.ForeColor = $txtCol }
             }
         }
     }
@@ -1197,10 +907,12 @@ function Set-AppTheme {
     if ($NewTheme -notin @("Dark", "Light")) { return }
     $global:Theme = $NewTheme
     Save-MinerConfig
-
     Set-MenuObsidianTheme $menu
-    if ($null -ne $global:logForm) {
-        Set-WindowDarkTheme $global:logForm
+
+    foreach ($frm in @($global:logForm, $global:tutForm, $global:walletForm, $global:statForm, $global:donForm, $global:advForm, $global:alertForm)) {
+        if ($null -ne $frm -and (-not $frm.IsDisposed)) {
+            Set-WindowDarkTheme $frm
+        }
     }
     if ($null -ne $global:logScrollBar) {
         $global:logScrollBar.IsLightMode = ($global:Theme -eq "Light")
@@ -1210,7 +922,7 @@ function Set-AppTheme {
 }
 
 # ============================================================
-# FALLBACK INTELIGENTE DE LINKS (PROTON -> MEGA / HALVING / RENTRY)
+# FALLBACK INTELIGENTE DE LINKS E CHECAGEM DE BLOCO SOLO
 # ============================================================
 function Test-UrlReachable {
     param([string]$Url)
@@ -1225,30 +937,37 @@ function Test-UrlReachable {
     }
     try {
         $req = [System.Net.HttpWebRequest]::Create($cleanUrl)
-        $req.Method = "GET"
-        $req.Timeout = 2500
+        $req.Method = "GET"; $req.Timeout = 2500
         $req.UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/124.0.0.0"
-        $res = $req.GetResponse()
-        $res.Close()
+        $res = $req.GetResponse(); $res.Close()
         return $true
     } catch {}
     return $false
 }
 
 function Get-BestUpdateUrl {
-    if (Test-UrlReachable $global:UrlDriveUpdates) {
-        return [string]$global:UrlDriveUpdates
-    }
-    if (-not [string]::IsNullOrWhiteSpace($global:UrlMegaUpdates)) {
-        return [string]$global:UrlMegaUpdates
-    }
+    if (Test-UrlReachable $global:UrlDriveUpdates) { return [string]$global:UrlDriveUpdates }
+    if (-not [string]::IsNullOrWhiteSpace($global:UrlMegaUpdates)) { return [string]$global:UrlMegaUpdates }
     return [string]$global:UrlDriveUpdates
 }
 
 function Open-UpdateDownloadLink {
     $bestUrl = Get-BestUpdateUrl
-    if (-not [string]::IsNullOrWhiteSpace($bestUrl)) {
-        try { Start-Process $bestUrl } catch {}
+    if (-not [string]::IsNullOrWhiteSpace($bestUrl)) { try { Start-Process $bestUrl } catch {} }
+}
+
+function Open-ActivePoolDashboard {
+    $addr = ($global:Wallet -replace '\..*?$', '').Trim()
+    if ($global:PoolUrl -match "(?i)ckpool\.org") {
+        Start-Process ("https://solostats.ckpool.org/users/" + $addr)
+    } elseif ($global:PoolUrl -match "(?i)kano\.is") {
+        Start-Process "https://kano.is/"
+    } elseif ($global:PoolUrl -match "(?i)public-pool\.io") {
+        Start-Process ($global:UrlPoolDashboard + $addr)
+    } elseif ($global:PoolUrl -match "://([^:/]+)") {
+        Start-Process ("https://" + $Matches[1])
+    } else {
+        Start-Process ($global:UrlPoolDashboard + $addr)
     }
 }
 
@@ -1256,34 +975,35 @@ $global:shareBalloonTimer = New-Object System.Windows.Forms.Timer
 $global:shareBalloonTimer.Interval = 150
 $global:shareBalloonTimer.Add_Tick({
     $global:shareBalloonTimer.Stop()
-    try {
-        $global:notifyIcon.ShowBalloonTip(3000, "$($global:ShortVersion)", (Get-Text "ShareCopiedShort"), [System.Windows.Forms.ToolTipIcon]::Info)
-    } catch {}
+    try { $global:notifyIcon.ShowBalloonTip(3000, "$($global:ShortVersion)", (Get-Text "ShareCopiedShort"), [System.Windows.Forms.ToolTipIcon]::Info) } catch {}
 })
 
 function Invoke-ShareMinerIsma {
     try {
+        Play-EffectSound $global:SfxShareHarpsichord
         $shareUrl = Get-BestUpdateUrl
         [System.Windows.Forms.Clipboard]::SetText([string]$shareUrl)
+        if ($null -ne $global:itemCopyShareLink) { $global:itemCopyShareLink.Text = Get-Text "ShareCopiedShort" }
         $global:LogQueue.Enqueue("[SISTEMA] $(Get-Text 'ShareCopiedMsg') ($shareUrl)")
-        $global:shareBalloonTimer.Stop()
-        $global:shareBalloonTimer.Start()
+        $global:shareBalloonTimer.Stop(); $global:shareBalloonTimer.Start()
     } catch {}
 }
 
-function Open-HalvingLink {
-    $candidates = @($global:UrlHalving1, $global:UrlHalving2, $global:UrlHalving3)
-    foreach ($u in $candidates) {
-        if ([string]::IsNullOrWhiteSpace($u)) { continue }
-        if (Test-UrlReachable $u) {
+function Open-FallbackUrlList {
+    param([string[]]$Candidates)
+    foreach ($u in $Candidates) {
+        if (-not [string]::IsNullOrWhiteSpace($u) -and (Test-UrlReachable $u)) {
             try { Start-Process $u } catch {}
             return
         }
     }
-    if (-not [string]::IsNullOrWhiteSpace($global:UrlHalving1)) {
-        try { Start-Process $global:UrlHalving1 } catch {}
+    if ($Candidates.Count -gt 0 -and (-not [string]::IsNullOrWhiteSpace($Candidates[0]))) {
+        try { Start-Process $Candidates[0] } catch {}
     }
 }
+
+function Open-HalvingLink        { Open-FallbackUrlList @($global:UrlHalving1, $global:UrlHalving2, $global:UrlHalving3) }
+function Open-LightningIntroLink { Open-FallbackUrlList @($global:UrlLightningInfo1, $global:UrlLightningInfo2) }
 
 function Fetch-UrlTextContent {
     param([string]$Url)
@@ -1301,17 +1021,13 @@ function Fetch-UrlTextContent {
     try {
         try { [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Tls12 -bor 3072 -bor 12288 } catch {}
         $req = [System.Net.HttpWebRequest]::Create($Url)
-        $req.Method = "GET"
-        $req.Timeout = 4000
+        $req.Method = "GET"; $req.Timeout = 4000
         $req.UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
         $req.Headers.Add("Cache-Control", "no-cache")
-        $res = $req.GetResponse()
-        $stream = $res.GetResponseStream()
+        $res = $req.GetResponse(); $stream = $res.GetResponseStream()
         $reader = New-Object System.IO.StreamReader($stream)
         $txt = $reader.ReadToEnd()
-        $reader.Close()
-        $stream.Close()
-        $res.Close()
+        $reader.Close(); $stream.Close(); $res.Close()
         if (-not [string]::IsNullOrWhiteSpace($txt)) { return $txt.Trim() }
     } catch {}
     return ""
@@ -1321,23 +1037,13 @@ function Extract-VersionFromText {
     param([string]$Content)
     if ([string]::IsNullOrWhiteSpace($Content)) { return $null }
     $searchTarget = $Content
-
-    # Se o retorno for pagina HTML do Rentry, extrai especificamente o texto postado pelo usuario
     if ($Content -match "(?i)<html|<!doctype") {
-        if ($Content -match '(?is)<div[^>]*class="[^"]*entry-text[^"]*"[^>]*>(.*?)</div>') {
-            $searchTarget = $Matches[1] -replace '<[^>]+>', ' '
-        } elseif ($Content -match '(?is)<article[^>]*>(.*?)</article>') {
-            $searchTarget = $Matches[1] -replace '<[^>]+>', ' '
-        } elseif ($Content -match '(?is)<meta[^>]*name="description"[^>]*content="([^"]+)"') {
-            $searchTarget = $Matches[1]
-        } else {
-            return $null
-        }
+        if ($Content -match '(?is)<div[^>]*class="[^"]*entry-text[^"]*"[^>]*>(.*?)</div>') { $searchTarget = $Matches[1] -replace '<[^>]+>', ' ' }
+        elseif ($Content -match '(?is)<article[^>]*>(.*?)</article>') { $searchTarget = $Matches[1] -replace '<[^>]+>', ' ' }
+        elseif ($Content -match '(?is)<meta[^>]*name="description"[^>]*content="([^"]+)"') { $searchTarget = $Matches[1] }
+        else { return $null }
     }
-
-    if ($searchTarget -match "(?i)\bv?(\d+\.\d+(?:\.\d+)*)\b") {
-        return $Matches[1]
-    }
+    if ($searchTarget -match "(?i)\bv?(\d+\.\d+(?:\.\d+)*)\b") { return $Matches[1] }
     return $null
 }
 
@@ -1347,54 +1053,74 @@ function Check-MinerUpdate {
         $baseUrl = $global:VersionCheckUrl.Trim().TrimEnd('/')
         $urlsToTry = @()
         if ($baseUrl -match "^https?://rentry\.(co|org)/[^/]+$") {
-            $urlsToTry += ($baseUrl + "/raw")
             $altHost = if ($baseUrl -match "rentry\.co") { $baseUrl -replace "rentry\.co", "rentry.org" } else { $baseUrl -replace "rentry\.org", "rentry.co" }
-            $urlsToTry += ($altHost + "/raw")
-            $urlsToTry += $baseUrl
-            $urlsToTry += $altHost
-        } else {
-            $urlsToTry += $baseUrl
-        }
+            $urlsToTry += @("$baseUrl/raw", "$altHost/raw", $baseUrl, $altHost)
+        } else { $urlsToTry += $baseUrl }
 
         $remoteVerStr = $null
         foreach ($u in $urlsToTry) {
-            $raw = Fetch-UrlTextContent $u
-            $parsedVer = Extract-VersionFromText $raw
-            if (-not [string]::IsNullOrWhiteSpace($parsedVer)) {
-                $remoteVerStr = $parsedVer
-                break
-            }
+            $parsedVer = Extract-VersionFromText (Fetch-UrlTextContent $u)
+            if (-not [string]::IsNullOrWhiteSpace($parsedVer)) { $remoteVerStr = $parsedVer; break }
         }
 
         if (-not [string]::IsNullOrWhiteSpace($remoteVerStr)) {
-            $vRemote = [version]$remoteVerStr
-            $vLocal  = [version]$global:VersionNumber
-            if ($vRemote -gt $vLocal) {
+            if ([version]$remoteVerStr -gt [version]$global:VersionNumber) {
                 $wasAvail = $global:UpdateAvailable
-                $global:UpdateAvailable     = $true
-                $global:LatestRemoteVersion = $remoteVerStr
+                $global:UpdateAvailable = $true; $global:LatestRemoteVersion = $remoteVerStr
                 [ObsidianMenuColors]::IsUpdateAvailable = $true
-                if ($null -ne $global:lnkUpdates) {
-                    $global:lnkUpdates.Text = "$($global:UpdateSym) $(Get-Text 'LinkUpdates') (v$remoteVerStr)"
-                }
+                if ($null -ne $global:lnkUpdates) { $global:lnkUpdates.Text = "$(Get-Text 'LinkUpdates') (v$remoteVerStr)" }
                 Set-MenuObsidianTheme $menu
-                if (-not $wasAvail) {
-                    $global:LogQueue.Enqueue("[SISTEMA] Nova versao disponivel para download: v$remoteVerStr (atual: v$($global:VersionNumber))")
-                }
+                if (-not $wasAvail) { $global:LogQueue.Enqueue("[SISTEMA] Nova versao disponivel para download: v$remoteVerStr (atual: v$($global:VersionNumber))") }
             } else {
-                $global:UpdateAvailable = $false
-                [ObsidianMenuColors]::IsUpdateAvailable = $false
-                if ($null -ne $global:lnkUpdates) {
-                    $global:lnkUpdates.Text = Get-Text "LinkUpdates"
-                }
+                $global:UpdateAvailable = $false; [ObsidianMenuColors]::IsUpdateAvailable = $false
+                if ($null -ne $global:lnkUpdates) { $global:lnkUpdates.Text = Get-Text "LinkUpdates" }
                 Set-MenuObsidianTheme $menu
-                if (-not $global:VersionCheckDone) {
-                    $global:LogQueue.Enqueue("[SISTEMA] Checagem de atualizacao: v$($global:VersionNumber) atualizada (remota: v$remoteVerStr)")
-                }
+                if (-not $global:VersionCheckDone) { $global:LogQueue.Enqueue("[SISTEMA] Checagem de atualizacao: v$($global:VersionNumber) atualizada (remota: v$remoteVerStr)") }
             }
             $global:VersionCheckDone = $true
         }
     } catch {}
+}
+
+function Check-LastSoloBlock {
+    $soloPools = [ordered]@{
+        "Public Pool" = "https://mempool.space/api/v1/mining/pool/public-pool/blocks"
+        "Solo CK"     = "https://mempool.space/api/v1/mining/pool/solock/blocks"
+        "Kano Solo"   = "https://mempool.space/api/v1/mining/pool/kano/blocks"
+    }
+    $bestHeight = $global:LastSoloBlockHeight; $bestTime = $global:LastSoloBlockTime
+    $bestPool = $global:LastSoloBlockPool; $bestReward = $global:LastSoloBlockReward; $updatedNow = $false
+
+    foreach ($entry in $soloPools.GetEnumerator()) {
+        try {
+            $rawJson = Fetch-UrlTextContent ([string]$entry.Value)
+            if (-not [string]::IsNullOrWhiteSpace($rawJson) -and $rawJson.StartsWith("[")) {
+                $blocks = $rawJson | ConvertFrom-Json
+                if (($null -ne $blocks) -and ($blocks.Count -gt 0)) {
+                    $b = $blocks[0]; $bHeight = [int]$b.height
+                    if ($bHeight -gt $bestHeight) {
+                        $bestHeight = $bHeight; $bestPool = [string]$entry.Key
+                        $bestTime = ([DateTimeOffset]::FromUnixTimeSeconds([long]$b.timestamp)).LocalDateTime.ToString("yyyy-MM-dd HH:mm")
+                        $bestReward = if (($null -ne $b.extras) -and ($null -ne $b.extras.reward)) {
+                            (([double]$b.extras.reward) / 100000000.0).ToString("N3", [System.Globalization.CultureInfo]::InvariantCulture) + " BTC"
+                        } else { "3.125+ BTC" }
+                        $updatedNow = $true
+                    }
+                }
+            }
+        } catch {}
+    }
+
+    if ($updatedNow -and ($bestHeight -gt 0)) {
+        $isNewDiscovery = ($global:LastSoloBlockHeight -gt 0) -and ($bestHeight -gt $global:LastSoloBlockHeight)
+        $global:LastSoloBlockHeight = $bestHeight; $global:LastSoloBlockTime = $bestTime
+        $global:LastSoloBlockPool = $bestPool; $global:LastSoloBlockReward = $bestReward
+        Save-MinerConfig
+        $global:LogQueue.Enqueue("[SISTEMA] Ultimo Bloco Miner Solo na rede: #$bestHeight ($bestPool) em $bestTime | Premio: $bestReward")
+        if ($isNewDiscovery) {
+            try { $global:notifyIcon.ShowBalloonTip(6000, "$($global:ShortVersion) - Bloco Solo na Rede!", "Um Minerador Solo ($bestPool) encontrou o Bloco #$bestHeight ($bestReward)!", [System.Windows.Forms.ToolTipIcon]::Info) } catch {}
+        }
+    }
 }
 
 function Open-GameWindow {
@@ -1409,106 +1135,199 @@ function Open-GameWindow {
 
         $gameProfileDir = Join-Path $env:TEMP "MinerIsma_GameApp"
         $prefFile = Join-Path $gameProfileDir "Default\Preferences"
-        if (Test-Path -LiteralPath $prefFile) {
-            Remove-Item -LiteralPath $prefFile -Force -ErrorAction SilentlyContinue
-        }
+        if (Test-Path -LiteralPath $prefFile) { Remove-Item -LiteralPath $prefFile -Force -ErrorAction SilentlyContinue }
 
         $q = [char]34
-        $appArgs = "--user-data-dir=" + $q + $gameProfileDir + $q + " --app=" + $q + $Url + $q + " --window-size=$winW,$winH --window-position=$posX,$posY --no-first-run --no-default-browser-check"
-
-        $edgePaths = @(
+        $appArgs = "--user-data-dir=$q$gameProfileDir$q --app=$q$Url$q --window-size=$winW,$winH --window-position=$posX,$posY --no-first-run --no-default-browser-check"
+        $browsers = @(
             (Join-Path ${env:ProgramFiles(x86)} "Microsoft\Edge\Application\msedge.exe"),
-            (Join-Path $env:ProgramFiles "Microsoft\Edge\Application\msedge.exe")
-        )
-        foreach ($ep in $edgePaths) {
-            if (($null -ne $ep) -and (Test-Path -LiteralPath $ep)) {
-                Start-Process -FilePath $ep -ArgumentList $appArgs
-                return
-            }
-        }
-        $chromePaths = @(
+            (Join-Path $env:ProgramFiles "Microsoft\Edge\Application\msedge.exe"),
             (Join-Path $env:ProgramFiles "Google\Chrome\Application\chrome.exe"),
             (Join-Path ${env:ProgramFiles(x86)} "Google\Chrome\Application\chrome.exe")
         )
-        foreach ($cp in $chromePaths) {
-            if (($null -ne $cp) -and (Test-Path -LiteralPath $cp)) {
-                Start-Process -FilePath $cp -ArgumentList $appArgs
-                return
-            }
+        foreach ($bp in $browsers) {
+            if (($null -ne $bp) -and (Test-Path -LiteralPath $bp)) { Start-Process -FilePath $bp -ArgumentList $appArgs; return }
         }
         Start-Process $Url
-    } catch {
-        try { Start-Process $Url } catch {}
-    }
+    } catch { try { Start-Process $Url } catch {} }
 }
 
 function Initialize-CpuDetection {
     try {
-        $cpuObj = Get-CimInstance Win32_Processor | Select-Object -First 1
-        $cpuName = $cpuObj.Name
+        $cpuName = (Get-CimInstance Win32_Processor | Select-Object -First 1).Name
         $global:LogQueue.Enqueue("[SISTEMA] Processador detectado: $cpuName ($($global:LogicalCores) Threads)")
-        
-        $bestExe = $global:MinerExeName # O Curinga Padrao (cpuminer-avx2-sha.exe)
+        $bestExe = $global:MinerExeName
 
         if ($cpuName -match "AMD") {
-            if ($cpuName -match "Ryzen.+ ([789]\d{3}|AI\s*[3579]\d{2})") { $bestExe = "cpuminer-avx512-sha-vaes.exe" } 
-            elseif ($cpuName -match "Ryzen.+ [56]\d{3}")                 { $bestExe = "cpuminer-avx2-sha-vaes.exe" }   
-            elseif ($cpuName -match "Ryzen|EPYC|Threadripper")           { $bestExe = "cpuminer-avx2-sha.exe" }        
-        }
-        elseif ($cpuName -match "Intel") {
-            if ($cpuName -match "Core.*Ultra|i\d-(1[2-9]|[2-9]\d)\d{3}") { $bestExe = "cpuminer-avx2-sha-vaes.exe" }  
-            elseif ($cpuName -match "i\d-11\d{3}")                       { $bestExe = "cpuminer-avx512-sha-vaes.exe" } 
-            elseif ($cpuName -match "i\d-10\d{3}")                       { $bestExe = "cpuminer-avx2.exe" }            
-            elseif ($cpuName -match "i\d-[4-9]\d{3}")                    { $bestExe = "cpuminer-avx2.exe" }            
-            elseif ($cpuName -match "i\d-[23]\d{3}")                     { $bestExe = "cpuminer-avx.exe" }             
+            if ($cpuName -match "Ryzen.+ ([789]\d{3}|AI\s*[3579]\d{2})") { $bestExe = "cpuminer-avx512-sha-vaes.exe" }
+            elseif ($cpuName -match "Ryzen.+ [56]\d{3}")                 { $bestExe = "cpuminer-avx2-sha-vaes.exe" }
+            elseif ($cpuName -match "Ryzen|EPYC|Threadripper")           { $bestExe = "cpuminer-avx2-sha.exe" }
+        } elseif ($cpuName -match "Intel") {
+            if ($cpuName -match "Core.*Ultra|i\d-(1[2-9]|[2-9]\d)\d{3}") { $bestExe = "cpuminer-avx2-sha-vaes.exe" }
+            elseif ($cpuName -match "i\d-11\d{3}")                       { $bestExe = "cpuminer-avx512-sha-vaes.exe" }
+            elseif ($cpuName -match "i\d-(10|[4-9])\d{3}")               { $bestExe = "cpuminer-avx2.exe" }
+            elseif ($cpuName -match "i\d-[23]\d{3}")                     { $bestExe = "cpuminer-avx.exe" }
         }
 
         $testPath = Join-Path $global:BasePath $bestExe
         if (Test-Path $testPath) {
-            $global:DetectedMinerExe = $bestExe
-            $global:MinerExe = $testPath
+            $global:DetectedMinerExe = $bestExe; $global:MinerExe = $testPath
             $global:LogQueue.Enqueue("[SISTEMA] Motor Otimizado Selecionado: $bestExe")
         } else {
             $global:LogQueue.Enqueue("[SISTEMA] Motor ($bestExe) nao encontrado. Usando curinga: $($global:MinerExeName)")
-            $global:DetectedMinerExe = $global:MinerExeName
-            $global:MinerExe = Join-Path $global:BasePath $global:DetectedMinerExe
+            $global:DetectedMinerExe = $global:MinerExeName; $global:MinerExe = Join-Path $global:BasePath $global:DetectedMinerExe
         }
     } catch {
         $global:LogQueue.Enqueue("[SISTEMA] Falha na auto-deteccao de CPU. Usando curinga padrao.")
-        $global:DetectedMinerExe = $global:MinerExeName
-        $global:MinerExe = Join-Path $global:BasePath $global:DetectedMinerExe
+        $global:DetectedMinerExe = $global:MinerExeName; $global:MinerExe = Join-Path $global:BasePath $global:DetectedMinerExe
     }
 }
 
 # ============================================================
-# CONFIGURACAO DE CARTEIRA, TUTORIAL E FUNCOES AUXILIARES
+# JANELAS INDEPENDENTES COM ESCOPO PERSISTENTE ($script:...)
 # ============================================================
 function Test-WalletConfigured {
     if ([string]::IsNullOrWhiteSpace($global:Wallet)) { return $false }
     $addr = ($global:Wallet -replace '\..*?$', '').Trim()
-    if ([string]::IsNullOrWhiteSpace($addr) -or ($addr -eq "minha_carteira")) { return $false }
-    return $true
+    return ((-not [string]::IsNullOrWhiteSpace($addr)) -and ($addr -ne "minha_carteira"))
 }
 
 function Save-MinerConfig {
     try {
-        $cfg = @{
-            LastThreads        = $global:CurrentThreads
-            Wallet             = $global:Wallet
-            StartupDelay       = $global:ConfiguredDelay
-            SoundFileName      = $global:SoundFileName
-            StartupInitialized = $global:StartupInitialized
-            StartupEnabled     = $global:StartupEnabled
-            PulseMode          = $global:PulseMode
-            Language           = $global:Language
-            Theme              = $global:Theme
-            LastBlockHeight    = $global:CurrentBlockHeight
-        }
-        $jsonOut = $cfg | ConvertTo-Json
+        $jsonOut = @{
+            LastThreads         = $global:CurrentThreads
+            Wallet              = $global:Wallet
+            PoolUrl             = $global:PoolUrl
+            ExtraArgs           = $global:ExtraArgs
+            StartupDelay        = $global:ConfiguredDelay
+            SoundFileName       = $global:SoundFileName
+            StartupInitialized  = $global:StartupInitialized
+            StartupEnabled      = $global:StartupEnabled
+            PulseMode           = $global:PulseMode
+            Language            = $global:Language
+            Theme               = $global:Theme
+            LastBlockHeight     = $global:CurrentBlockHeight
+            LastSoloBlockHeight = $global:LastSoloBlockHeight
+            LastSoloBlockTime   = $global:LastSoloBlockTime
+            LastSoloBlockPool   = $global:LastSoloBlockPool
+            LastSoloBlockReward = $global:LastSoloBlockReward
+        } | ConvertTo-Json
         $jsonOut | Out-File -FilePath $global:ConfigFile -Encoding utf8
-        # Sincroniza tambem no Backup em AppData\Local\MinerIsma
         $jsonOut | Out-File -FilePath $global:BackupConfigFile -Encoding utf8
     } catch {}
+}
+
+function Show-SupportDialog {
+    if ($null -ne $global:donForm -and (-not $global:donForm.IsDisposed)) {
+        if ($global:donForm.WindowState -eq "Minimized") { $global:donForm.WindowState = "Normal" }
+        $global:donForm.Activate(); return
+    }
+    $global:donForm = New-Object System.Windows.Forms.Form
+    $global:donForm.Text = "$($global:ShortVersion) - $(Get-Text 'DonateWinTitle')"
+    $global:donForm.Size = New-Object System.Drawing.Size(820, 435)
+    $global:donForm.StartPosition = "CenterScreen"; $global:donForm.BackColor = Get-WindowBgColor
+    $global:donForm.FormBorderStyle = "FixedSingle"; $global:donForm.MaximizeBox = $false
+    $global:donForm.ShowIcon = $true; $global:donForm.ShowInTaskbar = $true; $global:donForm.Icon = $global:AppIcon
+
+    $colorBitcoin = Get-AccentOrangeColor
+    $fHdr  = New-Object System.Drawing.Font("Segoe UI", 13.5, [System.Drawing.FontStyle]::Bold)
+    $fWarn = New-Object System.Drawing.Font("Segoe UI", 10.5, [System.Drawing.FontStyle]::Bold)
+    $script:don_lblHeader  = New-UiLabel (Get-Text "DonateWinTitle") 24 12 756 26 $fHdr $colorBitcoin
+    $script:don_lblWarnCam = New-UiLabel (Get-Text "DonateCamWarn") 24 364 756 22 $fWarn $colorBitcoin
+
+    $qrCandidates = @(
+        $global:DonateQrPath,
+        (Join-Path $global:ResPath "QRcode-LNURL-BTC_On-EVM-1800x580_450dpi.jpg"),
+        (Join-Path $global:ResPath "QRcode_LNURL-BTC_On-EVM_4000x1300dpi.png")
+    )
+    $script:don_picQr = New-Object System.Windows.Forms.PictureBox
+    $script:don_picQr.Location = New-Object System.Drawing.Point(25, 45); $script:don_picQr.Size = New-Object System.Drawing.Size(754, 243)
+    $script:don_picQr.BackColor = [System.Drawing.Color]::White; $script:don_picQr.SizeMode = [System.Windows.Forms.PictureBoxSizeMode]::Zoom
+    $script:don_qrImgObj = $null
+    foreach ($cand in $qrCandidates) {
+        if (Test-Path -LiteralPath $cand) {
+            try { $script:don_qrImgObj = [System.Drawing.Image]::FromFile($cand); $script:don_picQr.Image = $script:don_qrImgObj } catch {}
+            break
+        }
+    }
+
+    $global:donForm.Add_Paint({
+        param($s, $e)
+        $pBronze = New-Object System.Drawing.Pen($global:ColorBronzeBorder, 1)
+        $e.Graphics.DrawRectangle($pBronze, 24, 44, 755, 244)
+        $pBronze.Dispose()
+    })
+
+    function New-DonateNetworkButton {
+        param([int]$PosX, [string]$Line1, [string]$Line2, [string]$CopyValue, [bool]$IsBtcBtn = $false)
+        $btn = New-Object System.Windows.Forms.Button
+        $btn.Location = New-Object System.Drawing.Point($PosX, 300); $btn.Size = New-Object System.Drawing.Size(224, 54)
+        Set-ObsidianButtonStyle $btn $false; $btn.Text = ""
+        $btn.Tag = @{ Line1 = $Line1; OrigLine1 = $Line1; Line2 = $Line2; CopyValue = $CopyValue; IsBtc = $IsBtcBtn; IsCopied = $false }
+        $btn.Add_Paint({
+            param($sender, $e)
+            $g = $e.Graphics; $g.SmoothingMode = [System.Drawing.Drawing2D.SmoothingMode]::AntiAlias
+            $meta = $sender.Tag
+            $mainCol = if ($meta.IsCopied) { Get-GreenTextColor } else { Get-PrimaryTextColor }
+            $subCol  = Get-GoldTextColor
+            $orgCol  = Get-AccentOrangeColor
+
+            $fLine1 = New-Object System.Drawing.Font("Segoe UI", 10.5, [System.Drawing.FontStyle]::Bold)
+            $fBtc   = New-Object System.Drawing.Font("Segoe UI", 13.5, [System.Drawing.FontStyle]::Bold)
+            $fLine2 = New-Object System.Drawing.Font("Consolas", 9.25, [System.Drawing.FontStyle]::Bold)
+            $flags  = [System.Windows.Forms.TextFormatFlags]::HorizontalCenter -bor [System.Windows.Forms.TextFormatFlags]::VerticalCenter -bor [System.Windows.Forms.TextFormatFlags]::NoPadding
+
+            if ($meta.IsBtc -and (-not $meta.IsCopied)) {
+                $symTxt = "$($global:BtcSym) "; $restTxt = "Bitcoin On-Chain"
+                $symSize  = [System.Windows.Forms.TextRenderer]::MeasureText($g, $symTxt, $fBtc, (New-Object System.Drawing.Size(200, 26)), [System.Windows.Forms.TextFormatFlags]::NoPadding)
+                $restSize = [System.Windows.Forms.TextRenderer]::MeasureText($g, $restTxt, $fLine1, (New-Object System.Drawing.Size(200, 26)), [System.Windows.Forms.TextFormatFlags]::NoPadding)
+                $startX   = [int](($sender.Width - ($symSize.Width + $restSize.Width)) / 2)
+                $leftFlags = [System.Windows.Forms.TextFormatFlags]::Left -bor [System.Windows.Forms.TextFormatFlags]::VerticalCenter -bor [System.Windows.Forms.TextFormatFlags]::NoPadding
+                [System.Windows.Forms.TextRenderer]::DrawText($g, $symTxt, $fBtc, (New-Object System.Drawing.Rectangle($startX, 1, ($symSize.Width + 4), 28)), $orgCol, $leftFlags)
+                [System.Windows.Forms.TextRenderer]::DrawText($g, $restTxt, $fLine1, (New-Object System.Drawing.Rectangle(($startX + $symSize.Width), 3, ($restSize.Width + 6), 26)), $mainCol, $leftFlags)
+            } else {
+                [System.Windows.Forms.TextRenderer]::DrawText($g, [string]$meta.Line1, $fLine1, (New-Object System.Drawing.Rectangle(2, 3, ($sender.Width - 4), 26)), $mainCol, $flags)
+            }
+            [System.Windows.Forms.TextRenderer]::DrawText($g, [string]$meta.Line2, $fLine2, (New-Object System.Drawing.Rectangle(2, 28, ($sender.Width - 4), 22)), $subCol, $flags)
+            $fLine1.Dispose(); $fBtc.Dispose(); $fLine2.Dispose()
+        })
+        return $btn
+    }
+
+    $script:don_btnLn  = New-DonateNetworkButton 25  "$($global:BoltSym) Lightning BTC" "isma@coinos.io" $global:DonateAddrLightning $false
+    $script:don_btnBtc = New-DonateNetworkButton 290 "$($global:BtcSym) Bitcoin On-Chain" (Get-Text "DonateBtcSub") $global:DonateAddrBtcOnChain $true
+    $script:don_btnEvm = New-DonateNetworkButton 555 "$($global:GlobeSym) Ethereum EVM" ("USD " + [string][char]0x2192 + " ARB/BASE/BNB/POL") $global:DonateAddrEvm $false
+
+    foreach ($b in @($script:don_btnLn, $script:don_btnBtc, $script:don_btnEvm)) {
+        $b.Add_Click({
+            try {
+                foreach ($other in @($script:don_btnLn, $script:don_btnBtc, $script:don_btnEvm)) {
+                    if ($null -ne $other -and $null -ne $other.Tag) {
+                        $other.Tag.IsCopied = $false; $other.Tag.Line1 = $other.Tag.OrigLine1; $other.Invalidate()
+                    }
+                }
+                [System.Windows.Forms.Clipboard]::SetText([string]$this.Tag.CopyValue)
+                $this.Tag.IsCopied = $true; $this.Tag.Line1 = Get-Text "AddrCopiedShort"; $this.Invalidate()
+                Play-EffectSound $global:SfxDonateRing
+                $global:LogQueue.Enqueue("[SISTEMA] Endereco de apoio copiado: $($this.Tag.CopyValue)")
+            } catch {}
+        })
+    }
+
+    $global:donForm.Tag = {
+        $script:don_lblHeader.ForeColor  = Get-AccentOrangeColor
+        $script:don_lblWarnCam.ForeColor = Get-AccentOrangeColor
+        foreach ($b in @($script:don_btnLn, $script:don_btnBtc, $script:don_btnEvm)) { Set-ObsidianButtonStyle $b $false; $b.Invalidate() }
+    }
+
+    $global:donForm.Add_FormClosed({
+        if ($null -ne $script:don_qrImgObj) { try { $script:don_qrImgObj.Dispose() } catch {}; $script:don_qrImgObj = $null }
+        $global:donForm = $null
+    })
+
+    $global:donForm.Controls.AddRange(@($script:don_lblHeader, $script:don_picQr, $script:don_btnLn, $script:don_btnBtc, $script:don_btnEvm, $script:don_lblWarnCam))
+    $global:donForm.Add_Shown({ Set-WindowDarkTheme $global:donForm })
+    $global:donForm.Show()
 }
 
 function Show-Tutorial {
@@ -1516,298 +1335,326 @@ function Show-Tutorial {
         [System.Windows.Forms.MessageBox]::Show("O arquivo '$($global:TutorialFileName)' ainda nao foi colocado na pasta 'resources'.", "$($global:ShortVersion) - Tutorial", 0, 64) | Out-Null
         return
     }
-
-    # Padrao 1024x768 ajustavel automaticamente caso a tela do notebook seja menor
+    if ($null -ne $global:tutForm -and (-not $global:tutForm.IsDisposed)) {
+        if ($global:tutForm.WindowState -eq "Minimized") { $global:tutForm.WindowState = "Normal" }
+        $global:tutForm.Activate(); return
+    }
     $workArea = [System.Windows.Forms.Screen]::PrimaryScreen.WorkingArea
     $winW = [Math]::Min(1024, [Math]::Max(820, $workArea.Width - 40))
     $winH = [Math]::Min(768, [Math]::Max(600, $workArea.Height - 40))
-
     $winBg = Get-WindowBgColor
 
-    $tutForm = New-Object System.Windows.Forms.Form
-    $tutForm.Text = "$($global:ShortVersion) - $(Get-Text 'TutorialWinTitle')"
-    $tutForm.Size = New-Object System.Drawing.Size($winW, $winH)
-    $tutForm.MinimumSize = New-Object System.Drawing.Size(820, 600)
-    $tutForm.StartPosition = "CenterScreen"
-    $tutForm.BackColor = $winBg
-    $tutForm.ShowIcon = $true
-    $tutForm.ShowInTaskbar = $true
-    $tutForm.Icon = $global:AppIcon
+    $global:tutForm = New-Object System.Windows.Forms.Form
+    $global:tutForm.Text = "$($global:ShortVersion) - $(Get-Text 'TutorialWinTitle')"
+    $global:tutForm.Size = New-Object System.Drawing.Size($winW, $winH); $global:tutForm.MinimumSize = New-Object System.Drawing.Size(820, 600)
+    $global:tutForm.StartPosition = "CenterScreen"; $global:tutForm.BackColor = $winBg
+    $global:tutForm.ShowIcon = $true; $global:tutForm.ShowInTaskbar = $true; $global:tutForm.Icon = $global:AppIcon
 
-    $bottomPanel = New-Object System.Windows.Forms.Panel
-    $bottomPanel.Dock = "Bottom"
-    $bottomPanel.Height = 56
-    $bottomPanel.BackColor = $winBg
+    $script:tut_bottomPanel = New-Object System.Windows.Forms.Panel
+    $script:tut_bottomPanel.Dock = "Bottom"; $script:tut_bottomPanel.Height = 56; $script:tut_bottomPanel.BackColor = $winBg
 
-    $web = New-Object System.Windows.Forms.WebBrowser
-    $web.Dock = "Fill"
-    $web.IsWebBrowserContextMenuEnabled = $true
-    $web.WebBrowserShortcutsEnabled = $true
-    $web.ScriptErrorsSuppressed = $true
-    $web.Navigate($global:TutorialFile)
+    $script:tut_web = New-Object System.Windows.Forms.WebBrowser
+    $script:tut_web.Dock = "Fill"; $script:tut_web.IsWebBrowserContextMenuEnabled = $true; $script:tut_web.WebBrowserShortcutsEnabled = $true; $script:tut_web.ScriptErrorsSuppressed = $true
+    $script:tut_web.Navigate($global:TutorialFile)
 
-    # Sincroniza o idioma da pagina Tutorial.html e aplica as cores da moldura na barra de rolagem
-    $web.Add_DocumentCompleted({
+    $script:tut_web.Add_DocumentCompleted({
         param($sender, $e)
-        try {
-            if ($null -ne $sender.Document) {
-                if ($null -ne $sender.Document.Body) {
-                    if ($global:Theme -eq "Light") {
-                        $sender.Document.Body.Style = "scrollbar-face-color: #C4B094; scrollbar-track-color: #E8E2D6; scrollbar-arrow-color: #F7931A; scrollbar-highlight-color: #5A3C18; scrollbar-shadow-color: #5A3C18; scrollbar-3dlight-color: #E8E2D6; scrollbar-darkshadow-color: #5A3C18;"
-                    } else {
-                        $sender.Document.Body.Style = "scrollbar-face-color: #2A2014; scrollbar-track-color: #10151C; scrollbar-arrow-color: #F7931A; scrollbar-highlight-color: #5A3C18; scrollbar-shadow-color: #5A3C18; scrollbar-3dlight-color: #10151C; scrollbar-darkshadow-color: #0A0E14;"
-                    }
-                }
-                $sender.Document.InvokeScript("setTutorialLang", @([string]$global:Language)) | Out-Null
-            }
-        } catch {}
+        Set-TutorialWebScrollbarTheme
+        try { if ($null -ne $sender.Document) { $sender.Document.InvokeScript("setTutorialLang", @([string]$global:Language)) | Out-Null } } catch {}
     })
+    $script:tut_web.Add_Navigating({ param($sender, $e) if ($e.Url.Scheme -match "^https?$") { $e.Cancel = $true; Start-Process $e.Url.AbsoluteUri } })
 
-    # Qualquer link externo http/https clicado dentro do Tutorial abre no navegador padrao
-    $web.Add_Navigating({
-        param($sender, $e)
-        if ($e.Url.Scheme -match "^https?$") {
-            $e.Cancel = $true
-            Start-Process $e.Url.AbsoluteUri
-        }
-    })
+    $global:tutForm.Controls.AddRange(@($script:tut_web, $script:tut_bottomPanel))
 
-    # Acopla primeiro os paineis na janela para que o bottomPanel assuma a largura real
-    $tutForm.Controls.Add($web)
-    $tutForm.Controls.Add($bottomPanel)
-
-    $btnShare = New-Object System.Windows.Forms.Button
-    $btnShare.Text = Get-Text "MenuShare"
-    $btnShare.Size = New-Object System.Drawing.Size(210, 40)
-    $btnShare.Location = New-Object System.Drawing.Point(24, 8)
-    $btnShare.Anchor = [System.Windows.Forms.AnchorStyles]::Top -bor [System.Windows.Forms.AnchorStyles]::Left
-    $btnShare.Font = New-Object System.Drawing.Font("Segoe UI", 10, [System.Drawing.FontStyle]::Bold)
-    Set-ObsidianButtonStyle $btnShare $true
-    $btnShare.Add_Click({
+    $script:tut_btnShare = New-Object System.Windows.Forms.Button
+    $script:tut_btnShare.Text = Get-Text "MenuShare"; $script:tut_btnShare.Size = New-Object System.Drawing.Size(210, 40); $script:tut_btnShare.Location = New-Object System.Drawing.Point(24, 8)
+    $script:tut_btnShare.Anchor = [System.Windows.Forms.AnchorStyles]::Top -bor [System.Windows.Forms.AnchorStyles]::Left
+    $script:tut_btnShare.Font = New-Object System.Drawing.Font("Segoe UI", 10, [System.Drawing.FontStyle]::Bold)
+    $script:tut_btnShare.Tag = $false
+    Set-ObsidianButtonStyle $script:tut_btnShare $true
+    $script:tut_btnShare.Add_Click({
         Invoke-ShareMinerIsma
+        $this.Tag = $true
         $this.Text = Get-Text "ShareCopiedShort"
-    })
-    $bottomPanel.Controls.Add($btnShare)
-
-    $btnClose = New-Object System.Windows.Forms.Button
-    $btnClose.Text = Get-Text "BtnClose"
-    $btnClose.Size = New-Object System.Drawing.Size(140, 40)
-    $btnX = [Math]::Max(20, ($bottomPanel.ClientSize.Width - 164))
-    $btnClose.Location = New-Object System.Drawing.Point($btnX, 8)
-    $btnClose.Anchor = [System.Windows.Forms.AnchorStyles]::Top -bor [System.Windows.Forms.AnchorStyles]::Right
-    $btnClose.Font = New-Object System.Drawing.Font("Segoe UI", 10, [System.Drawing.FontStyle]::Bold)
-    Set-ObsidianButtonStyle $btnClose $false
-    $btnClose.Add_Click({ $tutForm.Close() })
-    $bottomPanel.Controls.Add($btnClose)
-
-    $tutForm.Add_Shown({
-        Set-WindowDarkTheme $tutForm
-        $btnClose.Left = [Math]::Max(20, ($bottomPanel.ClientSize.Width - $btnClose.Width - 24))
-        $btnClose.Focus() | Out-Null
+        $this.ForeColor = Get-GreenTextColor
     })
 
-    $tutForm.ShowDialog() | Out-Null
-    $tutForm.Dispose()
+    $script:tut_btnClose = New-Object System.Windows.Forms.Button
+    $script:tut_btnClose.Text = Get-Text "BtnClose"; $script:tut_btnClose.Size = New-Object System.Drawing.Size(140, 40)
+    $script:tut_btnClose.Location = New-Object System.Drawing.Point([Math]::Max(20, ($script:tut_bottomPanel.ClientSize.Width - 164)), 8)
+    $script:tut_btnClose.Anchor = [System.Windows.Forms.AnchorStyles]::Top -bor [System.Windows.Forms.AnchorStyles]::Right
+    $script:tut_btnClose.Font = New-Object System.Drawing.Font("Segoe UI", 10, [System.Drawing.FontStyle]::Bold)
+    Set-ObsidianButtonStyle $script:tut_btnClose $false; $script:tut_btnClose.Add_Click({ $global:tutForm.Close() })
+
+    $global:tutForm.Tag = {
+        $script:tut_bottomPanel.BackColor = Get-WindowBgColor
+        Set-ObsidianButtonStyle $script:tut_btnShare $true
+        if ([bool]$script:tut_btnShare.Tag) { $script:tut_btnShare.ForeColor = Get-GreenTextColor }
+        Set-ObsidianButtonStyle $script:tut_btnClose $false
+        Set-TutorialWebScrollbarTheme
+    }
+
+    $global:tutForm.Add_FormClosed({ $global:tutForm = $null })
+    $script:tut_bottomPanel.Controls.AddRange(@($script:tut_btnShare, $script:tut_btnClose))
+    $global:tutForm.ActiveControl = $script:tut_btnClose
+    $global:tutForm.Add_Shown({
+        Set-WindowDarkTheme $global:tutForm
+        $script:tut_btnClose.Left = [Math]::Max(20, ($script:tut_bottomPanel.ClientSize.Width - $script:tut_btnClose.Width - 24))
+        $script:tut_btnClose.Focus() | Out-Null
+    })
+    $global:tutForm.Show()
 }
 
 function Show-WalletConfig {
-    $walletForm = New-Object System.Windows.Forms.Form
-    $walletForm.Text = "$($global:ShortVersion) - $(Get-Text 'WalletWinTitle')"
-    $walletForm.Size = New-Object System.Drawing.Size(580, 380)
-    $walletForm.StartPosition = "CenterScreen"
-    $walletForm.BackColor = Get-WindowBgColor
-    $walletForm.FormBorderStyle = "FixedSingle"
-    $walletForm.MaximizeBox = $false
-    $walletForm.ShowIcon = $true
-    $walletForm.ShowInTaskbar = $true
-    $walletForm.Icon = $global:AppIcon
+    if ($null -ne $global:walletForm -and (-not $global:walletForm.IsDisposed)) {
+        if ($global:walletForm.WindowState -eq "Minimized") { $global:walletForm.WindowState = "Normal" }
+        $global:walletForm.Activate(); return
+    }
+    $global:walletForm = New-Object System.Windows.Forms.Form
+    $global:walletForm.Text = "$($global:ShortVersion) - $(Get-Text 'WalletWinTitle')"
+    $global:walletForm.Size = New-Object System.Drawing.Size(580, 380); $global:walletForm.StartPosition = "CenterScreen"
+    $global:walletForm.BackColor = Get-WindowBgColor; $global:walletForm.FormBorderStyle = "FixedSingle"; $global:walletForm.MaximizeBox = $false
+    $global:walletForm.ShowIcon = $true; $global:walletForm.ShowInTaskbar = $true; $global:walletForm.Icon = $global:AppIcon
 
-    $colorBitcoin = Get-AccentOrangeColor
-    $txtPrimary   = Get-PrimaryTextColor
-    $txtSecondary = Get-SecondaryTextColor
-    $darkBoxBg    = [System.Drawing.Color]::FromArgb(9, 13, 18)
+    $fHdr  = New-Object System.Drawing.Font("Segoe UI", 14, [System.Drawing.FontStyle]::Bold)
+    $fLbl  = New-Object System.Drawing.Font("Segoe UI", 11, [System.Drawing.FontStyle]::Regular)
+    $fWrn1 = New-Object System.Drawing.Font("Segoe UI", 10, [System.Drawing.FontStyle]::Bold)
+    $fWrn2 = New-Object System.Drawing.Font("Segoe UI", 10, [System.Drawing.FontStyle]::Regular)
 
-    $lblHeader = New-Object System.Windows.Forms.Label
-    $lblHeader.Text = Get-Text "WalletHeader"
-    $lblHeader.Location = New-Object System.Drawing.Point(20, 20)
-    $lblHeader.AutoSize = $true
-    $lblHeader.ForeColor = $colorBitcoin
-    $lblHeader.Font = New-Object System.Drawing.Font("Segoe UI", 14, [System.Drawing.FontStyle]::Bold)
-
-    $lblWallet = New-Object System.Windows.Forms.Label
-    $lblWallet.Text = Get-Text "WalletLblAddr"
-    $lblWallet.Location = New-Object System.Drawing.Point(20, 62)
-    $lblWallet.AutoSize = $true
-    $lblWallet.ForeColor = $txtPrimary
-    $lblWallet.Font = New-Object System.Drawing.Font("Segoe UI", 11, [System.Drawing.FontStyle]::Regular)
+    $script:wal_lblHeader = New-UiLabel (Get-Text "WalletHeader") 20 20 0 0 $fHdr (Get-AccentOrangeColor)
+    $script:wal_lblWallet = New-UiLabel (Get-Text "WalletLblAddr") 20 62 0 0 $fLbl (Get-PrimaryTextColor)
+    $script:wal_lblWorker = New-UiLabel (Get-Text "WalletLblWorker") 20 130 0 0 $fLbl (Get-PrimaryTextColor)
+    $script:wal_lblWarn1  = New-UiLabel (Get-Text "WalletWarn1") 20 205 0 0 $fWrn1 (Get-AccentOrangeColor)
+    $script:wal_lblWarn2  = New-UiLabel (Get-Text "WalletWarn2") 20 230 0 0 $fWrn2 (Get-SecondaryTextColor)
 
     $currentAddr = ($global:Wallet -replace '\..*?$', '').Trim()
     if ($currentAddr -eq "minha_carteira") { $currentAddr = "" }
+    $currentWorker = if ($global:Wallet -match '\.(.+)$') { ($Matches[1]).Trim() } else { "WORKER" }
 
-    $currentWorker = "WORKER"
-    if ($global:Wallet -match '\.(.+)$') {
-        $currentWorker = ($Matches[1]).Trim()
-    }
+    $script:wal_txtWallet = New-Object System.Windows.Forms.TextBox
+    $script:wal_txtWallet.Text = $currentAddr; $script:wal_txtWallet.BorderStyle = "None"
+    $script:wal_txtWallet.Location = New-Object System.Drawing.Point(25, 95); $script:wal_txtWallet.Size = New-Object System.Drawing.Size(400, 19)
+    $script:wal_txtWallet.BackColor = Get-VisorBgColor; $script:wal_txtWallet.ForeColor = Get-GoldTextColor
+    $script:wal_txtWallet.Font = New-Object System.Drawing.Font("Consolas", 11)
 
-    # Campo visivel para ~42 caracteres com contorno fino Bronze (sem borda 3D branca)
-    $script:txtWallet = New-Object System.Windows.Forms.TextBox
-    $script:txtWallet.Text = $currentAddr
-    $script:txtWallet.MaxLength = 0
-    $script:txtWallet.BorderStyle = "None"
-    $script:txtWallet.Location = New-Object System.Drawing.Point(25, 95)
-    $script:txtWallet.Size = New-Object System.Drawing.Size(400, 19)
-    $script:txtWallet.BackColor = $darkBoxBg
-    $script:txtWallet.ForeColor = [System.Drawing.Color]::Gold
-    $script:txtWallet.Font = New-Object System.Drawing.Font("Consolas", 11)
+    $script:wal_txtWorker = New-Object System.Windows.Forms.TextBox
+    $script:wal_txtWorker.Text = $currentWorker; $script:wal_txtWorker.BorderStyle = "None"
+    $script:wal_txtWorker.Location = New-Object System.Drawing.Point(25, 163); $script:wal_txtWorker.Size = New-Object System.Drawing.Size(110, 19)
+    $script:wal_txtWorker.BackColor = Get-VisorBgColor; $script:wal_txtWorker.ForeColor = Get-CyanTextColor
+    $script:wal_txtWorker.Font = New-Object System.Drawing.Font("Consolas", 11)
 
-    $lblWorker = New-Object System.Windows.Forms.Label
-    $lblWorker.Text = Get-Text "WalletLblWorker"
-    $lblWorker.Location = New-Object System.Drawing.Point(20, 130)
-    $lblWorker.AutoSize = $true
-    $lblWorker.ForeColor = $txtPrimary
-    $lblWorker.Font = New-Object System.Drawing.Font("Segoe UI", 11, [System.Drawing.FontStyle]::Regular)
-
-    # Campo visivel para ~10-12 caracteres com contorno fino Bronze (sem borda 3D branca)
-    $script:txtWorker = New-Object System.Windows.Forms.TextBox
-    $script:txtWorker.Text = $currentWorker
-    $script:txtWorker.MaxLength = 0
-    $script:txtWorker.BorderStyle = "None"
-    $script:txtWorker.Location = New-Object System.Drawing.Point(25, 163)
-    $script:txtWorker.Size = New-Object System.Drawing.Size(110, 19)
-    $script:txtWorker.BackColor = $darkBoxBg
-    $script:txtWorker.ForeColor = [System.Drawing.Color]::Cyan
-    $script:txtWorker.Font = New-Object System.Drawing.Font("Consolas", 11)
-
-    # Desenha os quadros escuros e o contorno fino Bronze de 1px ao redor dos 2 campos
-    $walletForm.Add_Paint({
+    $global:walletForm.Add_Paint({
         param($s, $e)
-        $bFill = New-Object System.Drawing.SolidBrush([System.Drawing.Color]::FromArgb(9, 13, 18))
+        $bFill = New-Object System.Drawing.SolidBrush((Get-VisorBgColor))
         $pBronze = New-Object System.Drawing.Pen($global:ColorBronzeBorder, 1)
-        $e.Graphics.FillRectangle($bFill, 20, 90, 410, 28)
-        $e.Graphics.DrawRectangle($pBronze, 20, 90, 409, 27)
-        $e.Graphics.FillRectangle($bFill, 20, 158, 120, 28)
-        $e.Graphics.DrawRectangle($pBronze, 20, 158, 119, 27)
-        $bFill.Dispose()
-        $pBronze.Dispose()
+        $e.Graphics.FillRectangle($bFill, 20, 90, 410, 28); $e.Graphics.DrawRectangle($pBronze, 20, 90, 409, 27)
+        $e.Graphics.FillRectangle($bFill, 20, 158, 120, 28); $e.Graphics.DrawRectangle($pBronze, 20, 158, 119, 27)
+        $bFill.Dispose(); $pBronze.Dispose()
     })
 
-    $lblWarn1 = New-Object System.Windows.Forms.Label
-    $lblWarn1.Text = Get-Text "WalletWarn1"
-    $lblWarn1.Location = New-Object System.Drawing.Point(20, 205)
-    $lblWarn1.AutoSize = $true
-    $lblWarn1.ForeColor = $colorBitcoin
-    $lblWarn1.Font = New-Object System.Drawing.Font("Segoe UI", 10, [System.Drawing.FontStyle]::Bold)
-
-    $lblWarn2 = New-Object System.Windows.Forms.Label
-    $lblWarn2.Text = Get-Text "WalletWarn2"
-    $lblWarn2.Location = New-Object System.Drawing.Point(20, 230)
-    $lblWarn2.AutoSize = $true
-    $lblWarn2.ForeColor = $txtSecondary
-    $lblWarn2.Font = New-Object System.Drawing.Font("Segoe UI", 10, [System.Drawing.FontStyle]::Regular)
-
-    $script:WalletSavedNow = $false
-
-    $btnSave = New-Object System.Windows.Forms.Button
-    $btnSave.Text = Get-Text "BtnSave"
-    $btnSave.Location = New-Object System.Drawing.Point(20, 275)
-    $btnSave.Size = New-Object System.Drawing.Size(140, 40)
-    $btnSave.Font = New-Object System.Drawing.Font("Segoe UI", 10, [System.Drawing.FontStyle]::Bold)
-    Set-ObsidianButtonStyle $btnSave $false
-    $btnSave.Add_Click({
-        $newAddr = ($script:txtWallet.Text -replace '\s+', '').Trim('.')
-        $newWrk  = ($script:txtWorker.Text -replace '\s+', '').Trim('.')
-
+    $script:wal_btnSave = New-Object System.Windows.Forms.Button
+    $script:wal_btnSave.Text = Get-Text "BtnSave"; $script:wal_btnSave.Location = New-Object System.Drawing.Point(20, 275); $script:wal_btnSave.Size = New-Object System.Drawing.Size(140, 40)
+    $script:wal_btnSave.Font = New-Object System.Drawing.Font("Segoe UI", 10, [System.Drawing.FontStyle]::Bold)
+    Set-ObsidianButtonStyle $script:wal_btnSave $false
+    $script:wal_btnSave.Add_Click({
+        $newAddr = ($script:wal_txtWallet.Text -replace '\s+', '').Trim('.')
+        $newWrk  = ($script:wal_txtWorker.Text -replace '\s+', '').Trim('.')
         if ([string]::IsNullOrWhiteSpace($newAddr) -or ($newAddr -eq "minha_carteira")) {
-            [System.Windows.Forms.MessageBox]::Show((Get-Text "WalletEmptyMsg"), "$($global:ShortVersion)", 0, 48) | Out-Null
-            return
+            [System.Windows.Forms.MessageBox]::Show((Get-Text "WalletEmptyMsg"), "$($global:ShortVersion)", 0, 48) | Out-Null; return
         }
-
-        # Validacao do formato padrao do Bitcoin (comeca com 1, 3 ou bc1) e tamanho minimo/maximo aceitavel
         if ($newAddr -notmatch '^(1|3|bc1)[a-zA-HJ-NP-Z0-9]{25,62}$') {
             $nl = [Environment]::NewLine
-            $msgFormato = (Get-Text "WalletInvalid1") + $nl + $nl + (Get-Text "WalletInvalid2")
-            [System.Windows.Forms.MessageBox]::Show($msgFormato, "$($global:ShortVersion)", 0, 16) | Out-Null
-            return
+            [System.Windows.Forms.MessageBox]::Show(((Get-Text "WalletInvalid1") + $nl + $nl + (Get-Text "WalletInvalid2")), "$($global:ShortVersion)", 0, 16) | Out-Null; return
         }
-
-        if ([string]::IsNullOrWhiteSpace($newWrk)) {
-            $newWrk = "WORKER"
-        }
-
-        $global:Wallet = "$newAddr.$newWrk"
-        Save-MinerConfig
+        if ([string]::IsNullOrWhiteSpace($newWrk)) { $newWrk = "WORKER" }
+        $global:Wallet = "$newAddr.$newWrk"; Save-MinerConfig
         $global:LogQueue.Enqueue("[SISTEMA] Carteira atualizada: $($global:Wallet)")
-        $script:WalletSavedNow = $true
-        $walletForm.Close()
-    })
-
-    $btnCreate = New-Object System.Windows.Forms.Button
-    $btnCreate.Text = Get-Text "BtnCreateWallet"
-    $btnCreate.Location = New-Object System.Drawing.Point(210, 275)
-    $btnCreate.Size = New-Object System.Drawing.Size(140, 40)
-    $btnCreate.Font = New-Object System.Drawing.Font("Segoe UI", 10, [System.Drawing.FontStyle]::Bold)
-    Set-ObsidianButtonStyle $btnCreate $true
-    $btnCreate.Add_Click({
-        Start-Process $global:UrlBlueWallet
-    })
-
-    $btnClose = New-Object System.Windows.Forms.Button
-    $btnClose.Text = Get-Text "BtnClose"
-    $btnClose.Location = New-Object System.Drawing.Point(400, 275)
-    $btnClose.Size = New-Object System.Drawing.Size(140, 40)
-    $btnClose.Font = New-Object System.Drawing.Font("Segoe UI", 10)
-    Set-ObsidianButtonStyle $btnClose $false
-    $btnClose.Add_Click({ $walletForm.Close() })
-
-    $walletForm.Controls.Add($lblHeader)
-    $walletForm.Controls.Add($lblWallet)
-    $walletForm.Controls.Add($script:txtWallet)
-    $walletForm.Controls.Add($lblWorker)
-    $walletForm.Controls.Add($script:txtWorker)
-    $walletForm.Controls.Add($lblWarn1)
-    $walletForm.Controls.Add($lblWarn2)
-    $walletForm.Controls.Add($btnSave)
-    $walletForm.Controls.Add($btnCreate)
-    $walletForm.Controls.Add($btnClose)
-
-    # Tira o foco do TextBox para impedir o texto selecionado em azul ao abrir
-    $walletForm.Add_Shown({
-        Set-WindowDarkTheme $walletForm
-        $btnSave.Focus() | Out-Null
-    })
-
-    $walletForm.ShowDialog() | Out-Null
-    $walletForm.Dispose()
-
-    if ($script:WalletSavedNow) {
-        if ($global:IsPaused) {
-            $global:itemPause.Text = Get-Text "MenuPause"
-            $global:IsPaused = $false
-            $global:PauseResumeAt = $null
-        }
-        if ($global:PulseMode -ne "") {
-            $global:PulseNextSwitch = (Get-Date).AddMinutes($global:PulseActiveMins)
-        }
+        if ($global:IsPaused) { $global:itemPause.Text = Get-Text "MenuPause"; $global:IsPaused = $false; $global:PauseResumeAt = $null }
+        if ($global:PulseMode -ne "") { $global:PulseNextSwitch = (Get-Date).AddMinutes($global:PulseActiveMins) }
         $global:notifyIcon.Text = "$($global:ShortVersion)" + [Environment]::NewLine + "$($global:CurrentThreads) Threads | $(Get-Text 'TrayCalculating')"
         Start-MinerTask $global:CurrentThreads
+        $global:walletForm.Close()
+    })
+
+    $script:wal_btnCreate = New-Object System.Windows.Forms.Button
+    $script:wal_btnCreate.Text = Get-Text "BtnCreateWallet"; $script:wal_btnCreate.Location = New-Object System.Drawing.Point(210, 275); $script:wal_btnCreate.Size = New-Object System.Drawing.Size(140, 40)
+    $script:wal_btnCreate.Font = New-Object System.Drawing.Font("Segoe UI", 10, [System.Drawing.FontStyle]::Bold)
+    Set-ObsidianButtonStyle $script:wal_btnCreate $true; $script:wal_btnCreate.Add_Click({ Start-Process $global:UrlBlueWallet })
+
+    $script:wal_btnClose = New-Object System.Windows.Forms.Button
+    $script:wal_btnClose.Text = Get-Text "BtnClose"; $script:wal_btnClose.Location = New-Object System.Drawing.Point(400, 275); $script:wal_btnClose.Size = New-Object System.Drawing.Size(140, 40)
+    $script:wal_btnClose.Font = New-Object System.Drawing.Font("Segoe UI", 10)
+    Set-ObsidianButtonStyle $script:wal_btnClose $false; $script:wal_btnClose.Add_Click({ $global:walletForm.Close() })
+
+    $global:walletForm.Tag = {
+        $script:wal_lblHeader.ForeColor = Get-AccentOrangeColor; $script:wal_lblWarn1.ForeColor = Get-AccentOrangeColor
+        $script:wal_lblWallet.ForeColor = Get-PrimaryTextColor;  $script:wal_lblWorker.ForeColor = Get-PrimaryTextColor
+        $script:wal_lblWarn2.ForeColor  = Get-SecondaryTextColor
+        $script:wal_txtWallet.BackColor = Get-VisorBgColor; $script:wal_txtWallet.ForeColor = Get-GoldTextColor
+        $script:wal_txtWorker.BackColor = Get-VisorBgColor; $script:wal_txtWorker.ForeColor = Get-CyanTextColor
+        Set-ObsidianButtonStyle $script:wal_btnSave $false; Set-ObsidianButtonStyle $script:wal_btnCreate $true; Set-ObsidianButtonStyle $script:wal_btnClose $false
     }
+
+    $global:walletForm.Add_FormClosed({ $global:walletForm = $null })
+    $global:walletForm.Controls.AddRange(@($script:wal_lblHeader, $script:wal_lblWallet, $script:wal_txtWallet, $script:wal_lblWorker, $script:wal_txtWorker, $script:wal_lblWarn1, $script:wal_lblWarn2, $script:wal_btnSave, $script:wal_btnCreate, $script:wal_btnClose))
+    $global:walletForm.ActiveControl = $script:wal_btnSave
+    $global:walletForm.Add_Shown({
+        Set-WindowDarkTheme $global:walletForm
+        $script:wal_txtWallet.SelectionLength = 0
+        $script:wal_txtWorker.SelectionLength = 0
+        $script:wal_btnSave.Focus() | Out-Null
+    })
+    $global:walletForm.Show()
 }
 
-# ============================================================
-# FUNCOES AUXILIARES E ESTATISTICAS TTF
-# ============================================================
+function Show-AdvancedConfig {
+    if ($null -ne $global:advForm -and (-not $global:advForm.IsDisposed)) {
+        if ($global:advForm.WindowState -eq "Minimized") { $global:advForm.WindowState = "Normal" }
+        $global:advForm.Activate(); return
+    }
+    $global:advForm = New-Object System.Windows.Forms.Form
+    $global:advForm.Text = "$($global:ShortVersion) - $(Get-Text 'AdvWinTitle')"
+    $global:advForm.Size = New-Object System.Drawing.Size(620, 440); $global:advForm.StartPosition = "CenterScreen"
+    $global:advForm.BackColor = Get-WindowBgColor; $global:advForm.FormBorderStyle = "FixedSingle"; $global:advForm.MaximizeBox = $false
+    $global:advForm.ShowIcon = $true; $global:advForm.ShowInTaskbar = $true; $global:advForm.Icon = $global:AppIcon
+
+    $fDanger = New-Object System.Drawing.Font("Segoe UI", 14, [System.Drawing.FontStyle]::Bold)
+    $fWrn1   = New-Object System.Drawing.Font("Segoe UI", 10.5, [System.Drawing.FontStyle]::Bold)
+    $fWrn2   = New-Object System.Drawing.Font("Segoe UI", 10, [System.Drawing.FontStyle]::Regular)
+    $fLbl    = New-Object System.Drawing.Font("Segoe UI", 10, [System.Drawing.FontStyle]::Bold)
+
+    $script:adv_lblDanger = New-UiLabel (Get-Text "AdvDangerHdr") 20 12 564 26 $fDanger (Get-DangerTextColor)
+    $script:adv_lblWarn1  = New-UiLabel (Get-Text "AdvWarn1") 20 42 564 22 $fWrn1 (Get-AccentOrangeColor)
+    $script:adv_lblWarn2  = New-UiLabel (Get-Text "AdvWarn2") 20 65 564 20 $fWrn2 (Get-PrimaryTextColor)
+    $script:adv_lblWarn3  = New-UiLabel (Get-Text "AdvWarn3") 20 86 564 20 $fWrn2 (Get-PrimaryTextColor)
+
+    $script:adv_lblPool   = New-UiLabel (Get-Text "AdvLblPool") 20 116 0 0 $fLbl (Get-PrimaryTextColor)
+    $script:adv_txtPool   = New-Object System.Windows.Forms.TextBox
+    $script:adv_txtPool.Text = $global:PoolUrl; $script:adv_txtPool.BorderStyle = "None"
+    $script:adv_txtPool.Location = New-Object System.Drawing.Point(25, 144); $script:adv_txtPool.Size = New-Object System.Drawing.Size(554, 19)
+    $script:adv_txtPool.BackColor = Get-VisorBgColor; $script:adv_txtPool.ForeColor = Get-GoldTextColor
+    $script:adv_txtPool.Font = New-Object System.Drawing.Font("Consolas", 10.5)
+
+    $script:adv_lblExtra  = New-UiLabel (Get-Text "AdvLblExtra") 20 176 0 0 $fLbl (Get-PrimaryTextColor)
+    $script:adv_txtExtra  = New-Object System.Windows.Forms.TextBox
+    $script:adv_txtExtra.Text = $global:ExtraArgs; $script:adv_txtExtra.BorderStyle = "None"
+    $script:adv_txtExtra.Location = New-Object System.Drawing.Point(25, 204); $script:adv_txtExtra.Size = New-Object System.Drawing.Size(554, 19)
+    $script:adv_txtExtra.BackColor = Get-VisorBgColor; $script:adv_txtExtra.ForeColor = Get-CyanTextColor
+    $script:adv_txtExtra.Font = New-Object System.Drawing.Font("Consolas", 10.5)
+
+    $script:adv_lblPreview = New-UiLabel (Get-Text "AdvLblPreview") 20 236 0 0 $fLbl (Get-SecondaryTextColor)
+    $script:adv_txtPreview = New-Object System.Windows.Forms.TextBox
+    $script:adv_txtPreview.Multiline = $true; $script:adv_txtPreview.ReadOnly = $true; $script:adv_txtPreview.TabStop = $false; $script:adv_txtPreview.BorderStyle = "None"
+    $script:adv_txtPreview.Location = New-Object System.Drawing.Point(25, 264); $script:adv_txtPreview.Size = New-Object System.Drawing.Size(554, 52)
+    $script:adv_txtPreview.BackColor = Get-VisorBgColor; $script:adv_txtPreview.ForeColor = Get-SecondaryTextColor
+    $script:adv_txtPreview.Font = New-Object System.Drawing.Font("Consolas", 9.5)
+
+    $script:adv_updatePreview = {
+        $aff  = Get-Affinity $global:CurrentThreads
+        $pStr = ($script:adv_txtPool.Text).Trim()
+        $eStr = ($script:adv_txtExtra.Text).Trim()
+        $cmd  = "$($global:DetectedMinerExe) -a sha256d -o $pStr -u $($global:Wallet) -p x -t $($global:CurrentThreads) --cpu-affinity $aff $eStr"
+        $script:adv_txtPreview.Text = ($cmd -replace '\s+', ' ').Trim()
+    }
+    & $script:adv_updatePreview
+    $script:adv_txtPool.Add_TextChanged($script:adv_updatePreview)
+    $script:adv_txtExtra.Add_TextChanged($script:adv_updatePreview)
+
+    $global:advForm.Add_Paint({
+        param($s, $e)
+        $bFill = New-Object System.Drawing.SolidBrush((Get-VisorBgColor))
+        $pBronze = New-Object System.Drawing.Pen($global:ColorBronzeBorder, 1)
+        $e.Graphics.FillRectangle($bFill, 20, 139, 564, 28); $e.Graphics.DrawRectangle($pBronze, 20, 139, 563, 27)
+        $e.Graphics.FillRectangle($bFill, 20, 199, 564, 28); $e.Graphics.DrawRectangle($pBronze, 20, 199, 563, 27)
+        $e.Graphics.FillRectangle($bFill, 20, 259, 564, 62); $e.Graphics.DrawRectangle($pBronze, 20, 259, 563, 61)
+        $bFill.Dispose(); $pBronze.Dispose()
+    })
+
+    $script:adv_btnSave = New-Object System.Windows.Forms.Button
+    $script:adv_btnSave.Text = Get-Text "BtnSaveApply"; $script:adv_btnSave.Location = New-Object System.Drawing.Point(20, 340); $script:adv_btnSave.Size = New-Object System.Drawing.Size(172, 40)
+    $script:adv_btnSave.Font = New-Object System.Drawing.Font("Segoe UI", 10, [System.Drawing.FontStyle]::Bold)
+    Set-ObsidianButtonStyle $script:adv_btnSave $false
+    $script:adv_btnSave.Add_Click({
+        $newPool  = ($script:adv_txtPool.Text).Trim()
+        $newExtra = ($script:adv_txtExtra.Text).Trim()
+        if ($newExtra -match '(^|\s)(-t|--threads|--cpu-affinity|-u|--user|-o|--url|-a|--algo)(\s|=|$)') {
+            [System.Windows.Forms.MessageBox]::Show((Get-Text "AdvForbiddenArgs"), "$($global:ShortVersion)", 0, 48) | Out-Null; return
+        }
+        if (($newExtra -notmatch '(?i)--benchmark') -and ($newPool -notmatch '^(stratum\+(tcp|ssl)://).+')) {
+            [System.Windows.Forms.MessageBox]::Show((Get-Text "AdvInvalidPool"), "$($global:ShortVersion)", 0, 16) | Out-Null; return
+        }
+        $ans = [System.Windows.Forms.MessageBox]::Show((Get-Text "AdvConfirmMsg"), "$($global:ShortVersion)", [System.Windows.Forms.MessageBoxButtons]::OKCancel, [System.Windows.Forms.MessageBoxIcon]::Warning)
+        if ($ans -eq [System.Windows.Forms.DialogResult]::OK) {
+            $global:PoolUrl   = $newPool
+            $global:ExtraArgs = $newExtra
+            Save-MinerConfig
+            $global:LogQueue.Enqueue("[SISTEMA] Modo Avancado aplicado: Pool=$newPool | ExtraArgs=$newExtra")
+            if ($global:IsPaused) { $global:itemPause.Text = Get-Text "MenuPause"; $global:IsPaused = $false; $global:PauseResumeAt = $null }
+            Start-MinerTask $global:CurrentThreads
+            $global:advForm.Close()
+        }
+    })
+
+    $script:adv_btnRestore = New-Object System.Windows.Forms.Button
+    $script:adv_btnRestore.Text = Get-Text "BtnRestoreDef"; $script:adv_btnRestore.Location = New-Object System.Drawing.Point(216, 340); $script:adv_btnRestore.Size = New-Object System.Drawing.Size(172, 40)
+    $script:adv_btnRestore.Font = New-Object System.Drawing.Font("Segoe UI", 10, [System.Drawing.FontStyle]::Bold)
+    Set-ObsidianButtonStyle $script:adv_btnRestore $true
+    $script:adv_btnRestore.Add_Click({
+        $ans = [System.Windows.Forms.MessageBox]::Show((Get-Text "AdvRestoreMsg"), "$($global:ShortVersion)", [System.Windows.Forms.MessageBoxButtons]::OKCancel, [System.Windows.Forms.MessageBoxIcon]::Question)
+        if ($ans -eq [System.Windows.Forms.DialogResult]::OK) {
+            $script:adv_txtPool.Text  = $global:DefaultPoolUrl
+            $script:adv_txtExtra.Text = $global:DefaultExtraArgs
+            $global:PoolUrl           = $global:DefaultPoolUrl
+            $global:ExtraArgs         = $global:DefaultExtraArgs
+            Save-MinerConfig
+            $global:LogQueue.Enqueue("[SISTEMA] Modo Avancado restaurado para o padrao de fabrica.")
+            if ($global:IsPaused) { $global:itemPause.Text = Get-Text "MenuPause"; $global:IsPaused = $false; $global:PauseResumeAt = $null }
+            Start-MinerTask $global:CurrentThreads
+            $global:advForm.Close()
+        }
+    })
+
+    $script:adv_btnClose = New-Object System.Windows.Forms.Button
+    $script:adv_btnClose.Text = Get-Text "BtnClose"; $script:adv_btnClose.Location = New-Object System.Drawing.Point(412, 340); $script:adv_btnClose.Size = New-Object System.Drawing.Size(172, 40)
+    $script:adv_btnClose.Font = New-Object System.Drawing.Font("Segoe UI", 10)
+    Set-ObsidianButtonStyle $script:adv_btnClose $false; $script:adv_btnClose.Add_Click({ $global:advForm.Close() })
+
+    $global:advForm.Tag = {
+        $script:adv_lblDanger.ForeColor  = Get-DangerTextColor
+        $script:adv_lblWarn1.ForeColor   = Get-AccentOrangeColor
+        $script:adv_lblWarn2.ForeColor   = Get-PrimaryTextColor
+        $script:adv_lblWarn3.ForeColor   = Get-PrimaryTextColor
+        $script:adv_lblPool.ForeColor    = Get-PrimaryTextColor
+        $script:adv_lblExtra.ForeColor   = Get-PrimaryTextColor
+        $script:adv_lblPreview.ForeColor = Get-SecondaryTextColor
+        $script:adv_txtPool.BackColor    = Get-VisorBgColor; $script:adv_txtPool.ForeColor    = Get-GoldTextColor
+        $script:adv_txtExtra.BackColor   = Get-VisorBgColor; $script:adv_txtExtra.ForeColor   = Get-CyanTextColor
+        $script:adv_txtPreview.BackColor = Get-VisorBgColor; $script:adv_txtPreview.ForeColor = Get-SecondaryTextColor
+        Set-ObsidianButtonStyle $script:adv_btnSave $false; Set-ObsidianButtonStyle $script:adv_btnRestore $true; Set-ObsidianButtonStyle $script:adv_btnClose $false
+    }
+
+    $global:advForm.Add_FormClosed({ $global:advForm = $null })
+    $global:advForm.Controls.AddRange(@($script:adv_lblDanger, $script:adv_lblWarn1, $script:adv_lblWarn2, $script:adv_lblWarn3, $script:adv_lblPool, $script:adv_txtPool, $script:adv_lblExtra, $script:adv_txtExtra, $script:adv_lblPreview, $script:adv_txtPreview, $script:adv_btnSave, $script:adv_btnRestore, $script:adv_btnClose))
+    $global:advForm.ActiveControl = $script:adv_btnClose
+    $global:advForm.Add_Shown({
+        Set-WindowDarkTheme $global:advForm
+        $script:adv_txtPool.SelectionLength = 0
+        $script:adv_txtExtra.SelectionLength = 0
+        $script:adv_txtPreview.SelectionLength = 0
+        $script:adv_btnClose.Focus() | Out-Null
+    })
+    $global:advForm.Show()
+}
+
 function Get-Affinity {
     param([int]$Threads)
-    foreach ($entry in $global:ThreadProfiles.GetEnumerator()) {
-        if ([int]$entry.Key -eq $Threads) { return [string]$entry.Value }
-    }
+    foreach ($entry in $global:ThreadProfiles.GetEnumerator()) { if ([int]$entry.Key -eq $Threads) { return [string]$entry.Value } }
     return $null
 }
 
 function Write-ErrorLog {
     param([string]$Message)
-    $stamp = Get-Date -Format 'yyyy-MM-dd HH:mm:ss'
-    try { Add-Content -Path $global:ErrorLog -Value "[$stamp] $Message" } catch {}
+    try { Add-Content -Path $global:ErrorLog -Value "[$(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')] $Message" } catch {}
 }
 
 function Convert-TtfToDays {
@@ -1823,355 +1670,210 @@ function Convert-TtfToDays {
 }
 
 function Get-RemainingHalvingBlocks {
-    # Captura a altura mais recente dos logs ativos ou usa estimativa matematica pelo relogio de 10 min do Bloco 840.000
     foreach ($l in @($global:RecentLines)) {
-        if ($l -match "Block\s+(\d{6,7})\b") {
-            $bNum = [int]$Matches[1]
-            if ($bNum -gt $global:CurrentBlockHeight) {
-                $global:CurrentBlockHeight = $bNum
-            }
-        }
+        if ($l -match "Block\s+(\d{6,7})\b" -and ([int]$Matches[1] -gt $global:CurrentBlockHeight)) { $global:CurrentBlockHeight = [int]$Matches[1] }
     }
     $anchorUtc = [datetime]::new(2024, 4, 20, 0, 9, 27, [System.DateTimeKind]::Utc)
-    $elapsedMins = ([datetime]::UtcNow - $anchorUtc).TotalMinutes
-    $estHeight = 840000 + [int][Math]::Floor($elapsedMins / 10.0)
-    $effectiveHeight = [Math]::Max($global:CurrentBlockHeight, $estHeight)
-    return [Math]::Max(1, (1050000 - $effectiveHeight))
+    $estHeight = 840000 + [int][Math]::Floor(([datetime]::UtcNow - $anchorUtc).TotalMinutes / 10.0)
+    return [Math]::Max(1, (1050000 - [Math]::Max($global:CurrentBlockHeight, $estHeight)))
 }
 
 function Show-TtfStats {
-    $lines = @()
-    if (Test-Path $global:TtfLogFile) {
-        $lines = @(Get-Content $global:TtfLogFile)
+    if ($null -ne $global:statForm -and (-not $global:statForm.IsDisposed)) {
+        if ($global:statForm.WindowState -eq "Minimized") { $global:statForm.WindowState = "Normal" }
+        $global:statForm.Activate(); return
     }
-
-    $bestLine = ""
-    $bestDays = 999999.0
-    $sumDays = 0.0
-    $count = 0
+    if ($global:LastSoloBlockHeight -le 0) { Check-LastSoloBlock }
+    $lines = if (Test-Path $global:TtfLogFile) { @(Get-Content $global:TtfLogFile) } else { @() }
+    $bestLine = ""; $bestDays = 999999.0; $sumDays = 0.0; $count = 0
 
     foreach ($l in $lines) {
         if ($l -match "TTF Bloco:\s*([^ |]+)") {
-            $ttfStr = $Matches[1].Trim()
-            $d = Convert-TtfToDays $ttfStr
-            if ($null -ne $d) {
-                $sumDays += $d
-                $count++
-                if ($d -lt $bestDays) {
-                    $bestDays = $d
-                    $bestLine = $l
-                }
-            }
+            $d = Convert-TtfToDays ($Matches[1].Trim())
+            if ($null -ne $d) { $sumDays += $d; $count++; if ($d -lt $bestDays) { $bestDays = $d; $bestLine = $l } }
         }
     }
 
-    $hasData = ($count -gt 0)
-    $avgStr  = Get-Text "TtfWaitAvg"
-    $bDate   = ""
-    $bThr    = ""
-    $bHash   = ""
-    $bTtf    = ""
-    $isParsed = $false
-
-    if ($hasData) {
-        $avg = $sumDays / $count
-        $avgYears = [Math]::Floor($avg / 365)
-        $remDays = $avg % 365
-        $avgDaysF = [Math]::Floor($remDays)
-        $avgHours = [Math]::Floor(($remDays - $avgDaysF) * 24)
-        $avgStr = ""
-        if ($avgYears -gt 0) { $avgStr += $avgYears.ToString() + "y " }
-        $avgStr += $avgDaysF.ToString() + "d " + $avgHours.ToString() + "h"
-
+    $script:stat_hasData = ($count -gt 0); $avgStr = Get-Text "TtfWaitAvg"
+    $script:stat_bDate = ""; $script:stat_bThr = ""; $script:stat_bHash = ""; $script:stat_bTtf = ""; $script:stat_isParsed = $false
+    $script:stat_bestLine = $bestLine
+    if ($script:stat_hasData) {
+        $avg = $sumDays / $count; $avgYears = [Math]::Floor($avg / 365); $remDays = $avg % 365
+        $avgDaysF = [Math]::Floor($remDays); $avgHours = [Math]::Floor(($remDays - $avgDaysF) * 24)
+        $avgStr = $(if ($avgYears -gt 0) { "$($avgYears)y " } else { "" }) + "$($avgDaysF)d $($avgHours)h"
         if ($bestLine -match "\x5B(.*?)\x5D Threads: (\d+) \| Hashrate: (.*?) \| TTF Bloco: (.*?) \|") {
-            $bDate = $Matches[1]
-            $bThr = $Matches[2]
-            $bHash = $Matches[3]
-            $bTtf = $Matches[4]
-            $isParsed = $true
+            $script:stat_bDate = $Matches[1]; $script:stat_bThr = $Matches[2]; $script:stat_bHash = $Matches[3]; $script:stat_bTtf = $Matches[4]; $script:stat_isParsed = $true
         }
     }
 
-    $statForm = New-Object System.Windows.Forms.Form
-    $statForm.Text = Get-Text "TtfWinTitle"
-    $statForm.Size = New-Object System.Drawing.Size(580, 380)
-    $statForm.StartPosition = "CenterScreen"
-    $statForm.BackColor = Get-WindowBgColor
-    $statForm.FormBorderStyle = "FixedSingle"
-    $statForm.MaximizeBox = $false
-    $statForm.ShowIcon = $true
-    $statForm.ShowInTaskbar = $true
-    $statForm.Icon = $global:AppIcon
+    $global:statForm = New-Object System.Windows.Forms.Form
+    $global:statForm.Text = "$($global:ShortVersion) - $(Get-Text 'TtfWinTitle')"
+    $global:statForm.Size = New-Object System.Drawing.Size(620, 412); $global:statForm.StartPosition = "CenterScreen"
+    $global:statForm.BackColor = Get-WindowBgColor; $global:statForm.FormBorderStyle = "FixedSingle"; $global:statForm.MaximizeBox = $false
+    $global:statForm.ShowIcon = $true; $global:statForm.ShowInTaskbar = $true; $global:statForm.Icon = $global:AppIcon
 
-    $isLight      = ($global:Theme -eq "Light")
-    $cardBgCol    = if ($isLight) { [System.Drawing.Color]::FromArgb(236, 231, 220) } else { [System.Drawing.Color]::FromArgb(12, 17, 24) }
+    $cardBgCol    = Get-CardBgColor
     $colorBitcoin = Get-AccentOrangeColor
-    $colorGold    = if ($isLight) { [System.Drawing.Color]::FromArgb(185, 95, 0) } else { [System.Drawing.Color]::Gold }
-    $colorUsd     = if ($isLight) { [System.Drawing.Color]::FromArgb(18, 120, 52) } else { [System.Drawing.Color]::LimeGreen }
+    $colorGold    = Get-GoldTextColor
+    $colorUsd     = Get-GreenTextColor
     $colorSubInfo = Get-SecondaryTextColor
+    $script:stat_numCulture = if ($global:Language -eq "EN") { [System.Globalization.CultureInfo]::InvariantCulture } else { [System.Globalization.CultureInfo]::GetCultureInfo("pt-BR") }
 
-    # --- PAINEL ESQUERDO (X=20, Y=14, W=252, H=130): Premio do Bloco e Contagem em Blocos ---
-    $lblPrizeHdr = New-Object System.Windows.Forms.Label
-    $lblPrizeHdr.Text = "$($global:BtcSym) $(Get-Text 'TtfPrizeHeader')"
-    $lblPrizeHdr.Location = New-Object System.Drawing.Point(21, 18)
-    $lblPrizeHdr.Size = New-Object System.Drawing.Size(250, 22)
-    $lblPrizeHdr.AutoSize = $false
-    $lblPrizeHdr.TextAlign = [System.Drawing.ContentAlignment]::MiddleCenter
-    $lblPrizeHdr.BackColor = $cardBgCol
-    $lblPrizeHdr.ForeColor = $colorBitcoin
-    $lblPrizeHdr.Font = New-Object System.Drawing.Font("Segoe UI", 11.5, [System.Drawing.FontStyle]::Bold)
+    $fCardHdr  = New-Object System.Drawing.Font("Segoe UI", 11.5, [System.Drawing.FontStyle]::Bold)
+    $fBigGold  = New-Object System.Drawing.Font("Segoe UI", 16, [System.Drawing.FontStyle]::Bold)
+    $fAvgGold  = New-Object System.Drawing.Font("Segoe UI", 15.5, [System.Drawing.FontStyle]::Bold)
+    $fBold11   = New-Object System.Drawing.Font("Segoe UI", 11, [System.Drawing.FontStyle]::Bold)
+    $fSub95    = New-Object System.Drawing.Font("Segoe UI", 9.5, [System.Drawing.FontStyle]::Regular)
+    $fLink95   = New-Object System.Drawing.Font("Segoe UI", 9.5, ([System.Drawing.FontStyle]::Bold -bor [System.Drawing.FontStyle]::Underline))
 
-    $lblPrizeBtc = New-Object System.Windows.Forms.Label
-    $lblPrizeBtc.Text = Get-Text "TtfPrizeBtc"
-    $lblPrizeBtc.Location = New-Object System.Drawing.Point(21, 41)
-    $lblPrizeBtc.Size = New-Object System.Drawing.Size(250, 28)
-    $lblPrizeBtc.AutoSize = $false
-    $lblPrizeBtc.TextAlign = [System.Drawing.ContentAlignment]::MiddleCenter
-    $lblPrizeBtc.BackColor = $cardBgCol
-    $lblPrizeBtc.ForeColor = $colorGold
-    $lblPrizeBtc.Font = New-Object System.Drawing.Font("Segoe UI", 16, [System.Drawing.FontStyle]::Bold)
+    $prizeUsdText = if ($global:LastBtcUsdValue -gt 0) {
+        "$(Get-Text 'TtfPrizeUsdPref')$((3.125 * $global:LastBtcUsdValue).ToString('N2', [System.Globalization.CultureInfo]::InvariantCulture))"
+    } else { Get-Text "TtfPrizeUsdWait" }
+    $remBlocksStr = (Get-RemainingHalvingBlocks).ToString("N0", $script:stat_numCulture)
 
-    $prizeUsdText = Get-Text "TtfPrizeUsdWait"
-    if ($global:LastBtcUsdValue -gt 0) {
-        $totalPrizeUsd = 3.125 * $global:LastBtcUsdValue
-        $culture = [System.Globalization.CultureInfo]::InvariantCulture
-        $prizeUsdText = "$(Get-Text 'TtfPrizeUsdPref')$($totalPrizeUsd.ToString('N2', $culture))"
+    $script:stat_lblPrizeHdr = New-UiLabel "$($global:BtcSym) $(Get-Text 'TtfPrizeHeader')" 21 18 270 22 $fCardHdr $colorBitcoin $cardBgCol
+    $script:stat_lblPrizeBtc = New-UiLabel (Get-Text "TtfPrizeBtc") 21 41 270 28 $fBigGold $colorGold $cardBgCol
+    $script:stat_lblPrizeUsd = New-UiLabel $prizeUsdText 21 71 270 21 $fBold11 $colorUsd $cardBgCol
+    $script:stat_lblDrawInfo = New-UiLabel (Get-Text "TtfDrawInfo") 21 95 270 19 $fSub95 $colorSubInfo $cardBgCol
+    $script:stat_lblHalving  = New-UiLabel "$(Get-Text 'TtfHalving1')$remBlocksStr$(Get-Text 'TtfHalving2')" 21 115 270 20 $fLink95 $colorSubInfo $cardBgCol
+    $script:stat_lblHalving.Cursor = [System.Windows.Forms.Cursors]::Hand; $script:stat_lblHalving.Add_Click({ Open-HalvingLink })
+
+    $script:stat_lblAvgHdr   = New-UiLabel "$($global:BoltSym) $(Get-Text 'TtfAvgHeader')" 313 18 270 22 $fCardHdr $colorBitcoin $cardBgCol
+    $script:stat_lblAvgSub   = New-UiLabel (Get-Text "TtfAvgSub") 313 40 270 18 $fSub95 $colorSubInfo $cardBgCol
+    $script:stat_lblAvgVal   = New-UiLabel $avgStr 313 62 270 30 $fAvgGold $colorGold $cardBgCol
+    $script:stat_lblCount    = New-UiLabel "$(Get-Text 'TtfCountLbl') $count" 313 107 270 24 $fBold11 $colorBitcoin $cardBgCol
+
+    $script:stat_lblSoloTitle = New-UiLabel "$($global:BlockSym) $(Get-Text 'TtfSoloHeader')" 21 162 270 22 $fCardHdr $colorBitcoin $cardBgCol
+    $script:stat_lblSoloSub   = New-UiLabel (Get-Text "TtfSoloSub") 21 185 270 19 $fSub95 $colorSubInfo $cardBgCol
+    $script:stat_lblBestTitle = New-UiLabel "$($global:StarSym) $(Get-Text 'TtfBestLbl')" 313 162 270 22 $fCardHdr $colorBitcoin $cardBgCol
+    $script:stat_lblBestSub   = New-UiLabel (Get-Text "TtfBestSub") 313 185 270 19 $fSub95 $colorSubInfo $cardBgCol
+
+    $script:stat_fontRegular = New-Object System.Drawing.Font("Consolas", 10.5, [System.Drawing.FontStyle]::Regular)
+    $script:stat_fontBold    = New-Object System.Drawing.Font("Consolas", 11, [System.Drawing.FontStyle]::Bold)
+    $script:stat_fontNoData  = New-Object System.Drawing.Font("Consolas", 9.5, [System.Drawing.FontStyle]::Regular)
+
+    $script:stat_txtSolo = New-Object System.Windows.Forms.RichTextBox
+    $script:stat_txtSolo.Multiline = $true; $script:stat_txtSolo.BorderStyle = "None"; $script:stat_txtSolo.Location = New-Object System.Drawing.Point(31, 216)
+    $script:stat_txtSolo.Size = New-Object System.Drawing.Size(250, 56); $script:stat_txtSolo.ReadOnly = $true; $script:stat_txtSolo.TabStop = $false; $script:stat_txtSolo.ScrollBars = "None"
+    $script:stat_txtSolo.Cursor = [System.Windows.Forms.Cursors]::Hand; $script:stat_txtSolo.Font = $script:stat_fontRegular
+
+    $script:stat_txtBest = New-Object System.Windows.Forms.RichTextBox
+    $script:stat_txtBest.Multiline = $true; $script:stat_txtBest.BorderStyle = "None"; $script:stat_txtBest.Location = New-Object System.Drawing.Point(323, 216)
+    $script:stat_txtBest.Size = New-Object System.Drawing.Size(250, 56); $script:stat_txtBest.ReadOnly = $true; $script:stat_txtBest.TabStop = $false; $script:stat_txtBest.ScrollBars = "None"
+    $script:stat_txtBest.Font = $script:stat_fontRegular
+
+    $script:stat_populateVisors = {
+        $nl   = [Environment]::NewLine
+        $vBg  = Get-VisorBgColor; $gCol = Get-GoldTextColor; $uCol = Get-GreenTextColor
+        $script:stat_txtSolo.BackColor = $vBg; $script:stat_txtSolo.ForeColor = $gCol; $script:stat_txtSolo.Clear()
+        if ($global:LastSoloBlockHeight -gt 0) {
+            $soloHeightFmt = $global:LastSoloBlockHeight.ToString("N0", $script:stat_numCulture)
+            $script:stat_txtSolo.SelectionFont = $script:stat_fontRegular; $script:stat_txtSolo.SelectionColor = $gCol
+            $script:stat_txtSolo.AppendText("$(Get-Text 'TtfDate') $($global:LastSoloBlockTime)" + $nl + "$(Get-Text 'TtfSoloBlockLbl') ")
+            $script:stat_txtSolo.SelectionFont = $script:stat_fontBold; $script:stat_txtSolo.SelectionColor = $gCol
+            $script:stat_txtSolo.AppendText("#$soloHeightFmt ($($global:LastSoloBlockPool))")
+            $script:stat_txtSolo.SelectionFont = $script:stat_fontBold; $script:stat_txtSolo.SelectionColor = $uCol
+            $script:stat_txtSolo.AppendText($nl + "$(Get-Text 'TtfSoloPrizeLbl') $($global:LastSoloBlockReward)")
+        } else {
+            $script:stat_txtSolo.SelectionFont = $script:stat_fontNoData; $script:stat_txtSolo.SelectionColor = $gCol; $script:stat_txtSolo.AppendText($nl + (Get-Text "TtfSoloWait"))
+        }
+        $script:stat_txtSolo.SelectAll(); $script:stat_txtSolo.SelectionAlignment = [System.Windows.Forms.HorizontalAlignment]::Center
+        $script:stat_txtSolo.SelectionLength = 0; $script:stat_txtSolo.SelectionStart = 0
+
+        $script:stat_txtBest.BackColor = $vBg; $script:stat_txtBest.ForeColor = $gCol; $script:stat_txtBest.Clear()
+        if (-not $script:stat_hasData) {
+            $script:stat_txtBest.SelectionFont = $script:stat_fontNoData; $script:stat_txtBest.SelectionColor = $gCol
+            $script:stat_txtBest.AppendText((Get-Text "TtfNoDataBox1") + $nl + (Get-Text "TtfNoDataBox2"))
+        } elseif ($script:stat_isParsed) {
+            $script:stat_txtBest.SelectionFont = $script:stat_fontRegular; $script:stat_txtBest.SelectionColor = $gCol
+            $script:stat_txtBest.AppendText("$(Get-Text 'TtfDate') $($script:stat_bDate)" + $nl + "$(Get-Text 'TtfLuck') ")
+            $script:stat_txtBest.SelectionFont = $script:stat_fontBold; $script:stat_txtBest.SelectionColor = $gCol; $script:stat_txtBest.AppendText($script:stat_bTtf)
+            $script:stat_txtBest.SelectionFont = $script:stat_fontRegular; $script:stat_txtBest.SelectionColor = $gCol; $script:stat_txtBest.AppendText($nl + "$(Get-Text 'TtfPower') $($script:stat_bHash) ($($script:stat_bThr) Th)")
+        } else { $script:stat_txtBest.Text = $script:stat_bestLine }
+        $script:stat_txtBest.SelectAll(); $script:stat_txtBest.SelectionAlignment = [System.Windows.Forms.HorizontalAlignment]::Center
+        $script:stat_txtBest.SelectionLength = 0; $script:stat_txtBest.SelectionStart = 0
     }
+    & $script:stat_populateVisors
 
-    $lblPrizeUsd = New-Object System.Windows.Forms.Label
-    $lblPrizeUsd.Text = $prizeUsdText
-    $lblPrizeUsd.Location = New-Object System.Drawing.Point(21, 71)
-    $lblPrizeUsd.Size = New-Object System.Drawing.Size(250, 21)
-    $lblPrizeUsd.AutoSize = $false
-    $lblPrizeUsd.TextAlign = [System.Drawing.ContentAlignment]::MiddleCenter
-    $lblPrizeUsd.BackColor = $cardBgCol
-    $lblPrizeUsd.ForeColor = $colorUsd
-    $lblPrizeUsd.Font = New-Object System.Drawing.Font("Segoe UI", 11, [System.Drawing.FontStyle]::Bold)
+    $script:stat_txtSolo.Add_Click({
+        if ($global:LastSoloBlockHeight -gt 0) { Start-Process ("https://mempool.space/pt/block/" + $global:LastSoloBlockHeight) }
+        else { Start-Process "https://mempool.space/pt/mining/pool/solock" }
+    })
 
-    $lblDrawInfo = New-Object System.Windows.Forms.Label
-    $lblDrawInfo.Text = Get-Text "TtfDrawInfo"
-    $lblDrawInfo.Location = New-Object System.Drawing.Point(21, 95)
-    $lblDrawInfo.Size = New-Object System.Drawing.Size(250, 19)
-    $lblDrawInfo.AutoSize = $false
-    $lblDrawInfo.TextAlign = [System.Drawing.ContentAlignment]::MiddleCenter
-    $lblDrawInfo.BackColor = $cardBgCol
-    $lblDrawInfo.ForeColor = $colorSubInfo
-    $lblDrawInfo.Font = New-Object System.Drawing.Font("Segoe UI", 9.5, [System.Drawing.FontStyle]::Regular)
-
-    $remBlocks = Get-RemainingHalvingBlocks
-    $numCulture = if ($global:Language -eq "EN") {
-        [System.Globalization.CultureInfo]::InvariantCulture
-    } else {
-        [System.Globalization.CultureInfo]::GetCultureInfo("pt-BR")
-    }
-    $remBlocksStr = $remBlocks.ToString("N0", $numCulture)
-
-    $lblHalving = New-Object System.Windows.Forms.Label
-    $lblHalving.Text = "$(Get-Text 'TtfHalving1')$remBlocksStr$(Get-Text 'TtfHalving2')"
-    $lblHalving.Location = New-Object System.Drawing.Point(21, 115)
-    $lblHalving.Size = New-Object System.Drawing.Size(250, 20)
-    $lblHalving.AutoSize = $false
-    $lblHalving.TextAlign = [System.Drawing.ContentAlignment]::MiddleCenter
-    $lblHalving.BackColor = $cardBgCol
-    $lblHalving.ForeColor = $colorSubInfo
-    $lblHalving.Cursor = [System.Windows.Forms.Cursors]::Hand
-    $lblHalving.Font = New-Object System.Drawing.Font("Segoe UI", 9.5, ([System.Drawing.FontStyle]::Bold -bor [System.Drawing.FontStyle]::Underline))
-    $lblHalving.Add_Click({ Open-HalvingLink })
-
-    # --- PAINEL DIREITO (X=288, Y=14, W=252, H=130): Calculo da Sorte / TTF ---
-    $lblAvgHdr = New-Object System.Windows.Forms.Label
-    $lblAvgHdr.Text = "$($global:BoltSym) $(Get-Text 'TtfAvgHeader')"
-    $lblAvgHdr.Location = New-Object System.Drawing.Point(289, 18)
-    $lblAvgHdr.Size = New-Object System.Drawing.Size(250, 22)
-    $lblAvgHdr.AutoSize = $false
-    $lblAvgHdr.TextAlign = [System.Drawing.ContentAlignment]::MiddleCenter
-    $lblAvgHdr.BackColor = $cardBgCol
-    $lblAvgHdr.ForeColor = $colorBitcoin
-    $lblAvgHdr.Font = New-Object System.Drawing.Font("Segoe UI", 11.5, [System.Drawing.FontStyle]::Bold)
-
-    $lblAvgSub = New-Object System.Windows.Forms.Label
-    $lblAvgSub.Text = Get-Text "TtfAvgSub"
-    $lblAvgSub.Location = New-Object System.Drawing.Point(289, 40)
-    $lblAvgSub.Size = New-Object System.Drawing.Size(250, 18)
-    $lblAvgSub.AutoSize = $false
-    $lblAvgSub.TextAlign = [System.Drawing.ContentAlignment]::MiddleCenter
-    $lblAvgSub.BackColor = $cardBgCol
-    $lblAvgSub.ForeColor = $colorSubInfo
-    $lblAvgSub.Font = New-Object System.Drawing.Font("Segoe UI", 9.5, [System.Drawing.FontStyle]::Regular)
-
-    $lblAvgVal = New-Object System.Windows.Forms.Label
-    $lblAvgVal.Text = $avgStr
-    $lblAvgVal.Location = New-Object System.Drawing.Point(289, 62)
-    $lblAvgVal.Size = New-Object System.Drawing.Size(250, 30)
-    $lblAvgVal.AutoSize = $false
-    $lblAvgVal.TextAlign = [System.Drawing.ContentAlignment]::MiddleCenter
-    $lblAvgVal.BackColor = $cardBgCol
-    $lblAvgVal.ForeColor = $colorGold
-    $lblAvgVal.Font = New-Object System.Drawing.Font("Segoe UI", 15.5, [System.Drawing.FontStyle]::Bold)
-
-    $lblCount = New-Object System.Windows.Forms.Label
-    $lblCount.Text = "$(Get-Text 'TtfCountLbl') $count"
-    $lblCount.Location = New-Object System.Drawing.Point(289, 107)
-    $lblCount.Size = New-Object System.Drawing.Size(250, 24)
-    $lblCount.AutoSize = $false
-    $lblCount.TextAlign = [System.Drawing.ContentAlignment]::MiddleCenter
-    $lblCount.BackColor = $cardBgCol
-    $lblCount.ForeColor = $colorBitcoin
-    $lblCount.Font = New-Object System.Drawing.Font("Segoe UI", 11, [System.Drawing.FontStyle]::Bold)
-
-    # --- PARTE INFERIOR CENTRALIZADA: Melhor Aproximacao (Recorde de Sorte) ---
-    $lblBestTitle = New-Object System.Windows.Forms.Label
-    $lblBestTitle.Text = "$($global:StarSym) $(Get-Text 'TtfBestLbl')"
-    $lblBestTitle.Location = New-Object System.Drawing.Point(20, 153)
-    $lblBestTitle.Size = New-Object System.Drawing.Size(520, 24)
-    $lblBestTitle.AutoSize = $false
-    $lblBestTitle.TextAlign = [System.Drawing.ContentAlignment]::MiddleCenter
-    $lblBestTitle.ForeColor = $colorBitcoin
-    $lblBestTitle.Font = New-Object System.Drawing.Font("Segoe UI", 12, [System.Drawing.FontStyle]::Bold)
-
-    $txtBest = New-Object System.Windows.Forms.RichTextBox
-    $txtBest.Multiline = $true
-    $txtBest.BorderStyle = "None"
-    $txtBest.Location = New-Object System.Drawing.Point(21, 184)
-    $txtBest.Size = New-Object System.Drawing.Size(518, 74)
-    $txtBest.ReadOnly = $true
-    $txtBest.ScrollBars = "None"
-    $txtBest.BackColor = [System.Drawing.Color]::FromArgb(9, 13, 18)
-    $txtBest.ForeColor = [System.Drawing.Color]::Gold
-    $fontRegular = New-Object System.Drawing.Font("Consolas", 13, [System.Drawing.FontStyle]::Regular)
-    $fontBold    = New-Object System.Drawing.Font("Consolas", 13, [System.Drawing.FontStyle]::Bold)
-    $fontNoData  = New-Object System.Drawing.Font("Consolas", 11, [System.Drawing.FontStyle]::Regular)
-    $txtBest.Font = $fontRegular
-
-    $statForm.Add_Paint({
+    $global:statForm.Add_Paint({
         param($s, $e)
-        $cBg = if ($global:Theme -eq "Light") { [System.Drawing.Color]::FromArgb(236, 231, 220) } else { [System.Drawing.Color]::FromArgb(12, 17, 24) }
-        $bCard   = New-Object System.Drawing.SolidBrush($cBg)
-        $bVisor  = New-Object System.Drawing.SolidBrush([System.Drawing.Color]::FromArgb(9, 13, 18))
+        $bCard   = New-Object System.Drawing.SolidBrush((Get-CardBgColor))
+        $bVisor  = New-Object System.Drawing.SolidBrush((Get-VisorBgColor))
         $pBronze = New-Object System.Drawing.Pen($global:ColorBronzeBorder, 1)
 
-        # Card Esquerdo (Premio) e Card Direito (Sorte)
-        $e.Graphics.FillRectangle($bCard, 20, 14, 252, 130)
-        $e.Graphics.DrawRectangle($pBronze, 20, 14, 251, 129)
-        $e.Graphics.FillRectangle($bCard, 288, 14, 252, 130)
-        $e.Graphics.DrawRectangle($pBronze, 288, 14, 251, 129)
-        $e.Graphics.DrawLine($pBronze, 310, 100, 518, 100)
+        $e.Graphics.FillRectangle($bCard, 20, 14, 272, 130);  $e.Graphics.DrawRectangle($pBronze, 20, 14, 271, 129)
+        $e.Graphics.FillRectangle($bCard, 312, 14, 272, 130); $e.Graphics.DrawRectangle($pBronze, 312, 14, 271, 129)
+        $e.Graphics.DrawLine($pBronze, 334, 100, 562, 100)
 
-        # Visor Inferior (Melhor Aproximacao)
-        $e.Graphics.FillRectangle($bVisor, 20, 183, 520, 76)
-        $e.Graphics.DrawRectangle($pBronze, 20, 183, 519, 75)
+        $e.Graphics.FillRectangle($bCard, 20, 158, 272, 134);  $e.Graphics.DrawRectangle($pBronze, 20, 158, 271, 133)
+        $e.Graphics.FillRectangle($bCard, 312, 158, 272, 134); $e.Graphics.DrawRectangle($pBronze, 312, 158, 271, 133)
 
-        $bCard.Dispose()
-        $bVisor.Dispose()
-        $pBronze.Dispose()
+        $e.Graphics.FillRectangle($bVisor, 30, 210, 252, 68);  $e.Graphics.DrawRectangle($pBronze, 30, 210, 251, 67)
+        $e.Graphics.FillRectangle($bVisor, 322, 210, 252, 68); $e.Graphics.DrawRectangle($pBronze, 322, 210, 251, 67)
+        $bCard.Dispose(); $bVisor.Dispose(); $pBronze.Dispose()
     })
 
-    $nl = [Environment]::NewLine
-    if (-not $hasData) {
-        $txtBest.SelectionFont = $fontNoData
-        $txtBest.AppendText((Get-Text "TtfNoDataBox1") + $nl + $nl + (Get-Text "TtfNoDataBox2"))
-    } elseif ($isParsed) {
-        $txtBest.SelectionFont = $fontRegular
-        $txtBest.AppendText("$(Get-Text 'TtfDate') $bDate" + $nl + "$(Get-Text 'TtfLuck') ")
-        $txtBest.SelectionFont = $fontBold
-        $txtBest.AppendText($bTtf)
-        $txtBest.SelectionFont = $fontRegular
-        $txtBest.AppendText($nl + "$(Get-Text 'TtfPower') $bHash ($bThr Threads)")
-    } else {
-        $txtBest.Text = $bestLine
-    }
-    $txtBest.SelectAll()
-    $txtBest.SelectionAlignment = [System.Windows.Forms.HorizontalAlignment]::Center
-    $txtBest.SelectionLength = 0
-    $txtBest.SelectionStart = 0
-    $txtBest.ScrollToCaret()
+    $script:stat_btnSave = New-Object System.Windows.Forms.Button
+    $script:stat_btnSave.Text = Get-Text "BtnSaveImg"; $script:stat_btnSave.Location = New-Object System.Drawing.Point(20, 312); $script:stat_btnSave.Size = New-Object System.Drawing.Size(160, 40)
+    $script:stat_btnSave.Font = New-Object System.Drawing.Font("Segoe UI", 10); Set-ObsidianButtonStyle $script:stat_btnSave $false
 
-    $btnSave = New-Object System.Windows.Forms.Button
-    $btnSave.Text = Get-Text "BtnSaveImg"
-    $btnSave.Location = New-Object System.Drawing.Point(20, 280)
-    $btnSave.Size = New-Object System.Drawing.Size(140, 40)
-    $btnSave.Font = New-Object System.Drawing.Font("Segoe UI", 10)
-    Set-ObsidianButtonStyle $btnSave $false
-
-    $btnReset = New-Object System.Windows.Forms.Button
-    $btnReset.Text = Get-Text "BtnResetTtf"
-    $btnReset.Location = New-Object System.Drawing.Point(210, 280)
-    $btnReset.Size = New-Object System.Drawing.Size(140, 40)
-    $btnReset.Font = New-Object System.Drawing.Font("Segoe UI", 10, [System.Drawing.FontStyle]::Bold)
-    Set-ObsidianButtonStyle $btnReset $true
-    $btnReset.Add_Click({
+    $script:stat_btnReset = New-Object System.Windows.Forms.Button
+    $script:stat_btnReset.Text = Get-Text "BtnResetTtf"; $script:stat_btnReset.Location = New-Object System.Drawing.Point(222, 312); $script:stat_btnReset.Size = New-Object System.Drawing.Size(160, 40)
+    $script:stat_btnReset.Font = New-Object System.Drawing.Font("Segoe UI", 10, [System.Drawing.FontStyle]::Bold); Set-ObsidianButtonStyle $script:stat_btnReset $true
+    $script:stat_btnReset.Add_Click({
         $ans = [System.Windows.Forms.MessageBox]::Show((Get-Text "TtfResetConfirm"), "$($global:ShortVersion)", [System.Windows.Forms.MessageBoxButtons]::OKCancel, [System.Windows.Forms.MessageBoxIcon]::Warning)
         if ($ans -eq [System.Windows.Forms.DialogResult]::OK) {
-            Remove-Item -LiteralPath $global:TtfLogFile -Force -ErrorAction SilentlyContinue
-            Remove-Item -LiteralPath $global:BackupTtfLogFile -Force -ErrorAction SilentlyContinue
-            Remove-Item -LiteralPath $global:LegacyTtfLogFile -Force -ErrorAction SilentlyContinue
-            $global:LastTtfLogged = ""
-            $global:LogQueue.Enqueue("[SISTEMA] Historico de estatisticas TTF zerado pelo usuario.")
-            $statForm.Close()
+            Remove-Item -LiteralPath $global:TtfLogFile, $global:BackupTtfLogFile, $global:LegacyTtfLogFile -Force -ErrorAction SilentlyContinue
+            $global:LastTtfLogged = ""; $global:LogQueue.Enqueue("[SISTEMA] Historico de estatisticas TTF zerado pelo usuario."); $global:statForm.Close()
         }
     })
 
-    $btnClose = New-Object System.Windows.Forms.Button
-    $btnClose.Text = Get-Text "BtnClose"
-    $btnClose.Location = New-Object System.Drawing.Point(400, 280)
-    $btnClose.Size = New-Object System.Drawing.Size(140, 40)
-    $btnClose.Font = New-Object System.Drawing.Font("Segoe UI", 10)
-    Set-ObsidianButtonStyle $btnClose $false
-    $btnClose.Add_Click({ $statForm.Close() })
+    $script:stat_btnClose = New-Object System.Windows.Forms.Button
+    $script:stat_btnClose.Text = Get-Text "BtnClose"; $script:stat_btnClose.Location = New-Object System.Drawing.Point(424, 312); $script:stat_btnClose.Size = New-Object System.Drawing.Size(160, 40)
+    $script:stat_btnClose.Font = New-Object System.Drawing.Font("Segoe UI", 10); Set-ObsidianButtonStyle $script:stat_btnClose $false
+    $script:stat_btnClose.Add_Click({ $global:statForm.Close() })
 
-    $btnSave.Add_Click({
-        $bmp = Copy-WindowScreenImage $statForm $btnClose
+    $script:stat_btnSave.Add_Click({
+        $bmp = Copy-WindowScreenImage $global:statForm $script:stat_btnClose
         $sfd = New-Object System.Windows.Forms.SaveFileDialog
-        $sfd.Filter = "PNG Image|*.png"
-        $sfd.FileName = "MinerIsma_Stats_$(Get-Date -Format 'yyyyMMdd_HHmmss').png"
-        if (($sfd.ShowDialog() -eq [System.Windows.Forms.DialogResult]::OK) -and ($null -ne $bmp)) {
-            $bmp.Save($sfd.FileName, [System.Drawing.Imaging.ImageFormat]::Png)
-        }
+        $sfd.Filter = "PNG Image|*.png"; $sfd.FileName = "MinerIsma_Stats_$(Get-Date -Format 'yyyyMMdd_HHmmss').png"
+        if (($sfd.ShowDialog() -eq [System.Windows.Forms.DialogResult]::OK) -and ($null -ne $bmp)) { $bmp.Save($sfd.FileName, [System.Drawing.Imaging.ImageFormat]::Png) }
         if ($null -ne $bmp) { $bmp.Dispose() }
     })
 
-    $statForm.Controls.Add($lblPrizeHdr)
-    $statForm.Controls.Add($lblPrizeBtc)
-    $statForm.Controls.Add($lblPrizeUsd)
-    $statForm.Controls.Add($lblDrawInfo)
-    $statForm.Controls.Add($lblHalving)
-    $statForm.Controls.Add($lblAvgHdr)
-    $statForm.Controls.Add($lblAvgSub)
-    $statForm.Controls.Add($lblAvgVal)
-    $statForm.Controls.Add($lblCount)
-    $statForm.Controls.Add($lblBestTitle)
-    $statForm.Controls.Add($txtBest)
-    $statForm.Controls.Add($btnSave)
-    $statForm.Controls.Add($btnReset)
-    $statForm.Controls.Add($btnClose)
-
-    $statForm.Add_Shown({
-        Set-WindowDarkTheme $statForm
-        $btnClose.Focus() | Out-Null
-    })
-
-    $statForm.ShowDialog() | Out-Null
-    $statForm.Dispose()
-}
-
-# ============================================================
-# ALERTA DE BLOCO (DESIGN V2.0)
-# ============================================================
-function Invoke-BlockAlert {
-    param([string]$bLine)
-
-    $time = (Get-Date).ToString("yyyy-MM-dd HH:mm:ss")
-    $blockHeight = $null
-    foreach ($l in @($global:RecentLines)) {
-        if ($l -match "Block\s+(\d+)") { $blockHeight = $Matches[1] }
+    $global:statForm.Tag = {
+        $cBg = Get-CardBgColor; $oCol = Get-AccentOrangeColor; $gCol = Get-GoldTextColor; $uCol = Get-GreenTextColor; $sCol = Get-SecondaryTextColor
+        foreach ($lbl in @($script:stat_lblPrizeHdr, $script:stat_lblPrizeBtc, $script:stat_lblPrizeUsd, $script:stat_lblDrawInfo, $script:stat_lblHalving, $script:stat_lblAvgHdr, $script:stat_lblAvgSub, $script:stat_lblAvgVal, $script:stat_lblCount, $script:stat_lblSoloTitle, $script:stat_lblSoloSub, $script:stat_lblBestTitle, $script:stat_lblBestSub)) { $lbl.BackColor = $cBg }
+        foreach ($lbl in @($script:stat_lblPrizeHdr, $script:stat_lblAvgHdr, $script:stat_lblCount, $script:stat_lblSoloTitle, $script:stat_lblBestTitle)) { $lbl.ForeColor = $oCol }
+        foreach ($lbl in @($script:stat_lblPrizeBtc, $script:stat_lblAvgVal)) { $lbl.ForeColor = $gCol }
+        $script:stat_lblPrizeUsd.ForeColor = $uCol
+        foreach ($lbl in @($script:stat_lblDrawInfo, $script:stat_lblHalving, $script:stat_lblAvgSub, $script:stat_lblSoloSub, $script:stat_lblBestSub)) { $lbl.ForeColor = $sCol }
+        & $script:stat_populateVisors
+        Set-ObsidianButtonStyle $script:stat_btnSave $false; Set-ObsidianButtonStyle $script:stat_btnReset $true; Set-ObsidianButtonStyle $script:stat_btnClose $false
     }
 
+    $global:statForm.Add_FormClosed({ $global:statForm = $null })
+    $global:statForm.Controls.AddRange(@($script:stat_lblPrizeHdr, $script:stat_lblPrizeBtc, $script:stat_lblPrizeUsd, $script:stat_lblDrawInfo, $script:stat_lblHalving, $script:stat_lblAvgHdr, $script:stat_lblAvgSub, $script:stat_lblAvgVal, $script:stat_lblCount, $script:stat_lblSoloTitle, $script:stat_lblSoloSub, $script:stat_txtSolo, $script:stat_lblBestTitle, $script:stat_lblBestSub, $script:stat_txtBest, $script:stat_btnSave, $script:stat_btnReset, $script:stat_btnClose))
+    $global:statForm.ActiveControl = $script:stat_btnClose
+    $global:statForm.Add_Shown({ Set-WindowDarkTheme $global:statForm; $script:stat_btnClose.Focus() | Out-Null })
+    $global:statForm.Show()
+}
+
+function Invoke-BlockAlert {
+    param([string]$bLine)
+    $time = (Get-Date).ToString("yyyy-MM-dd HH:mm:ss")
+    $blockHeight = $null
+    foreach ($l in @($global:RecentLines)) { if ($l -match "Block\s+(\d+)") { $blockHeight = $Matches[1] } }
+
     $nl = [Environment]::NewLine
-    $ctx = @($global:RecentLines) -join $nl
     $logText  = "[$time] ===== BLOCO ENCONTRADO =====" + $nl
     if ($blockHeight) { $logText += "Bloco (altura): $blockHeight" + $nl }
-    $logText += "Threads em uso: $($global:CurrentThreads)" + $nl + "Linha do evento: $bLine" + $nl
-    $logText += "--- Contexto ---" + $nl + $ctx + $nl
+    $logText += "Threads em uso: $($global:CurrentThreads)" + $nl + "Linha do evento: $bLine" + $nl + "--- Contexto ---" + $nl + (@($global:RecentLines) -join $nl) + $nl
     $logText | Out-File -FilePath $global:LogFile -Append -Encoding utf8
 
     $global:SoundFile = Join-Path $global:ResPath $global:SoundFileName
@@ -2179,206 +1881,176 @@ function Invoke-BlockAlert {
         try {
             if ($null -ne $global:SoundPlayer) { $global:SoundPlayer.Stop(); $global:SoundPlayer.Close() }
             $global:SoundPlayer = New-Object System.Windows.Media.MediaPlayer
-            $global:SoundPlayer.Open([Uri]$global:SoundFile)
-            $global:SoundPlayer.Play()
+            $global:SoundPlayer.Open([Uri]$global:SoundFile); $global:SoundPlayer.Play()
         } catch {}
     }
 
     if (-not $global:Visible) { Toggle-LogWindow }
 
-    $alertForm = New-Object System.Windows.Forms.Form
-    $alertForm.Text = "MINERISMA v2.0 - $(Get-Text 'AlertWinTitle')"
-    $alertForm.Size = New-Object System.Drawing.Size(580, 380)
-    $alertForm.StartPosition = "CenterScreen"
-    $alertForm.BackColor = Get-WindowBgColor
-    $alertForm.FormBorderStyle = "FixedSingle"
-    $alertForm.MaximizeBox = $false
-    $alertForm.ShowIcon = $true
-    $alertForm.ShowInTaskbar = $true
-    $alertForm.Icon = $global:AppIcon
+    if ($null -ne $global:alertForm -and (-not $global:alertForm.IsDisposed)) {
+        try { $global:alertForm.Close() } catch {}
+    }
 
-    $colorBitcoin = Get-AccentOrangeColor
-    $txtPrimary   = Get-PrimaryTextColor
+    $global:alertForm = New-Object System.Windows.Forms.Form
+    $global:alertForm.Text = "$($global:ShortVersion) - $(Get-Text 'AlertWinTitle')"
+    $global:alertForm.Size = New-Object System.Drawing.Size(580, 380); $global:alertForm.StartPosition = "CenterScreen"
+    $global:alertForm.BackColor = Get-WindowBgColor; $global:alertForm.FormBorderStyle = "FixedSingle"; $global:alertForm.MaximizeBox = $false
+    $global:alertForm.ShowIcon = $true; $global:alertForm.ShowInTaskbar = $true; $global:alertForm.Icon = $global:AppIcon
 
-    $lblTitle = New-Object System.Windows.Forms.Label
-    $lblTitle.Text = Get-Text "AlertHeader"
-    $lblTitle.Location = New-Object System.Drawing.Point(110, 20)
-    $lblTitle.AutoSize = $true
-    $lblTitle.ForeColor = $colorBitcoin
-    $lblTitle.Font = New-Object System.Drawing.Font("Segoe UI", 16, [System.Drawing.FontStyle]::Bold)
+    $cleanWallet = $global:Wallet -replace '\..*?$', ''; $q = [char]34
+    $infoText = $(if ($blockHeight) { "$(Get-Text 'AlertBlockHeight') $blockHeight$nl" } else { "" }) +
+                "$(Get-Text 'AlertCheckWallet') $q$cleanWallet$q$nl$(Get-Text 'AlertRewardInfo')$nl$(Get-Text 'AlertLogInfo') $($q)BLOCK_FOUND_LOG.txt$($q) $(Get-Text 'AlertInFolder')"
 
-    $lblInfo = New-Object System.Windows.Forms.Label
-    $cleanWallet = $global:Wallet -replace '\..*?$', ''
-    $q = [char]34
-    $infoText = ""
-    if ($blockHeight) { $infoText += "$(Get-Text 'AlertBlockHeight') $blockHeight" + $nl }
-    $infoText += "$(Get-Text 'AlertCheckWallet') " + $q + $cleanWallet + $q + $nl
-    $infoText += "$(Get-Text 'AlertRewardInfo')" + $nl
-    $infoText += "$(Get-Text 'AlertLogInfo') " + $q + "BLOCK_FOUND_LOG.txt" + $q + " $(Get-Text 'AlertInFolder')"
-    $lblInfo.Text = $infoText
-    $lblInfo.Location = New-Object System.Drawing.Point(20, 62)
-    $lblInfo.AutoSize = $true
-    $lblInfo.ForeColor = $txtPrimary
-    $lblInfo.Font = New-Object System.Drawing.Font("Segoe UI", 11, [System.Drawing.FontStyle]::Regular)
+    $script:alrt_lblTitle = New-UiLabel (Get-Text "AlertHeader") 110 20 0 0 (New-Object System.Drawing.Font("Segoe UI", 16, [System.Drawing.FontStyle]::Bold)) (Get-AccentOrangeColor)
+    $script:alrt_lblInfo  = New-UiLabel $infoText 20 62 0 0 (New-Object System.Drawing.Font("Segoe UI", 11, [System.Drawing.FontStyle]::Regular)) (Get-PrimaryTextColor)
 
-    $txtDetails = New-Object System.Windows.Forms.TextBox
-    $txtDetails.Text = $bLine
-    $txtDetails.Multiline = $true
-    $txtDetails.BorderStyle = "None"
-    $txtDetails.Location = New-Object System.Drawing.Point(25, 175)
-    $txtDetails.Size = New-Object System.Drawing.Size(510, 65)
-    $txtDetails.ReadOnly = $true
-    $txtDetails.BackColor = [System.Drawing.Color]::FromArgb(9, 13, 18)
-    $txtDetails.ForeColor = [System.Drawing.Color]::LimeGreen
-    $txtDetails.Font = New-Object System.Drawing.Font("Consolas", 11)
+    $script:alrt_txtDetails = New-Object System.Windows.Forms.TextBox
+    $script:alrt_txtDetails.Text = $bLine; $script:alrt_txtDetails.Multiline = $true; $script:alrt_txtDetails.BorderStyle = "None"
+    $script:alrt_txtDetails.Location = New-Object System.Drawing.Point(25, 175); $script:alrt_txtDetails.Size = New-Object System.Drawing.Size(510, 65)
+    $script:alrt_txtDetails.ReadOnly = $true; $script:alrt_txtDetails.TabStop = $false
+    $script:alrt_txtDetails.BackColor = Get-VisorBgColor; $script:alrt_txtDetails.ForeColor = Get-GreenTextColor
+    $script:alrt_txtDetails.Font = New-Object System.Drawing.Font("Consolas", 11)
 
-    $alertForm.Add_Paint({
+    $global:alertForm.Add_Paint({
         param($s, $e)
-        $bFill = New-Object System.Drawing.SolidBrush([System.Drawing.Color]::FromArgb(9, 13, 18))
+        $bFill = New-Object System.Drawing.SolidBrush((Get-VisorBgColor))
         $pBronze = New-Object System.Drawing.Pen($global:ColorBronzeBorder, 1)
-        $e.Graphics.FillRectangle($bFill, 20, 170, 520, 75)
-        $e.Graphics.DrawRectangle($pBronze, 20, 170, 519, 74)
-        $bFill.Dispose()
-        $pBronze.Dispose()
+        $e.Graphics.FillRectangle($bFill, 20, 170, 520, 75); $e.Graphics.DrawRectangle($pBronze, 20, 170, 519, 74)
+        $bFill.Dispose(); $pBronze.Dispose()
     })
 
-    $btnSave = New-Object System.Windows.Forms.Button
-    $btnSave.Text = Get-Text "BtnSaveImg"
-    $btnSave.Location = New-Object System.Drawing.Point(20, 275)
-    $btnSave.Size = New-Object System.Drawing.Size(140, 40)
-    $btnSave.Font = New-Object System.Drawing.Font("Segoe UI", 10)
-    Set-ObsidianButtonStyle $btnSave $false
+    $script:alrt_btnSave = New-Object System.Windows.Forms.Button
+    $script:alrt_btnSave.Text = Get-Text "BtnSaveImg"; $script:alrt_btnSave.Location = New-Object System.Drawing.Point(20, 275); $script:alrt_btnSave.Size = New-Object System.Drawing.Size(140, 40)
+    $script:alrt_btnSave.Font = New-Object System.Drawing.Font("Segoe UI", 10); Set-ObsidianButtonStyle $script:alrt_btnSave $false
 
-    $btnClose = New-Object System.Windows.Forms.Button
-    $btnClose.Text = Get-Text "BtnCelebrate"
-    $btnClose.Location = New-Object System.Drawing.Point(400, 275)
-    $btnClose.Size = New-Object System.Drawing.Size(140, 40)
-    $btnClose.Font = New-Object System.Drawing.Font("Segoe UI", 10, [System.Drawing.FontStyle]::Bold)
-    Set-ObsidianButtonStyle $btnClose $false
-    $btnClose.Add_Click({ if ($null -ne $global:SoundPlayer) { $global:SoundPlayer.Stop() }; $alertForm.Close() })
+    $script:alrt_btnClose = New-Object System.Windows.Forms.Button
+    $script:alrt_btnClose.Text = Get-Text "BtnCelebrate"; $script:alrt_btnClose.Location = New-Object System.Drawing.Point(400, 275); $script:alrt_btnClose.Size = New-Object System.Drawing.Size(140, 40)
+    $script:alrt_btnClose.Font = New-Object System.Drawing.Font("Segoe UI", 10, [System.Drawing.FontStyle]::Bold); Set-ObsidianButtonStyle $script:alrt_btnClose $false
+    $script:alrt_btnClose.Add_Click({
+        if ($null -ne $global:SoundPlayer) { try { $global:SoundPlayer.Stop() } catch {} }
+        Play-EffectSound $global:SfxCelebrateMario
+        $global:alertForm.Close()
+    })
 
-    $btnSave.Add_Click({
-        $bmp = Copy-WindowScreenImage $alertForm $btnClose
+    $script:alrt_btnSave.Add_Click({
+        $bmp = Copy-WindowScreenImage $global:alertForm $script:alrt_btnClose
         $sfd = New-Object System.Windows.Forms.SaveFileDialog
-        $sfd.Filter = "PNG Image|*.png"
-        $sfd.FileName = "MinerIsma_Bloco_$(Get-Date -Format 'yyyyMMdd_HHmmss').png"
-        if (($sfd.ShowDialog() -eq [System.Windows.Forms.DialogResult]::OK) -and ($null -ne $bmp)) {
-            $bmp.Save($sfd.FileName, [System.Drawing.Imaging.ImageFormat]::Png)
-        }
+        $sfd.Filter = "PNG Image|*.png"; $sfd.FileName = "MinerIsma_Bloco_$(Get-Date -Format 'yyyyMMdd_HHmmss').png"
+        if (($sfd.ShowDialog() -eq [System.Windows.Forms.DialogResult]::OK) -and ($null -ne $bmp)) { $bmp.Save($sfd.FileName, [System.Drawing.Imaging.ImageFormat]::Png) }
         if ($null -ne $bmp) { $bmp.Dispose() }
     })
 
-    $alertForm.Add_FormClosing({
-        if ($null -ne $global:SoundPlayer) { $global:SoundPlayer.Stop() }
+    $global:alertForm.Tag = {
+        $script:alrt_lblTitle.ForeColor   = Get-AccentOrangeColor
+        $script:alrt_lblInfo.ForeColor    = Get-PrimaryTextColor
+        $script:alrt_txtDetails.BackColor = Get-VisorBgColor; $script:alrt_txtDetails.ForeColor = Get-GreenTextColor
+        Set-ObsidianButtonStyle $script:alrt_btnSave $false; Set-ObsidianButtonStyle $script:alrt_btnClose $false
+    }
+
+    $global:alertForm.Add_FormClosing({ if ($null -ne $global:SoundPlayer) { try { $global:SoundPlayer.Stop() } catch {} } })
+    $global:alertForm.Add_FormClosed({ $global:alertForm = $null })
+    $global:alertForm.Controls.AddRange(@($script:alrt_lblTitle, $script:alrt_lblInfo, $script:alrt_txtDetails, $script:alrt_btnSave, $script:alrt_btnClose))
+    $global:alertForm.ActiveControl = $script:alrt_btnClose
+    $global:alertForm.Add_Shown({
+        Set-WindowDarkTheme $global:alertForm
+        $script:alrt_txtDetails.SelectionLength = 0
+        $script:alrt_btnClose.Focus() | Out-Null
     })
-
-    $alertForm.Controls.Add($lblTitle)
-    $alertForm.Controls.Add($lblInfo)
-    $alertForm.Controls.Add($txtDetails)
-    $alertForm.Controls.Add($btnSave)
-    $alertForm.Controls.Add($btnClose)
-
-    $alertForm.Add_Shown({
-        Set-WindowDarkTheme $alertForm
-        $btnClose.Focus() | Out-Null
-    })
-
-    $alertForm.ShowDialog() | Out-Null
-    $alertForm.Dispose()
+    $global:alertForm.Show()
 }
 
 # ============================================================
-# API NATIVA DO BITCOIN (COINGECKO) E ICONE DO TRAY / TASKBAR
+# API DO BITCOIN (COINGECKO) + DOLAR/EURO OFICIAL (AWESOMEAPI)
 # ============================================================
+function Update-FiatMenuLabel {
+    if ($null -eq $global:usdBrlPriceItem) { return }
+    $valStr = if ($global:Language -eq "PT") { $global:LastUsdBrlFormatted } else { $global:LastUsdEurFormatted }
+    if (-not [string]::IsNullOrWhiteSpace($valStr)) {
+        $global:usdBrlPriceItem.Text = "$(Get-Text 'UsdNowPrefix') $valStr"
+    } else {
+        $global:usdBrlPriceItem.Text = Get-Text "UsdUpdating"
+    }
+}
+
+function Update-UsdBrlPrice {
+    try {
+        $rawFiat = Fetch-UrlTextContent $global:FiatPriceUrl
+        if (-not [string]::IsNullOrWhiteSpace($rawFiat)) {
+            $jFiat = $rawFiat | ConvertFrom-Json
+            if (($null -ne $jFiat.USDBRL) -and ($null -ne $jFiat.USDBRL.bid)) {
+                $brlVal = [double]::Parse([string]$jFiat.USDBRL.bid, [System.Globalization.CultureInfo]::InvariantCulture)
+                $global:LastUsdBrlFormatted = $brlVal.ToString("N2", [System.Globalization.CultureInfo]::GetCultureInfo("pt-BR"))
+            }
+            if (($null -ne $jFiat.USDEUR) -and ($null -ne $jFiat.USDEUR.bid)) {
+                $eurVal = [double]::Parse([string]$jFiat.USDEUR.bid, [System.Globalization.CultureInfo]::InvariantCulture)
+                $numCult = if ($global:Language -eq "EN") { [System.Globalization.CultureInfo]::InvariantCulture } else { [System.Globalization.CultureInfo]::GetCultureInfo("pt-BR") }
+                $global:LastUsdEurFormatted = $eurVal.ToString("N2", $numCult)
+            }
+            Update-FiatMenuLabel
+        }
+    } catch {}
+}
+
 function Update-BtcPrice {
     try {
         $url = $global:BtcPriceUrl + "&t=" + [DateTimeOffset]::Now.ToUnixTimeMilliseconds()
         $req = [System.Net.WebRequest]::Create($url)
-        $req.Method = "GET"
-        $req.Timeout = 3000
-        $req.UserAgent = "MinerIsma/2.0.4"
-        
-        $res = $req.GetResponse()
-        $stream = $res.GetResponseStream()
+        $req.Method = "GET"; $req.Timeout = 3000; $req.UserAgent = "MinerIsma/2.1.1"
+        $res = $req.GetResponse(); $stream = $res.GetResponseStream()
         $reader = New-Object System.IO.StreamReader($stream)
         $jsonText = $reader.ReadToEnd()
-        $reader.Close()
-        $stream.Close()
-        $res.Close()
-        
+        $reader.Close(); $stream.Close(); $res.Close()
+
         $json = $jsonText | ConvertFrom-Json
         if ($json.bitcoin.usd) {
             $price = [double]$json.bitcoin.usd
             $global:LastBtcUsdValue = $price
-            $culture = [System.Globalization.CultureInfo]::InvariantCulture
-            $global:LastBtcUsdFormatted = $price.ToString("N2", $culture)
+            $global:LastBtcUsdFormatted = $price.ToString("N2", [System.Globalization.CultureInfo]::InvariantCulture)
             $global:btcPriceItem.Text = "$($global:BtcSym)$(Get-Text 'BtcNowPrefix')$($global:LastBtcUsdFormatted)"
         }
     } catch {}
+    Update-UsdBrlPrice
 }
 
 function New-TrayIcon {
     $bmp = New-Object System.Drawing.Bitmap(32, 32)
     $g = [System.Drawing.Graphics]::FromImage($bmp)
-    $g.SmoothingMode = [System.Drawing.Drawing2D.SmoothingMode]::AntiAlias
-    $g.Clear([System.Drawing.Color]::Transparent)
-    $colorOrange = [System.Drawing.Color]::FromArgb(255, 247, 147, 26)
-    $brushOrange = New-Object System.Drawing.SolidBrush($colorOrange)
+    $g.SmoothingMode = [System.Drawing.Drawing2D.SmoothingMode]::AntiAlias; $g.Clear([System.Drawing.Color]::Transparent)
+    $brushOrange = New-Object System.Drawing.SolidBrush([System.Drawing.Color]::FromArgb(255, 247, 147, 26))
     $g.FillEllipse($brushOrange, 1, 1, 30, 30)
-
     $penWhite = New-Object System.Drawing.Pen([System.Drawing.Color]::White, 3)
-    $penWhite.StartCap = [System.Drawing.Drawing2D.LineCap]::Round
-    $penWhite.EndCap   = [System.Drawing.Drawing2D.LineCap]::Round
-    $g.DrawLine($penWhite, 8, 24, 22, 10)
-    $g.DrawLine($penWhite, 16, 6, 26, 16)
-    $brushOrange.Dispose()
-    $penWhite.Dispose()
-    $g.Dispose()
+    $penWhite.StartCap = [System.Drawing.Drawing2D.LineCap]::Round; $penWhite.EndCap = [System.Drawing.Drawing2D.LineCap]::Round
+    $g.DrawLine($penWhite, 8, 24, 22, 10); $g.DrawLine($penWhite, 16, 6, 26, 16)
+    $brushOrange.Dispose(); $penWhite.Dispose(); $g.Dispose()
     return [System.Drawing.Icon]::FromHandle($bmp.GetHicon())
 }
 
-$global:HIconBig   = [IntPtr]::Zero
-$global:HIconSmall = [IntPtr]::Zero
+$global:HIconBig = [IntPtr]::Zero; $global:HIconSmall = [IntPtr]::Zero
 
 function Get-MinerIsmaIcon {
-    $candidates = @(
-        $global:CustomIconPath,
-        (Join-Path $global:RootPath $global:CustomIconFileName),
-        (Join-Path $global:BasePath $global:CustomIconFileName)
-    )
+    $candidates = @($global:CustomIconPath, (Join-Path $global:RootPath $global:CustomIconFileName), (Join-Path $global:BasePath $global:CustomIconFileName))
     foreach ($p in $candidates) {
         if (($null -ne $p) -and (Test-Path -LiteralPath $p)) {
             try {
                 $hBig = [ProcCtl]::LoadImage([IntPtr]::Zero, $p, 1, 256, 256, 0x0010)
-                if ($hBig -eq [IntPtr]::Zero) {
-                    $hBig = [ProcCtl]::LoadImage([IntPtr]::Zero, $p, 1, 0, 0, 0x0010 -bor 0x0040)
-                }
+                if ($hBig -eq [IntPtr]::Zero) { $hBig = [ProcCtl]::LoadImage([IntPtr]::Zero, $p, 1, 0, 0, 0x0010 -bor 0x0040) }
                 $hSml = [ProcCtl]::LoadImage([IntPtr]::Zero, $p, 1, 32, 32, 0x0010)
                 if ($hBig -ne [IntPtr]::Zero) { $global:HIconBig = $hBig }
                 if ($hSml -ne [IntPtr]::Zero) { $global:HIconSmall = $hSml }
-                if ($hBig -ne [IntPtr]::Zero) {
-                    return [System.Drawing.Icon]::FromHandle($hBig)
-                }
+                if ($hBig -ne [IntPtr]::Zero) { return [System.Drawing.Icon]::FromHandle($hBig) }
             } catch {}
             try {
                 $icoObj = New-Object System.Drawing.Icon($p)
-                $global:HIconBig   = $icoObj.Handle
-                $global:HIconSmall = $icoObj.Handle
-                return $icoObj
+                $global:HIconBig = $icoObj.Handle; $global:HIconSmall = $icoObj.Handle; return $icoObj
             } catch {}
             try {
-                $bmpObj = New-Object System.Drawing.Bitmap($p)
-                $hBmp   = $bmpObj.GetHicon()
-                $global:HIconBig   = $hBmp
-                $global:HIconSmall = $hBmp
-                return [System.Drawing.Icon]::FromHandle($hBmp)
+                $bmpObj = New-Object System.Drawing.Bitmap($p); $hBmp = $bmpObj.GetHicon()
+                $global:HIconBig = $hBmp; $global:HIconSmall = $hBmp; return [System.Drawing.Icon]::FromHandle($hBmp)
             } catch {}
         }
     }
     $fallbackIco = New-TrayIcon
-    $global:HIconBig   = $fallbackIco.Handle
-    $global:HIconSmall = $fallbackIco.Handle
-    return $fallbackIco
+    $global:HIconBig = $fallbackIco.Handle; $global:HIconSmall = $fallbackIco.Handle; return $fallbackIco
 }
 
 $global:AppIcon = Get-MinerIsmaIcon
@@ -2396,35 +2068,24 @@ $global:notifyIcon.Text = "$($global:ShortVersion)" + [Environment]::NewLine + (
 $global:notifyIcon.Visible = $true
 
 $global:logForm = New-Object System.Windows.Forms.Form
-$global:logForm.Text = "$($global:ShortVersion) - Console"
-$global:logForm.Size = New-Object System.Drawing.Size(900, 520)
-$global:logForm.StartPosition = "CenterScreen"
-$global:logForm.ShowIcon = $true
-$global:logForm.ShowInTaskbar = $true
-$global:logForm.BackColor = Get-WindowBgColor
-$global:logForm.Icon = $global:AppIcon
+$global:logForm.Text = "$($global:ShortVersion) - Console"; $global:logForm.Size = New-Object System.Drawing.Size(900, 520)
+$global:logForm.StartPosition = "CenterScreen"; $global:logForm.ShowIcon = $true; $global:logForm.ShowInTaskbar = $true
+$global:logForm.BackColor = Get-WindowBgColor; $global:logForm.Icon = $global:AppIcon
 
-# Painel que oculta os 17px da barra branca nativa do RichTextBox e exibe a ObsidianVScrollBar em Bronze/Obsidiana
 $global:logHostPanel = New-Object System.Windows.Forms.Panel
-$global:logHostPanel.Dock = "Fill"
-$global:logHostPanel.BackColor = [System.Drawing.Color]::FromArgb(9, 13, 18)
+$global:logHostPanel.Dock = "Fill"; $global:logHostPanel.BackColor = [System.Drawing.Color]::FromArgb(9, 13, 18)
 
 $global:logScrollBar = New-Object ObsidianVScrollBar
-$global:logScrollBar.Dock = "Right"
-$global:logScrollBar.IsLightMode = ($global:Theme -eq "Light")
+$global:logScrollBar.Dock = "Right"; $global:logScrollBar.IsLightMode = ($global:Theme -eq "Light")
 
 $global:logBox = New-Object System.Windows.Forms.RichTextBox
-$global:logBox.ReadOnly = $true
-$global:logBox.ScrollBars = [System.Windows.Forms.RichTextBoxScrollBars]::ForcedVertical
-$global:logBox.BackColor = [System.Drawing.Color]::FromArgb(9, 13, 18)
-$global:logBox.ForeColor = [System.Drawing.Color]::DarkGray
-$global:logBox.Font = New-Object System.Drawing.Font("Consolas", 10)
-$global:logBox.BorderStyle = "None"
+$global:logBox.ReadOnly = $true; $global:logBox.ScrollBars = [System.Windows.Forms.RichTextBoxScrollBars]::ForcedVertical
+$global:logBox.BackColor = [System.Drawing.Color]::FromArgb(9, 13, 18); $global:logBox.ForeColor = [System.Drawing.Color]::DarkGray
+$global:logBox.Font = New-Object System.Drawing.Font("Consolas", 10); $global:logBox.BorderStyle = "None"
 
 $global:logScrollBar.TargetBox = $global:logBox
 $global:logBox.Add_VScroll({ $global:logScrollBar.Invalidate() })
 $global:logBox.Add_TextChanged({ $global:logScrollBar.Invalidate() })
-
 $global:logHostPanel.Add_Resize({
     $sbW = [System.Windows.Forms.SystemInformation]::VerticalScrollBarWidth
     $global:logBox.SetBounds(0, 0, ($global:logHostPanel.ClientSize.Width + $sbW), $global:logHostPanel.ClientSize.Height)
@@ -2432,9 +2093,7 @@ $global:logHostPanel.Add_Resize({
 })
 
 $global:logHostPanel.Controls.Add($global:logBox)
-$global:logForm.Controls.Add($global:logHostPanel)
-$global:logForm.Controls.Add($global:logScrollBar)
-
+$global:logForm.Controls.AddRange(@($global:logHostPanel, $global:logScrollBar))
 $sbInitW = [System.Windows.Forms.SystemInformation]::VerticalScrollBarWidth
 $global:logBox.SetBounds(0, 0, ($global:logHostPanel.ClientSize.Width + $sbInitW), $global:logHostPanel.ClientSize.Height)
 Set-WindowDarkTheme $global:logForm
@@ -2442,25 +2101,18 @@ Set-WindowDarkTheme $global:logForm
 $global:logForm.Add_FormClosing({
     param($s, $e)
     if ($e.CloseReason -eq [System.Windows.Forms.CloseReason]::UserClosing) {
-        $e.Cancel = $true
-        $global:logForm.Hide()
-        $global:Visible = $false
+        $e.Cancel = $true; $global:logForm.Hide(); $global:Visible = $false
     }
 })
 
 function Toggle-LogWindow {
     if ($global:Visible) {
-        $global:Visible = $false
-        $global:logForm.Hide()
+        $global:Visible = $false; $global:logForm.Hide()
     } else {
-        $global:Visible = $true
-        $global:logForm.Show()
-        Set-WindowDarkTheme $global:logForm
+        $global:Visible = $true; $global:logForm.Show(); Set-WindowDarkTheme $global:logForm
         if ($global:logForm.WindowState -eq "Minimized") { $global:logForm.WindowState = "Normal" }
-        $global:logBox.SelectionStart = $global:logBox.TextLength
-        $global:logBox.ScrollToCaret()
-        $global:logScrollBar.Invalidate()
-        $global:logForm.Activate()
+        $global:logBox.SelectionStart = $global:logBox.TextLength; $global:logBox.ScrollToCaret()
+        $global:logScrollBar.Invalidate(); $global:logForm.Activate()
     }
 }
 
@@ -2472,10 +2124,7 @@ function Suspend-MinerProcess {
     $global:CurrentProc.Refresh()
     foreach ($t in $global:CurrentProc.Threads) {
         $h = [ProcCtl]::OpenThread(0x0002, $false, [uint32]$t.Id)
-        if ($h -ne [IntPtr]::Zero) {
-            [ProcCtl]::SuspendThread($h) | Out-Null
-            [ProcCtl]::CloseHandle($h) | Out-Null
-        }
+        if ($h -ne [IntPtr]::Zero) { [ProcCtl]::SuspendThread($h) | Out-Null; [ProcCtl]::CloseHandle($h) | Out-Null }
     }
 }
 
@@ -2484,10 +2133,7 @@ function Resume-MinerProcess {
     $global:CurrentProc.Refresh()
     foreach ($t in $global:CurrentProc.Threads) {
         $h = [ProcCtl]::OpenThread(0x0002, $false, [uint32]$t.Id)
-        if ($h -ne [IntPtr]::Zero) {
-            [ProcCtl]::ResumeThread($h) | Out-Null
-            [ProcCtl]::CloseHandle($h) | Out-Null
-        }
+        if ($h -ne [IntPtr]::Zero) { [ProcCtl]::ResumeThread($h) | Out-Null; [ProcCtl]::CloseHandle($h) | Out-Null }
     }
 }
 
@@ -2495,16 +2141,11 @@ function Disable-PulseMode {
     param([bool]$Silent = $false)
     if ($global:PulseMode -ne "") {
         $oldMode = $global:PulseMode
-        $global:PulseMode       = ""
-        $global:PulseActiveMins = 0
-        $global:PulsePauseMins  = 0
-        $global:PulseNextSwitch = $null
+        $global:PulseMode = ""; $global:PulseActiveMins = 0; $global:PulsePauseMins = 0; $global:PulseNextSwitch = $null
         Save-MinerConfig
         if ($null -ne $global:itemPulse1) { $global:itemPulse1.Checked = $false }
         if ($null -ne $global:itemPulse2) { $global:itemPulse2.Checked = $false }
-        if (-not $Silent) {
-            $global:LogQueue.Enqueue("[SISTEMA] Modo Pulsar ($oldMode): DESATIVADO.")
-        }
+        if (-not $Silent) { $global:LogQueue.Enqueue("[SISTEMA] Modo Pulsar ($oldMode): DESATIVADO.") }
     }
 }
 
@@ -2512,28 +2153,18 @@ function Set-PulseMode {
     param([string]$ModeName, [int]$ActiveMins, [int]$PauseMins)
     if ($global:PulseMode -eq $ModeName) {
         Disable-PulseMode $false
-        if ($global:IsPaused) {
-            Invoke-ResumeMining $false
-        }
+        if ($global:IsPaused) { Invoke-ResumeMining $false }
         return
     }
-
-    $global:PulseMode       = $ModeName
-    $global:PulseActiveMins = $ActiveMins
-    $global:PulsePauseMins  = $PauseMins
+    $global:PulseMode = $ModeName; $global:PulseActiveMins = $ActiveMins; $global:PulsePauseMins = $PauseMins
     Save-MinerConfig
-
     if ($global:IsPaused) {
-        Resume-MinerProcess
-        $global:IsPaused = $false
-        $global:PauseResumeAt = $null
+        Resume-MinerProcess; $global:IsPaused = $false; $global:PauseResumeAt = $null
         $global:itemPause.Text = Get-Text "MenuPause"
         $global:TtfLogAllowedAt = (Get-Date).AddSeconds($global:TtfWarmupSeconds)
     }
-
     if ($null -ne $global:itemPulse1) { $global:itemPulse1.Checked = ($global:PulseMode -eq "2hx5") }
     if ($null -ne $global:itemPulse2) { $global:itemPulse2.Checked = ($global:PulseMode -eq "4hx5") }
-
     $global:PulseNextSwitch = (Get-Date).AddMinutes($ActiveMins)
     $nextPauseStr = $global:PulseNextSwitch.ToString("HH:mm")
     $global:notifyIcon.Text = "$($global:ShortVersion)" + [Environment]::NewLine + "$($global:CurrentThreads) Threads | Pulsar $ModeName"
@@ -2542,14 +2173,8 @@ function Set-PulseMode {
 
 function Set-MinerPause {
     param([int]$Minutes = 0)
-    # Mantem o Modo Pulsar salvo/selecionado em espera durante qualquer pausa manual ou temporizada
-    if ($global:PulseMode -ne "") {
-        $global:PulseNextSwitch = $null
-    }
-    if (-not $global:IsPaused) {
-        Suspend-MinerProcess
-        $global:IsPaused = $true
-    }
+    if ($global:PulseMode -ne "") { $global:PulseNextSwitch = $null }
+    if (-not $global:IsPaused) { Suspend-MinerProcess; $global:IsPaused = $true }
     $global:itemPause.Text = Get-Text "MenuResume"
     if ($Minutes -gt 0) {
         $global:PauseResumeAt = (Get-Date).AddMinutes($Minutes)
@@ -2567,8 +2192,7 @@ function Invoke-ResumeMining {
     param([bool]$Auto = $false)
     if (-not $global:IsPaused) { return }
     Resume-MinerProcess
-    $global:IsPaused = $false
-    $global:PauseResumeAt = $null
+    $global:IsPaused = $false; $global:PauseResumeAt = $null
     $global:TtfLogAllowedAt = (Get-Date).AddSeconds($global:TtfWarmupSeconds)
     $global:itemPause.Text = Get-Text "MenuPause"
     $global:notifyIcon.Text = "$($global:ShortVersion)" + [Environment]::NewLine + "$($global:CurrentThreads) Threads | $(Get-Text 'TrayResuming')"
@@ -2585,8 +2209,6 @@ function Invoke-ResumeMining {
 
 function Start-MinerTask {
     param([int]$Threads)
-
-    # --- Previne partida sem carteira configurada e abre janela de configuracao ---
     if (-not (Test-WalletConfigured)) {
         $global:notifyIcon.Text = "$($global:ShortVersion)" + [Environment]::NewLine + (Get-Text "TrayWaitWallet")
         if (-not ($global:WalletWarningShown)) {
@@ -2598,11 +2220,8 @@ function Start-MinerTask {
     }
 
     if (($global:CurrentProc) -and (-not ($global:CurrentProc.HasExited))) {
-        $global:StopRequested = $true
-        $global:CurrentProc.Kill()
-        Start-Sleep -Milliseconds 500
+        $global:StopRequested = $true; $global:CurrentProc.Kill(); Start-Sleep -Milliseconds 500
     }
-    
     Get-Process -Name "cpuminer*" -ErrorAction SilentlyContinue | Stop-Process -Force
 
     if (-not (Test-Path $global:MinerExe)) {
@@ -2611,30 +2230,24 @@ function Start-MinerTask {
         return
     }
 
-    $global:CurrentThreads = $Threads
-    $Affinity = Get-Affinity $Threads
-    
+    $global:CurrentThreads = $Threads; $Affinity = Get-Affinity $Threads
     if ([string]::IsNullOrWhiteSpace($Affinity)) {
         $chaves = ($global:ThreadProfiles.Keys | ForEach-Object { [string]$_ }) -join ", "
         $msg = "Perfil de $Threads threads nao existe. Configurados: $chaves"
-        $global:LogQueue.Enqueue("[SISTEMA] ERRO: $msg")
-        Write-ErrorLog $msg
+        $global:LogQueue.Enqueue("[SISTEMA] ERRO: $msg"); Write-ErrorLog $msg
         try { $global:notifyIcon.ShowBalloonTip(8000, "$($global:ShortVersion) - Erro", $msg, [System.Windows.Forms.ToolTipIcon]::Error) } catch {}
         return
     }
 
-    $AffinityPart = "--cpu-affinity $Affinity"
-    $ArgList = "-a sha256d -o $($global:PoolUrl) -u $($global:Wallet) -p x -t $Threads $AffinityPart $($global:ExtraArgs)".Trim() -replace '\s+',' '
+    $ArgList = "-a sha256d -o $($global:PoolUrl) -u $($global:Wallet) -p x -t $Threads --cpu-affinity $Affinity $($global:ExtraArgs)".Trim() -replace '\s+',' '
+    if ($null -ne $global:advForm -and (-not $global:advForm.IsDisposed)) {
+        try { & $script:adv_updatePreview } catch {}
+    }
 
     try {
         $StartInfo = New-Object System.Diagnostics.ProcessStartInfo
-        $StartInfo.FileName = $global:MinerExe
-        $StartInfo.Arguments = $ArgList
-        $StartInfo.WorkingDirectory = $global:BasePath
-        $StartInfo.UseShellExecute = $false
-        $StartInfo.RedirectStandardOutput = $true
-        $StartInfo.RedirectStandardError = $true
-        $StartInfo.CreateNoWindow = $true
+        $StartInfo.FileName = $global:MinerExe; $StartInfo.Arguments = $ArgList; $StartInfo.WorkingDirectory = $global:BasePath
+        $StartInfo.UseShellExecute = $false; $StartInfo.RedirectStandardOutput = $true; $StartInfo.RedirectStandardError = $true; $StartInfo.CreateNoWindow = $true
 
         $global:CurrentProc = New-Object System.Diagnostics.Process
         $global:CurrentProc.StartInfo = $StartInfo
@@ -2646,204 +2259,185 @@ function Start-MinerTask {
         Register-ObjectEvent -InputObject $global:CurrentProc -EventName ErrorDataReceived -SourceIdentifier "MinerErr" | Out-Null
 
         $global:CurrentProc.Start() | Out-Null
-        $global:CurrentProc.BeginOutputReadLine()
-        $global:CurrentProc.BeginErrorReadLine()
+        $global:CurrentProc.BeginOutputReadLine(); $global:CurrentProc.BeginErrorReadLine()
 
-        $global:StopRequested   = $false
-        $global:CrashNotified   = $false
+        $global:StopRequested = $false; $global:CrashNotified = $false
         $global:TtfLogAllowedAt = (Get-Date).AddSeconds($global:TtfWarmupSeconds)
         $global:LogQueue.Enqueue("[SISTEMA] Comando: $($global:DetectedMinerExe) $ArgList")
         $global:LogQueue.Enqueue("[SISTEMA] $($global:AppVersion) iniciado com $Threads Threads (Afinidade $Affinity)")
         if ($global:PulseMode -ne "") {
             $global:PulseNextSwitch = (Get-Date).AddMinutes($global:PulseActiveMins)
-            $nextPauseStr = $global:PulseNextSwitch.ToString("HH:mm")
-            $global:LogQueue.Enqueue("[SISTEMA] Modo Pulsar ($($global:PulseMode)) ativo na memoria (proxima pausa as $nextPauseStr).")
+            $global:LogQueue.Enqueue("[SISTEMA] Modo Pulsar ($($global:PulseMode)) ativo na memoria (proxima pausa as $($global:PulseNextSwitch.ToString('HH:mm'))).")
         }
         $global:LogQueue.Enqueue("[SISTEMA] Para opcoes, clique com o botao Direito no icone do Tray")
-    }
-    catch {
+    } catch {
         $global:LogQueue.Enqueue("[SISTEMA] ERRO ao iniciar o miner: $($_.Exception.Message)")
         Write-ErrorLog "Falha ao iniciar miner: $($_.Exception.Message)"
     }
 }
 
 # ============================================================
-# MENUS DO TRAY E SUBMENUS (V2.0.4 - Alpha)
+# MENUS DO TRAY E SUBMENUS COM CRIADOR AUTOMATICO (V2.1.1)
 # ============================================================
 $menu = New-Object System.Windows.Forms.ContextMenuStrip
+$global:I18nMenuMap = New-Object System.Collections.Generic.List[object]
 
-$global:notifyIcon.Add_MouseClick({
-    param($s, $e)
-    if ($e.Button -eq [System.Windows.Forms.MouseButtons]::Left) { Toggle-LogWindow }
-})
+function Register-I18nItem {
+    param($Item, [string]$Key, [string]$Prefix = "")
+    $global:I18nMenuMap.Add([pscustomobject]@{ Item = $Item; Key = $Key; Prefix = $Prefix })
+}
 
-# 1. Cabecalho Laranja alinhado na margem do texto + [↻] (se houver update), [☾]/[☀] e [BR] ▸
-$headerItem = New-Object System.Windows.Forms.ToolStripMenuItem("$($global:ShortVersion)                              ")
-$headerItem.Name = "HeaderItem"
-$headerItem.Padding = New-Object System.Windows.Forms.Padding(0, 4, 0, 4)
+function Add-MenuHeader {
+    param([System.Windows.Forms.ToolStripMenuItem]$ParentMenu, [string]$LangKey)
+    $lbl = New-Object System.Windows.Forms.ToolStripLabel((Get-Text $LangKey))
+    $lbl.Name = "SubHeaderLabel"
+    $lbl.Font = New-Object System.Drawing.Font("Segoe UI", 9, [System.Drawing.FontStyle]::Bold)
+    Register-I18nItem $lbl $LangKey
+    $ParentMenu.DropDownItems.Add($lbl) | Out-Null
+    $ParentMenu.DropDownItems.Add("-") | Out-Null
+    return $lbl
+}
+
+function Add-MenuLink {
+    param($ParentMenu, [string]$KeyOrText, $Target, [bool]$IsTranslated = $true, [string]$Prefix = "")
+    $txt = if ($IsTranslated) { "$Prefix$(Get-Text $KeyOrText)" } else { "$Prefix$KeyOrText" }
+    $item = New-Object System.Windows.Forms.ToolStripMenuItem($txt)
+    if ($IsTranslated) { Register-I18nItem $item $KeyOrText $Prefix }
+    if ($Target -is [scriptblock]) {
+        $item.Add_Click($Target)
+    } elseif (-not [string]::IsNullOrWhiteSpace([string]$Target)) {
+        $item.Tag = [string]$Target
+        $item.Add_Click({ Start-Process ([string]$this.Tag) })
+    }
+    if ($ParentMenu -is [System.Windows.Forms.ContextMenuStrip]) {
+        $ParentMenu.Items.Add($item) | Out-Null
+    } else {
+        $ParentMenu.DropDownItems.Add($item) | Out-Null
+    }
+    return $item
+}
+
+$global:notifyIcon.Add_MouseClick({ param($s, $e) if ($e.Button -eq [System.Windows.Forms.MouseButtons]::Left) { Toggle-LogWindow } })
+
+# 1. Cabecalho Laranja: ⟳ (Ciano na margem esquerda se houver update) + MinerIsma v2.1.1 + [☾]/[☀] e [BR] ▸
+$headerItem = New-Object System.Windows.Forms.ToolStripMenuItem("$($global:ShortVersion)                    ")
+$headerItem.Name = "HeaderItem"; $headerItem.Padding = New-Object System.Windows.Forms.Padding(0, 4, 0, 4)
 $headerItem.ForeColor = [System.Drawing.Color]::FromArgb(255, 247, 147, 26)
 $headerItem.Font = New-Object System.Drawing.Font("Segoe UI", 9, [System.Drawing.FontStyle]::Bold)
 
-$langOptions = [ordered]@{
-    "PT" = "Portugues"
-    "EN" = "English"
-    "ES" = "Espanol"
-}
 $langMenuItems = @{}
-foreach ($entry in $langOptions.GetEnumerator()) {
-    $lCode = [string]$entry.Key
-    $lName = [string]$entry.Value
-    $lItem = New-Object System.Windows.Forms.ToolStripMenuItem($lName)
-    $lItem.Tag = $lCode
-    $lItem.Add_Click({
-        $chosenLang = [string]$this.Tag
-        Set-AppLanguage $chosenLang
-    })
+foreach ($entry in ([ordered]@{ "PT" = "Portugues"; "EN" = "English"; "ES" = "Espanol" }).GetEnumerator()) {
+    $lItem = New-Object System.Windows.Forms.ToolStripMenuItem([string]$entry.Value)
+    $lItem.Tag = [string]$entry.Key
+    $lItem.Add_Click({ Set-AppLanguage ([string]$this.Tag) })
     $headerItem.DropDownItems.Add($lItem) | Out-Null
-    $langMenuItems[$lCode] = $lItem
+    $langMenuItems[[string]$entry.Key] = $lItem
 }
 
 $headerItem.Add_MouseDown({
     param($sender, $e)
     if ($e.Button -eq [System.Windows.Forms.MouseButtons]::Left) {
-        if ($global:UpdateAvailable -and ($e.X -ge ($sender.Width - 100)) -and ($e.X -lt ($sender.Width - 74))) {
-            Open-UpdateDownloadLink
-        }
-        elseif (($e.X -ge ($sender.Width - 74)) -and ($e.X -lt ($sender.Width - 44))) {
-            $nextTheme = if ($global:Theme -eq "Light") { "Dark" } else { "Light" }
-            Set-AppTheme $nextTheme
-        }
-        elseif ($e.X -ge ($sender.Width - 44)) {
-            $sender.ShowDropDown()
-        }
+        if ($global:UpdateAvailable -and ($e.X -ge 0) -and ($e.X -le 26)) { Open-UpdateDownloadLink }
+        elseif (($e.X -ge ($sender.Width - 74)) -and ($e.X -lt ($sender.Width - 44))) { Set-AppTheme $(if ($global:Theme -eq "Light") { "Dark" } else { "Light" }) }
+        elseif ($e.X -ge ($sender.Width - 44)) { $sender.ShowDropDown() }
     }
 })
 $menu.Items.Add($headerItem) | Out-Null
 $menu.Items.Add("-") | Out-Null
 
-# 2. Bitcoin Agora (CoinGecko) com simbolo Unicode seguro
-$global:btcPriceItem = New-Object System.Windows.Forms.ToolStripLabel("$($global:BtcSym)$(Get-Text 'BtcUpdating')")
+# 2. Bitcoin Agora (CoinGecko) clicavel abrindo CoinGecko
+$global:btcPriceItem = New-Object System.Windows.Forms.ToolStripMenuItem("$($global:BtcSym)$(Get-Text 'BtcUpdating')")
 $global:btcPriceItem.Font = New-Object System.Drawing.Font("Segoe UI", 9, [System.Drawing.FontStyle]::Bold)
+$global:btcPriceItem.Add_Click({ Start-Process $global:UrlCoinGecko })
 $menu.Items.Add($global:btcPriceItem) | Out-Null
 $menu.Items.Add("-") | Out-Null
 
-# 3A. Submenu Bitcoin Links (Ordem: Pool, Atualizacoes, Web -> Links Uteis -> Demais Links)
-$global:itemLinksMenu = New-Object System.Windows.Forms.ToolStripMenuItem("$($global:BtcSym)$(Get-Text 'BtcLinks')")
+# 3A. Submenu Bitcoin Links
+$global:itemLinksMenu = Add-MenuLink $menu "BtcLinks" $null $true $global:BtcSym
+Add-MenuHeader $global:itemLinksMenu "UsefulLinksHdr" | Out-Null
+Add-MenuLink $global:itemLinksMenu "LinkMempool"   "https://mempool.space/pt/" | Out-Null
+Add-MenuLink $global:itemLinksMenu "LinkTimeline"  "https://chaintimeline.com/" | Out-Null
+Add-MenuLink $global:itemLinksMenu "LinkBlueWallet" $global:UrlBlueWallet | Out-Null
+Add-MenuLink $global:itemLinksMenu "LinkHardWallet" "https://prohash.com.br" | Out-Null
+Add-MenuLink $global:itemLinksMenu "LinkP2pBtc"    "https://www.alfredp2p.io" | Out-Null
+Add-MenuLink $global:itemLinksMenu "LinkContaBtc"  "https://usepicnic.com/br" | Out-Null
+Add-MenuLink $global:itemLinksMenu "LinkAtomicBtc" "https://sideshift.ai/a/MAZjxivlP" | Out-Null
+Add-MenuLink $global:itemLinksMenu "LinkLearn"     "https://bitcoinpuzzles.io/pt/aulas" | Out-Null
+Add-MenuLink $global:itemLinksMenu "LinkBtcCore"   "https://bitcoin.org/pt_BR" | Out-Null
+Add-MenuLink $global:itemLinksMenu "LinkMissao1Btc" "https://missao-1-btc.onrender.com/" | Out-Null
+Add-MenuLink $global:itemLinksMenu "LinkRetireBtc" "https://aaronlil.github.io/btc-retirement-planner/" | Out-Null
+Add-MenuLink $global:itemLinksMenu "LinkCalcCripto" $global:UrlCalcConverter | Out-Null
+Add-MenuLink $global:itemLinksMenu "LinkBtcMaps"   "https://btcmap.org/" | Out-Null
+Add-MenuLink $global:itemLinksMenu "Whitepaper Satoshi" "https://bitcoin.org/files/bitcoin-paper/bitcoin_pt_br.pdf" $false | Out-Null
+Add-MenuLink $global:itemLinksMenu "LinkLayer2Lgt" { Open-LightningIntroLink } | Out-Null
+Add-MenuLink $global:itemLinksMenu "LinkWalletLgt" "https://www.walletofsatoshi.com" | Out-Null
+Add-MenuLink $global:itemLinksMenu "LinkGpuMiner"  "https://www.kryptex.com/?ref=2103d720" | Out-Null
 
-$global:lnkPool = $global:itemLinksMenu.DropDownItems.Add((Get-Text "LinkPool"))
-$global:lnkPool.Add_Click({
-    $addr = $global:Wallet -replace '\..*?$', ''
-    $url = $global:UrlPoolDashboard + $addr
-    Start-Process $url
-})
+# 3B. Submenu Bitcoin Games
+$global:itemGamesMenu = Add-MenuLink $menu "itcoin Games" $null $false $global:BtcSym
+Add-MenuHeader $global:itemGamesMenu "UsefulLinksHdr" | Out-Null
+Add-MenuLink $global:itemGamesMenu "21 Million"        { Open-GameWindow "https://kwertykwerty2.itch.io/21-million-demo" } $false | Out-Null
+Add-MenuLink $global:itemGamesMenu "Puzzle 1000 BTC $" "https://bitcoinpuzzles.io/pt/puzzles/1000btc" $false | Out-Null
+Add-MenuLink $global:itemGamesMenu "GameDesafios"      "https://bitcoinpuzzles.io/pt" | Out-Null
+Add-MenuLink $global:itemGamesMenu "Puzzle 71 $"       "https://krackpot.io/" $false | Out-Null
+Add-MenuLink $global:itemGamesMenu "Mestre Cacatal"    "https://www.youtube.com/channel/UCjVt3SWdIQL7Ty5ITXgEqnA" $false | Out-Null
+Add-MenuLink $global:itemGamesMenu "GameBoard"         "https://bitcoincreative.org/biblioteca/to-the-moon-jogo-de-tabuleiro/" | Out-Null
+Add-MenuLink $global:itemGamesMenu "Sunny Land"        { Open-GameWindow "https://alzahira.itch.io/en-busca-del-bitcoin-en-sunnyland" } $false | Out-Null
 
-$global:lnkUpdates = $global:itemLinksMenu.DropDownItems.Add((Get-Text "LinkUpdates"))
-$global:lnkUpdates.Add_Click({ Open-UpdateDownloadLink })
-
-$global:lnkWeb = $global:itemLinksMenu.DropDownItems.Add((Get-Text "LinkWeb"))
-$global:lnkWeb.Add_Click({
-    if (-not [string]::IsNullOrWhiteSpace($global:UrlTutorial)) {
-        Start-Process $global:UrlTutorial
-    } else {
-        [System.Windows.Forms.MessageBox]::Show((Get-Text "MsgWebSoon"), "$($global:ShortVersion) - Web", 0, 64) | Out-Null
-    }
-})
-
-$global:itemLinksMenu.DropDownItems.Add("-") | Out-Null
-$global:lblLinksHeader1 = New-Object System.Windows.Forms.ToolStripLabel((Get-Text "UsefulLinksHdr"))
-$global:lblLinksHeader1.Font = New-Object System.Drawing.Font("Segoe UI", 9, [System.Drawing.FontStyle]::Bold)
-$global:itemLinksMenu.DropDownItems.Add($global:lblLinksHeader1) | Out-Null
-$global:itemLinksMenu.DropDownItems.Add("-") | Out-Null
-
-$global:lnkMempool = $global:itemLinksMenu.DropDownItems.Add((Get-Text "LinkMempool"))
-$global:lnkMempool.Add_Click({ Start-Process $global:UrlMempool })
-
-$global:lnkTimeline = $global:itemLinksMenu.DropDownItems.Add((Get-Text "LinkTimeline"))
-$global:lnkTimeline.Add_Click({ Start-Process $global:UrlTimeline })
-
-$global:lnkMonitor = $global:itemLinksMenu.DropDownItems.Add((Get-Text "LinkMonitor"))
-$global:lnkMonitor.Add_Click({ Start-Process $global:UrlMercadoCripto })
-
-$global:lnkBlueWallet = $global:itemLinksMenu.DropDownItems.Add((Get-Text "LinkBlueWallet"))
-$global:lnkBlueWallet.Add_Click({ Start-Process $global:UrlBlueWallet })
-
-$global:lnkLearn = $global:itemLinksMenu.DropDownItems.Add((Get-Text "LinkLearn"))
-$global:lnkLearn.Add_Click({ Start-Process $global:UrlAprendaCripto })
-
-$global:lnkNews = $global:itemLinksMenu.DropDownItems.Add((Get-Text "LinkNews"))
-$global:lnkNews.Add_Click({ Start-Process $global:UrlBitNoticias })
-
-$global:lnkGlobalAcc = $global:itemLinksMenu.DropDownItems.Add((Get-Text "LinkGlobalAcc"))
-$global:lnkGlobalAcc.Add_Click({ Start-Process $global:UrlCartaoCripto })
-
-$global:lnkMissao1Btc = $global:itemLinksMenu.DropDownItems.Add((Get-Text "LinkMissao1Btc"))
-$global:lnkMissao1Btc.Add_Click({ Start-Process $global:UrlMissao1Btc })
-
-$global:lnkRetireBtc = $global:itemLinksMenu.DropDownItems.Add((Get-Text "LinkRetireBtc"))
-$global:lnkRetireBtc.Add_Click({ Start-Process $global:UrlAposentadoriaBtc })
-
-$global:lnkBtcMaps = $global:itemLinksMenu.DropDownItems.Add((Get-Text "LinkBtcMaps"))
-$global:lnkBtcMaps.Add_Click({ Start-Process $global:UrlBitcoinMaps })
-
-$global:lnkWhitepaper = $global:itemLinksMenu.DropDownItems.Add("Whitepaper Satoshi")
-$global:lnkWhitepaper.Add_Click({ Start-Process $global:UrlWhitepaper })
-
-$global:lnkGpuMiner = $global:itemLinksMenu.DropDownItems.Add((Get-Text "LinkGpuMiner"))
-$global:lnkGpuMiner.Add_Click({ Start-Process $global:UrlGpuMiner })
-
-$global:lnkBubbles = $global:itemLinksMenu.DropDownItems.Add((Get-Text "LinkBubbles"))
-$global:lnkBubbles.Add_Click({ Start-Process $global:UrlCryptoBubbles })
-
-$menu.Items.Add($global:itemLinksMenu) | Out-Null
-
-# 3B. Submenu Bitcoin Games (Com subtitulo "Links Uteis")
-$global:itemGamesMenu = New-Object System.Windows.Forms.ToolStripMenuItem("$($global:BtcSym)itcoin Games")
-
-$global:lblLinksHeader2 = New-Object System.Windows.Forms.ToolStripLabel((Get-Text "UsefulLinksHdr"))
-$global:lblLinksHeader2.Font = New-Object System.Drawing.Font("Segoe UI", 9, [System.Drawing.FontStyle]::Bold)
-$global:itemGamesMenu.DropDownItems.Add($global:lblLinksHeader2) | Out-Null
-$global:itemGamesMenu.DropDownItems.Add("-") | Out-Null
-
-$global:game21M = $global:itemGamesMenu.DropDownItems.Add("21 Million")
-$global:game21M.Add_Click({ Open-GameWindow $global:UrlGame21Million })
-
-$global:gamePuzzle1000 = $global:itemGamesMenu.DropDownItems.Add("Puzzle 1000 BTC $")
-$global:gamePuzzle1000.Add_Click({ Start-Process $global:UrlGamePuzzle1000 })
-
-$global:gameDesafios = $global:itemGamesMenu.DropDownItems.Add((Get-Text "GameDesafios"))
-$global:gameDesafios.Add_Click({ Start-Process $global:UrlGameDesafios })
-
-$global:gamePuzzle71 = $global:itemGamesMenu.DropDownItems.Add("Puzzle 71 $")
-$global:gamePuzzle71.Add_Click({ Start-Process $global:UrlGamePuzzle71 })
-
-$global:gameBoard = $global:itemGamesMenu.DropDownItems.Add((Get-Text "GameBoard"))
-$global:gameBoard.Add_Click({ Start-Process $global:UrlGameToTheMoon })
-
-$global:gameSunnyLand = $global:itemGamesMenu.DropDownItems.Add("Sunny Land")
-$global:gameSunnyLand.Add_Click({ Open-GameWindow $global:UrlGameSunnyLand })
-
-$menu.Items.Add($global:itemGamesMenu) | Out-Null
-
-# 3C. Submenu Canais Cripto (Com subtitulo "Links Uteis" + 14 canais do YouTube)
-$global:itemChannelsMenu = New-Object System.Windows.Forms.ToolStripMenuItem((Get-Text "MenuChannels"))
-
-$global:lblLinksHeader3 = New-Object System.Windows.Forms.ToolStripLabel((Get-Text "UsefulLinksHdr"))
-$global:lblLinksHeader3.Font = New-Object System.Drawing.Font("Segoe UI", 9, [System.Drawing.FontStyle]::Bold)
-$global:itemChannelsMenu.DropDownItems.Add($global:lblLinksHeader3) | Out-Null
-$global:itemChannelsMenu.DropDownItems.Add("-") | Out-Null
-
-foreach ($entry in $global:CryptoChannels.GetEnumerator()) {
-    $chName = [string]$entry.Key
-    $chUrl  = [string]$entry.Value
-    $chItem = New-Object System.Windows.Forms.ToolStripMenuItem($chName)
-    $chItem.Tag = $chUrl
-    $chItem.Add_Click({ Start-Process ([string]$this.Tag) })
-    $global:itemChannelsMenu.DropDownItems.Add($chItem) | Out-Null
+# 3C. Submenu Canais Cripto (Links Inspiradores + Cripto Traders com IDs permanentes)
+$global:itemChannelsMenu = Add-MenuLink $menu "MenuChannels" $null
+Add-MenuHeader $global:itemChannelsMenu "InspiringLinksHdr" | Out-Null
+$channelsInspiradores = [ordered]@{
+    "Bitnada"            = "https://www.youtube.com/channel/UCT50TWqh-Z5eo6DKJSabOMA"
+    "Joao Hazim"         = "https://www.youtube.com/channel/UCkuQgEkF6nq26tcFKgCtgpg"
+    "Denny Torres"       = "https://www.youtube.com/channel/UCxfUF7Kkr9JMFe8HzYeRNjA"
+    "Juliano Caju"       = "https://www.youtube.com/channel/UC6m6J4QX0T3COcimWlsoxDw"
+    "Hiago Driver"       = "https://www.youtube.com/channel/UChFLspccAZu8jvdQThbk_Mg"
+    "Augusto Backes"     = "https://www.youtube.com/channel/UCNGqYuEd86K7dY70jE6dhKg"
+    "Investidor 4.20"    = "https://www.youtube.com/channel/UC8oofAsuieQv3imZGvaUDOQ"
+    "Prometheus HODL"    = "https://www.youtube.com/channel/UCgYcxn8JISuaSUGiKt708fg"
+    "Renato Trezoitao"   = "https://www.youtube.com/channel/UCC-r6vnXtcwBYq0VxZYhoXg"
+    "Ronaldeira Cripto"  = "https://www.youtube.com/channel/UCWLLvlKt9d0xxqq-j5M92xg"
+    "BernardoPascowitch" = "https://www.youtube.com/channel/UCoNkJtAvRbc0t_KR8PSNs8w"
 }
-$menu.Items.Add($global:itemChannelsMenu) | Out-Null
+foreach ($entry in $channelsInspiradores.GetEnumerator()) {
+    Add-MenuLink $global:itemChannelsMenu ([string]$entry.Key) ([string]$entry.Value) $false | Out-Null
+}
+$global:itemChannelsMenu.DropDownItems.Add("-") | Out-Null
+Add-MenuHeader $global:itemChannelsMenu "TradersHdr" | Out-Null
+$channelsTraders = [ordered]@{
+    "Silveira Trader" = "https://www.youtube.com/channel/UCrSMB3hTnrxa8pM-ls0E_Pw"
+    "DK CriptoTrader" = "https://www.youtube.com/channel/UC79S0IaSKp5quncCzwp_UBg"
+    "Tori Trades"     = "https://www.youtube.com/channel/UC0ep2A36j7gTFdqW2Yvngbg"
+    "Vela Trader"     = "https://www.youtube.com/channel/UC4nrWTj-YsYTLXvw7V5R-5g"
+}
+foreach ($entry in $channelsTraders.GetEnumerator()) {
+    Add-MenuLink $global:itemChannelsMenu ([string]$entry.Key) ([string]$entry.Value) $false | Out-Null
+}
+
+# 3D. Submenu Portais Cripto (Com Dolar agora: R$ / € clicavel + Portais)
+$global:itemPortalsMenu = Add-MenuLink $menu "MenuPortals" $null
+Add-MenuHeader $global:itemPortalsMenu "UsefulLinksHdr" | Out-Null
+$global:usdBrlPriceItem = New-Object System.Windows.Forms.ToolStripMenuItem((Get-Text "UsdUpdating"))
+$global:usdBrlPriceItem.Font = New-Object System.Drawing.Font("Segoe UI", 9, [System.Drawing.FontStyle]::Bold)
+$global:usdBrlPriceItem.Add_Click({ Start-Process $global:UrlCalcConverter })
+$global:itemPortalsMenu.DropDownItems.Add($global:usdBrlPriceItem) | Out-Null
+$global:itemPortalsMenu.DropDownItems.Add("-") | Out-Null
+
+Add-MenuLink $global:itemPortalsMenu "LinkMonitor"       "https://mercado.bitnada.com.br" | Out-Null
+Add-MenuLink $global:itemPortalsMenu "LinkNews"          "https://bitnoticias.com.br" | Out-Null
+Add-MenuLink $global:itemPortalsMenu "LinkCoinGecko"     $global:UrlCoinGecko | Out-Null
+Add-MenuLink $global:itemPortalsMenu "LinkGlobalAcc"     "https://usepicnic.com/br" | Out-Null
+Add-MenuLink $global:itemPortalsMenu "LinkMultiWallet"   "https://rabby.io" | Out-Null
+Add-MenuLink $global:itemPortalsMenu "LinkAtomicSwap"    "https://pancakeswap.finance/swap" | Out-Null
+Add-MenuLink $global:itemPortalsMenu "LinkRealizacao"    "https://nakpix.xyz" | Out-Null
+Add-MenuLink $global:itemPortalsMenu "Area Bitcoin"      "https://www.areabitcoin.com.br" $false | Out-Null
+Add-MenuLink $global:itemPortalsMenu "LinkMinerEvolua"   "https://www.julianocaju.com.br" | Out-Null
+Add-MenuLink $global:itemPortalsMenu "Upgrade: PCdoFafa" "https://www.youtube.com/channel/UCI1FHmMbh27WuxHjGXyn2ww" $false | Out-Null
+Add-MenuLink $global:itemPortalsMenu "LinkBubbles"       "https://cryptobubbles.net/pt" | Out-Null
 $menu.Items.Add("-") | Out-Null
 
-# 4. Subtitulo "Power | CPU ..." e Controle Dinamico de Threads (com '!' em Laranja Bitcoin)
+# 4. Subtitulo "Power | CPU ..." e Controle Dinamico de Threads
 $global:lblPowerHeader = New-Object System.Windows.Forms.ToolStripLabel($global:PowerHeaderTitle)
 $global:lblPowerHeader.Padding = New-Object System.Windows.Forms.Padding(22, 2, 0, 2)
 $global:lblPowerHeader.Font = New-Object System.Drawing.Font("Segoe UI", 9, [System.Drawing.FontStyle]::Regular)
@@ -2851,18 +2445,9 @@ $menu.Items.Add($global:lblPowerHeader) | Out-Null
 
 function Set-ThreadConfig {
     param([int]$t)
-    if ($global:IsPaused) {
-        $global:itemPause.Text = Get-Text "MenuPause"
-        $global:IsPaused = $false
-        $global:PauseResumeAt = $null
-    }
-    if ($global:PulseMode -ne "") {
-        $global:PulseNextSwitch = (Get-Date).AddMinutes($global:PulseActiveMins)
-    }
-    
-    $global:CurrentThreads = $t
-    Save-MinerConfig
-    
+    if ($global:IsPaused) { $global:itemPause.Text = Get-Text "MenuPause"; $global:IsPaused = $false; $global:PauseResumeAt = $null }
+    if ($global:PulseMode -ne "") { $global:PulseNextSwitch = (Get-Date).AddMinutes($global:PulseActiveMins) }
+    $global:CurrentThreads = $t; Save-MinerConfig
     $global:notifyIcon.Text = "$($global:ShortVersion)" + [Environment]::NewLine + "$t Threads | $(Get-Text 'TrayCalculating')"
     Start-MinerTask $t
 }
@@ -2870,172 +2455,152 @@ function Set-ThreadConfig {
 $threadItems = @{}
 foreach ($entry in $global:ThreadProfiles.GetEnumerator()) {
     $n = [int]$entry.Key
-    $label = [string]$global:ThreadLabels[$n]
-    $item = New-Object System.Windows.Forms.ToolStripMenuItem($label)
-    $item.Name = "ThreadItem"
-    $item.Tag = $n
+    $item = New-Object System.Windows.Forms.ToolStripMenuItem([string]$global:ThreadLabels[$n])
+    $item.Name = "ThreadItem"; $item.Tag = $n
     $item.Add_Click({ Set-ThreadConfig ([int]$this.Tag) })
     $menu.Items.Add($item) | Out-Null
     $threadItems[$n] = $item
 }
 $menu.Items.Add("-") | Out-Null
 
-# 5. Startup Automatica (Atalho + Contingencia Registro Run), Carteira, Teste, Estatisticas, Tutorial e Compartilhar
-$global:itemStartup = New-Object System.Windows.Forms.ToolStripMenuItem((Get-Text "MenuStartup"))
+# 5. Painel do Minerador, Iniciar com Windows, Testar Alerta, Tutorial e Compartilhar
+function Test-DesktopShortcutExists { return (Test-Path -LiteralPath $global:DesktopShortcutPath) }
 
-$global:lblDelayHeader = New-Object System.Windows.Forms.ToolStripLabel((Get-Text "DelayHeader"))
-$global:lblDelayHeader.Font = New-Object System.Drawing.Font("Segoe UI", 9, [System.Drawing.FontStyle]::Bold)
-$global:itemStartup.DropDownItems.Add($global:lblDelayHeader) | Out-Null
-$global:itemStartup.DropDownItems.Add("-") | Out-Null
+function Set-DesktopShortcut {
+    param([bool]$Silent = $false)
+    if (-not (Test-Path -LiteralPath $global:LauncherPath)) { return }
+    try {
+        $WshShell = New-Object -ComObject WScript.Shell
+        $Shortcut = $WshShell.CreateShortcut($global:DesktopShortcutPath)
+        $Shortcut.TargetPath = [string]$global:LauncherPath; $Shortcut.WorkingDirectory = [string]$global:RootPath
+        if (Test-Path -LiteralPath $global:CustomIconPath) { $Shortcut.IconLocation = "$($global:CustomIconPath),0" }
+        $Shortcut.Save()
+        if ($null -ne $global:itemDesktopIcon) { $global:itemDesktopIcon.Checked = $true }
+        if (-not $Silent) { $global:LogQueue.Enqueue("[SISTEMA] Atalho 'MinerIsma' criado/atualizado na Area de Trabalho.") }
+    } catch {
+        if (-not $Silent) { $global:LogQueue.Enqueue("[SISTEMA] ERRO ao criar atalho na Area de Trabalho: $($_.Exception.Message)") }
+    }
+}
+
+function Remove-DesktopShortcut {
+    try {
+        if (Test-Path -LiteralPath $global:DesktopShortcutPath) { Remove-Item -LiteralPath $global:DesktopShortcutPath -Force -ErrorAction SilentlyContinue }
+        if ($null -ne $global:itemDesktopIcon) { $global:itemDesktopIcon.Checked = $false }
+        $global:LogQueue.Enqueue("[SISTEMA] Atalho 'MinerIsma' removido da Area de Trabalho.")
+    } catch {}
+}
+
+if (Test-DesktopShortcutExists) { Set-DesktopShortcut $true }
+
+# 5A. Submenu "Painel do Minerador"
+$global:itemMinerPanel = Add-MenuLink $menu "MenuMinerPanel" $null
+
+$global:lnkUpdates = New-Object System.Windows.Forms.ToolStripMenuItem((Get-Text "LinkUpdates"))
+$global:lnkUpdates.Name = "UpdateSubItem"
+$global:lnkUpdates.Padding = New-Object System.Windows.Forms.Padding(0, 2, -12, 2)
+$global:lnkUpdates.Add_Click({ Open-UpdateDownloadLink })
+$global:itemMinerPanel.DropDownItems.Add($global:lnkUpdates) | Out-Null
+
+$global:itemWallet   = Add-MenuLink $global:itemMinerPanel "MenuWallet"   { Show-WalletConfig }
+$global:itemTtfStats = Add-MenuLink $global:itemMinerPanel "MenuTtfStats" { Show-TtfStats }
+$global:lnkPool      = Add-MenuLink $global:itemMinerPanel "LinkPool"     { Open-ActivePoolDashboard }
+$global:lnkWeb       = Add-MenuLink $global:itemMinerPanel "LinkWeb" {
+    if (-not [string]::IsNullOrWhiteSpace($global:UrlTutorial)) { Start-Process $global:UrlTutorial }
+    else { [System.Windows.Forms.MessageBox]::Show((Get-Text "MsgWebSoon"), "$($global:ShortVersion) - Web", 0, 64) | Out-Null }
+}
+$global:itemDesktopIcon = Add-MenuLink $global:itemMinerPanel "MenuDesktopIcon" {
+    if (Test-DesktopShortcutExists) { Remove-DesktopShortcut } else { Set-DesktopShortcut $false }
+}
+$global:itemDesktopIcon.Checked = (Test-DesktopShortcutExists)
+$global:itemAdvanced = Add-MenuLink $global:itemMinerPanel "MenuAdvanced" { Show-AdvancedConfig }
+$global:itemSupport  = Add-MenuLink $global:itemMinerPanel "MenuSupport"  { Show-SupportDialog }
+
+# 5B. Submenu "Iniciar com Windows"
+$global:itemStartup = Add-MenuLink $menu "MenuStartup" $null
+$global:lblDelayHeader = Add-MenuHeader $global:itemStartup "DelayHeader"
 
 function Test-StartupRegistered {
     if (Test-Path -LiteralPath $global:ShortcutPath) { return $true }
     try {
         $regObj = Get-ItemProperty -Path $global:RunRegKey -Name $global:RunRegName -ErrorAction SilentlyContinue
-        if (($null -ne $regObj) -and (-not [string]::IsNullOrWhiteSpace($regObj.$($global:RunRegName)))) {
-            return $true
-        }
+        if (($null -ne $regObj) -and (-not [string]::IsNullOrWhiteSpace($regObj.$($global:RunRegName)))) { return $true }
     } catch {}
     return $false
 }
 
-$delayOptions = [ordered]@{
-    5  = (Get-Text "DelayDefault")
-    15 = "15seg."
-    30 = "30seg."
-    60 = "60seg."
-}
 $delayMenuItems = @{}
-
 function Update-StartupMenuChecks {
     $isReg = (Test-StartupRegistered)
     $global:itemStartup.Checked = $isReg
-    foreach ($dKey in $delayMenuItems.Keys) {
-        $delayMenuItems[$dKey].Checked = ($isReg -and ($global:ConfiguredDelay -eq $dKey))
-    }
+    foreach ($dKey in $delayMenuItems.Keys) { $delayMenuItems[$dKey].Checked = ($isReg -and ($global:ConfiguredDelay -eq $dKey)) }
 }
 
 function Enable-WindowsStartup {
     param([int]$DelaySec, [bool]$Silent = $false)
-
-    $global:ConfiguredDelay    = $DelaySec
-    $global:StartupInitialized = $true
-    $global:StartupEnabled     = $true
+    $global:ConfiguredDelay = $DelaySec; $global:StartupInitialized = $true; $global:StartupEnabled = $true
     Save-MinerConfig
-
     if (-not (Test-Path -LiteralPath $global:LauncherPath)) {
-        if (-not $Silent) {
-            [System.Windows.Forms.MessageBox]::Show("O arquivo '$global:LauncherFileName' nao foi encontrado na pasta raiz.", "Erro", 0, 16) | Out-Null
-        }
-        Update-StartupMenuChecks
-        return
+        if (-not $Silent) { [System.Windows.Forms.MessageBox]::Show("O arquivo '$global:LauncherFileName' nao foi encontrado na pasta raiz.", "Erro", 0, 16) | Out-Null }
+        Update-StartupMenuChecks; return
     }
-
     $registeredOk = $false
-
-    # Tentativa 1: Atalho .lnk na pasta Startup
     try {
-        if (-not (Test-Path -LiteralPath $global:StartupFolder)) {
-            New-Item -ItemType Directory -Path $global:StartupFolder -Force -ErrorAction SilentlyContinue | Out-Null
-        }
-        if (Test-Path -LiteralPath $global:ShortcutPath) {
-            Remove-Item -LiteralPath $global:ShortcutPath -Force -ErrorAction SilentlyContinue
-        }
+        if (-not (Test-Path -LiteralPath $global:StartupFolder)) { New-Item -ItemType Directory -Path $global:StartupFolder -Force -ErrorAction SilentlyContinue | Out-Null }
+        if (Test-Path -LiteralPath $global:ShortcutPath) { Remove-Item -LiteralPath $global:ShortcutPath -Force -ErrorAction SilentlyContinue }
         $WshShell = New-Object -ComObject WScript.Shell
         $Shortcut = $WshShell.CreateShortcut($global:ShortcutPath)
-        $Shortcut.TargetPath = [string]$global:LauncherPath
-        $Shortcut.WorkingDirectory = [string]$global:RootPath
-        $Shortcut.Save()
-        $registeredOk = $true
+        $Shortcut.TargetPath = [string]$global:LauncherPath; $Shortcut.WorkingDirectory = [string]$global:RootPath
+        if (Test-Path -LiteralPath $global:CustomIconPath) { $Shortcut.IconLocation = "$($global:CustomIconPath),0" }
+        $Shortcut.Save(); $registeredOk = $true
         Remove-ItemProperty -Path $global:RunRegKey -Name $global:RunRegName -ErrorAction SilentlyContinue
     } catch {
-        # Tentativa 2 (Contingencia Automatica): Chave Run do Usuario no Registro do Windows
         try {
             $q = [char]34
-            $cmdVal = $q + $global:LauncherPath + $q
-            Set-ItemProperty -Path $global:RunRegKey -Name $global:RunRegName -Value $cmdVal -Force -ErrorAction Stop
+            Set-ItemProperty -Path $global:RunRegKey -Name $global:RunRegName -Value "$q$($global:LauncherPath)$q" -Force -ErrorAction Stop
             $registeredOk = $true
         } catch {
-            if (-not $Silent) {
-                $global:LogQueue.Enqueue("[SISTEMA] ERRO ao ativar Iniciar com Windows: $($_.Exception.Message)")
-            }
+            if (-not $Silent) { $global:LogQueue.Enqueue("[SISTEMA] ERRO ao ativar Iniciar com Windows: $($_.Exception.Message)") }
         }
     }
-
     Update-StartupMenuChecks
-    if (($registeredOk) -and (-not $Silent)) {
-        $global:LogQueue.Enqueue("[SISTEMA] Iniciar com Windows: ATIVADO (Delay: $($DelaySec)s).")
-    }
+    if (($registeredOk) -and (-not $Silent)) { $global:LogQueue.Enqueue("[SISTEMA] Iniciar com Windows: ATIVADO (Delay: $($DelaySec)s).") }
 }
 
 function Disable-WindowsStartup {
     Remove-Item -LiteralPath $global:ShortcutPath -Force -ErrorAction SilentlyContinue
     Remove-ItemProperty -Path $global:RunRegKey -Name $global:RunRegName -ErrorAction SilentlyContinue
-    $global:ConfiguredDelay    = $global:DefaultStartupDelay
-    $global:StartupInitialized = $true
-    $global:StartupEnabled     = $false
-    Save-MinerConfig
-    Update-StartupMenuChecks
+    $global:ConfiguredDelay = $global:DefaultStartupDelay; $global:StartupInitialized = $true; $global:StartupEnabled = $false
+    Save-MinerConfig; Update-StartupMenuChecks
     $global:LogQueue.Enqueue("[SISTEMA] Iniciar com Windows: DESATIVADO (Delay Padrao: 5s).")
 }
 
-foreach ($entry in $delayOptions.GetEnumerator()) {
-    $dKey  = [int]$entry.Key
-    $dText = [string]$entry.Value
-    $dItem = New-Object System.Windows.Forms.ToolStripMenuItem($dText)
+foreach ($entry in ([ordered]@{ 5 = (Get-Text "DelayDefault"); 15 = "15seg."; 30 = "30seg."; 60 = "60seg." }).GetEnumerator()) {
+    $dKey = [int]$entry.Key
+    $dItem = New-Object System.Windows.Forms.ToolStripMenuItem([string]$entry.Value)
     $dItem.Tag = $dKey
+    if ($dKey -eq 5) { Register-I18nItem $dItem "DelayDefault" }
     $dItem.Add_Click({
         $chosenDelay = [int]$this.Tag
-        if ((Test-StartupRegistered) -and ($global:ConfiguredDelay -eq $chosenDelay)) {
-            Disable-WindowsStartup
-        } else {
-            Enable-WindowsStartup $chosenDelay $false
-        }
+        if ((Test-StartupRegistered) -and ($global:ConfiguredDelay -eq $chosenDelay)) { Disable-WindowsStartup }
+        else { Enable-WindowsStartup $chosenDelay $false }
     })
     $global:itemStartup.DropDownItems.Add($dItem) | Out-Null
     $delayMenuItems[$dKey] = $dItem
 }
+$global:itemStartup.Add_Click({ if (Test-StartupRegistered) { Disable-WindowsStartup } else { Enable-WindowsStartup $global:ConfiguredDelay $false } })
 
-# Clicar direto no botao pai "Iniciar com Windows" alterna Ativo/Desativado atualizando os subbotoes na hora
-$global:itemStartup.Add_Click({
-    if (Test-StartupRegistered) {
-        Disable-WindowsStartup
-    } else {
-        Enable-WindowsStartup $global:ConfiguredDelay $false
-    }
-})
-
-# Garante que na 1a execucao (ou sempre que StartupEnabled estiver ativo) o atalho aponte para a pasta atual
 if ((-not $global:StartupInitialized) -or ($global:StartupEnabled)) {
     $global:StartupInitialized = $true
-    if (Test-Path -LiteralPath $global:LauncherPath) {
-        Enable-WindowsStartup $global:ConfiguredDelay $true
-    } else {
-        Save-MinerConfig
-    }
+    if (Test-Path -LiteralPath $global:LauncherPath) { Enable-WindowsStartup $global:ConfiguredDelay $true } else { Save-MinerConfig }
 }
-
-# Ajusta o delay de partida atual conforme o estado do Iniciar com Windows
-if (Test-StartupRegistered) {
-    $global:StartupDelaySeconds = $global:ConfiguredDelay
-} else {
-    $global:StartupDelaySeconds = $global:DefaultStartupDelay
-}
+$global:StartupDelaySeconds = if (Test-StartupRegistered) { $global:ConfiguredDelay } else { $global:DefaultStartupDelay }
 Update-StartupMenuChecks
 
-$menu.Items.Add($global:itemStartup) | Out-Null
-
-$global:itemWallet = New-Object System.Windows.Forms.ToolStripMenuItem((Get-Text "MenuWallet"))
-$global:itemWallet.Add_Click({ Show-WalletConfig })
-$menu.Items.Add($global:itemWallet) | Out-Null
-
-# Submenu Testar Alerta de Bloco (KMS, Senna, MforN e Coins)
+# 5C. Submenu "Testar Alerta de Bloco"
 function Invoke-TestBlockAlert {
     param([string]$SelectedSound)
     if (-not [string]::IsNullOrWhiteSpace($SelectedSound)) {
-        $global:SoundFileName = $SelectedSound
-        $global:SoundFile     = Join-Path $global:ResPath $global:SoundFileName
-        Save-MinerConfig
+        $global:SoundFileName = $SelectedSound; $global:SoundFile = Join-Path $global:ResPath $global:SoundFileName; Save-MinerConfig
     }
     $fakeLine = "TESTE MANUAL - Accepted 999 S0 R0 B1, 12.345 sec (yay!!!)"
     $global:LogQueue.Enqueue("[SISTEMA] Simulando descoberta com audio: $($global:SoundFileName)")
@@ -3043,127 +2608,58 @@ function Invoke-TestBlockAlert {
     Invoke-BlockAlert $fakeLine
 }
 
-$global:itemTestAlert = New-Object System.Windows.Forms.ToolStripMenuItem((Get-Text "MenuTestAlert"))
+$global:itemTestAlert  = Add-MenuLink $menu "MenuTestAlert" $null
+$global:itemSoundKMS   = Add-MenuLink $global:itemTestAlert "KMS"   { Invoke-TestBlockAlert $global:SoundFileKMS } $false
+$global:itemSoundSenna = Add-MenuLink $global:itemTestAlert "Senna" { Invoke-TestBlockAlert $global:SoundFileSenna } $false
+$global:itemSoundMforN = Add-MenuLink $global:itemTestAlert "MforN" { Invoke-TestBlockAlert $global:SoundFileMforN } $false
+$global:itemSoundCoins = Add-MenuLink $global:itemTestAlert "Coins" { Invoke-TestBlockAlert $global:SoundFileCoins } $false
 
-$global:itemSoundKMS = New-Object System.Windows.Forms.ToolStripMenuItem("KMS")
-$global:itemSoundKMS.Add_Click({
-    Invoke-TestBlockAlert $global:SoundFileKMS
-})
-$global:itemTestAlert.DropDownItems.Add($global:itemSoundKMS) | Out-Null
-
-$global:itemSoundSenna = New-Object System.Windows.Forms.ToolStripMenuItem("Senna")
-$global:itemSoundSenna.Add_Click({
-    Invoke-TestBlockAlert $global:SoundFileSenna
-})
-$global:itemTestAlert.DropDownItems.Add($global:itemSoundSenna) | Out-Null
-
-$global:itemSoundMforN = New-Object System.Windows.Forms.ToolStripMenuItem("MforN")
-$global:itemSoundMforN.Add_Click({
-    Invoke-TestBlockAlert $global:SoundFileMforN
-})
-$global:itemTestAlert.DropDownItems.Add($global:itemSoundMforN) | Out-Null
-
-$global:itemSoundCoins = New-Object System.Windows.Forms.ToolStripMenuItem("Coins")
-$global:itemSoundCoins.Add_Click({
-    Invoke-TestBlockAlert $global:SoundFileCoins
-})
-$global:itemTestAlert.DropDownItems.Add($global:itemSoundCoins) | Out-Null
-
-$menu.Items.Add($global:itemTestAlert) | Out-Null
-
-$global:itemTtfStats = New-Object System.Windows.Forms.ToolStripMenuItem((Get-Text "MenuTtfStats"))
-$global:itemTtfStats.Add_Click({ Show-TtfStats })
-$menu.Items.Add($global:itemTtfStats) | Out-Null
-
-$global:itemTutorial = New-Object System.Windows.Forms.ToolStripMenuItem((Get-Text "MenuTutorial"))
-$global:itemTutorial.Add_Click({ Show-Tutorial })
-$menu.Items.Add($global:itemTutorial) | Out-Null
-
-$global:itemShare = New-Object System.Windows.Forms.ToolStripMenuItem((Get-Text "MenuShare"))
-$global:itemShare.Add_Click({ Invoke-ShareMinerIsma })
-$menu.Items.Add($global:itemShare) | Out-Null
+# 5D. Tutorial e Compartilhar MinerIsma -> Copiar Link
+$global:itemTutorial      = Add-MenuLink $menu "MenuTutorial" { Show-Tutorial }
+$global:itemShare         = Add-MenuLink $menu "MenuShare"    { Invoke-ShareMinerIsma }
+$global:itemCopyShareLink = Add-MenuLink $global:itemShare "MenuCopyLink" { Invoke-ShareMinerIsma }
 $menu.Items.Add("-") | Out-Null
 
-# 6. Mostrar/Ocultar e Pausar (com Submenu Manual, Tempos e Modo Pulsar Persistente)
-$global:itemShowHide = New-Object System.Windows.Forms.ToolStripMenuItem((Get-Text "MenuShowHide"))
-$global:itemShowHide.Add_Click({ Toggle-LogWindow })
-$menu.Items.Add($global:itemShowHide) | Out-Null
-
-$global:itemPause = New-Object System.Windows.Forms.ToolStripMenuItem((Get-Text "MenuPause"))
-$pauseOptions = [ordered]@{
-    0   = (Get-Text "PauseManual")
-    15  = "15min."
-    30  = "30min."
-    60  = (Get-Text "Pause1h")
-    120 = (Get-Text "Pause2h")
-}
+# 6. Mostrar/Ocultar e Pausar (com Submenu Manual, Tempos e Modo Pulsar)
+$global:itemShowHide = Add-MenuLink $menu "MenuShowHide" { Toggle-LogWindow }
+$global:itemPause    = New-Object System.Windows.Forms.ToolStripMenuItem((Get-Text "MenuPause"))
 $pauseMenuItems = @{}
-foreach ($entry in $pauseOptions.GetEnumerator()) {
-    $pKey  = [int]$entry.Key
-    $pText = [string]$entry.Value
-    $pItem = New-Object System.Windows.Forms.ToolStripMenuItem($pText)
+foreach ($entry in ([ordered]@{ 0 = "PauseManual"; 15 = "15min."; 30 = "30min."; 60 = "Pause1h"; 120 = "Pause2h" }).GetEnumerator()) {
+    $pKey = [int]$entry.Key; $pVal = [string]$entry.Value
+    $isTr = ($pKey -in @(0, 60, 120))
+    $pItem = New-Object System.Windows.Forms.ToolStripMenuItem($(if ($isTr) { Get-Text $pVal } else { $pVal }))
     $pItem.Tag = $pKey
+    if ($isTr) { Register-I18nItem $pItem $pVal }
     $pItem.Add_Click({
         $mins = [int]$this.Tag
-        if ($global:IsPaused -and ($mins -eq 0)) {
-            Invoke-ResumeMining $false
-        } else {
-            Set-MinerPause $mins
-        }
+        if ($global:IsPaused -and ($mins -eq 0)) { Invoke-ResumeMining $false } else { Set-MinerPause $mins }
     })
     $global:itemPause.DropDownItems.Add($pItem) | Out-Null
     $pauseMenuItems[$pKey] = $pItem
 }
-
 $global:itemPause.DropDownItems.Add("-") | Out-Null
-
-$global:itemPulse1 = New-Object System.Windows.Forms.ToolStripMenuItem((Get-Text "Pulse2h"))
-$global:itemPulse1.Add_Click({
-    Set-PulseMode "2hx5" 120 5
-})
-$global:itemPause.DropDownItems.Add($global:itemPulse1) | Out-Null
-
-$global:itemPulse2 = New-Object System.Windows.Forms.ToolStripMenuItem((Get-Text "Pulse4h"))
-$global:itemPulse2.Add_Click({
-    Set-PulseMode "4hx5" 240 5
-})
-$global:itemPause.DropDownItems.Add($global:itemPulse2) | Out-Null
-
-$global:itemPause.Add_Click({
-    if ($global:IsPaused) {
-        Invoke-ResumeMining $false
-    } else {
-        Set-MinerPause 0
-    }
-})
+$global:itemPulse1 = Add-MenuLink $global:itemPause "Pulse2h" { Set-PulseMode "2hx5" 120 5 }
+$global:itemPulse2 = Add-MenuLink $global:itemPause "Pulse4h" { Set-PulseMode "4hx5" 240 5 }
+$global:itemPause.Add_Click({ if ($global:IsPaused) { Invoke-ResumeMining $false } else { Set-MinerPause 0 } })
 $menu.Items.Add($global:itemPause) | Out-Null
 $menu.Items.Add("-") | Out-Null
 
 # 7. Fechar Mineracao
-$global:itemExit = New-Object System.Windows.Forms.ToolStripMenuItem((Get-Text "MenuExit"))
-$global:itemExit.Add_Click({
-    $timer.Stop()
-    $startTimer.Stop()
-    $btcTimer.Stop()
-    $updateCheckTimer.Stop()
-    $global:shareBalloonTimer.Stop()
+$global:itemExit = Add-MenuLink $menu "MenuExit" {
+    $timer.Stop(); $startTimer.Stop(); $btcTimer.Stop(); $updateCheckTimer.Stop(); $soloBlockTimer.Stop(); $global:shareBalloonTimer.Stop()
     if (($global:CurrentProc) -and (-not ($global:CurrentProc.HasExited))) {
         $global:StopRequested = $true
         if ($global:IsPaused) { Resume-MinerProcess }
         $global:CurrentProc.Kill()
     }
     Get-Process -Name "cpuminer*" -ErrorAction SilentlyContinue | Stop-Process -Force
-    $global:notifyIcon.Visible = $false
-    $global:notifyIcon.Dispose()
-    $global:logForm.Dispose()
+    $global:notifyIcon.Visible = $false; $global:notifyIcon.Dispose(); $global:logForm.Dispose()
     [System.Windows.Forms.Application]::Exit()
-})
-$menu.Items.Add($global:itemExit) | Out-Null
+}
 
-# Aplica o Tema (Escuro Obsidiana ou Claro Perola) em todo o Menu do Tray e seus Submenus
 Set-MenuObsidianTheme $menu
 
-# Funcao que comuta todo o idioma da interface em tempo real sem interromper a mineracao
+# Comutacao dinamica de idioma via lista automatizada $global:I18nMenuMap
 function Set-AppLanguage {
     param([string]$LangCode)
     if ($LangCode -notin @("PT", "EN", "ES")) { return }
@@ -3171,95 +2667,51 @@ function Set-AppLanguage {
     [ObsidianMenuColors]::CurrentLangBadge = if ($global:Language -eq "PT") { "BR" } else { $global:Language }
     Save-MinerConfig
 
-    if (-not [string]::IsNullOrWhiteSpace($global:LastBtcUsdFormatted)) {
-        $global:btcPriceItem.Text = "$($global:BtcSym)$(Get-Text 'BtcNowPrefix')$($global:LastBtcUsdFormatted)"
-    } else {
-        $global:btcPriceItem.Text = "$($global:BtcSym)$(Get-Text 'BtcUpdating')"
+    foreach ($m in $global:I18nMenuMap) {
+        if ($null -ne $m.Item) { $m.Item.Text = "$($m.Prefix)$(Get-Text $m.Key)" }
     }
 
-    $global:itemLinksMenu.Text    = "$($global:BtcSym)$(Get-Text 'BtcLinks')"
-    $global:itemChannelsMenu.Text = Get-Text "MenuChannels"
-    $global:lblLinksHeader1.Text  = Get-Text "UsefulLinksHdr"
-    $global:lblLinksHeader2.Text  = Get-Text "UsefulLinksHdr"
-    $global:lblLinksHeader3.Text  = Get-Text "UsefulLinksHdr"
-    $global:gameDesafios.Text     = Get-Text "GameDesafios"
-    $global:gameBoard.Text        = Get-Text "GameBoard"
+    $global:btcPriceItem.Text = if (-not [string]::IsNullOrWhiteSpace($global:LastBtcUsdFormatted)) {
+        "$($global:BtcSym)$(Get-Text 'BtcNowPrefix')$($global:LastBtcUsdFormatted)"
+    } else { "$($global:BtcSym)$(Get-Text 'BtcUpdating')" }
 
-    $global:lnkPool.Text = Get-Text "LinkPool"
-    if ($global:UpdateAvailable -and (-not [string]::IsNullOrWhiteSpace($global:LatestRemoteVersion))) {
-        $global:lnkUpdates.Text = "$($global:UpdateSym) $(Get-Text 'LinkUpdates') (v$($global:LatestRemoteVersion))"
-    } else {
-        $global:lnkUpdates.Text = Get-Text "LinkUpdates"
-    }
-    $global:lnkMempool.Text    = Get-Text "LinkMempool"
-    $global:lnkTimeline.Text   = Get-Text "LinkTimeline"
-    $global:lnkMonitor.Text    = Get-Text "LinkMonitor"
-    $global:lnkBlueWallet.Text = Get-Text "LinkBlueWallet"
-    $global:lnkLearn.Text      = Get-Text "LinkLearn"
-    $global:lnkNews.Text       = Get-Text "LinkNews"
-    $global:lnkGlobalAcc.Text  = Get-Text "LinkGlobalAcc"
-    $global:lnkMissao1Btc.Text = Get-Text "LinkMissao1Btc"
-    $global:lnkRetireBtc.Text  = Get-Text "LinkRetireBtc"
-    $global:lnkBtcMaps.Text    = Get-Text "LinkBtcMaps"
-    $global:lnkWeb.Text        = Get-Text "LinkWeb"
-    $global:lnkGpuMiner.Text   = Get-Text "LinkGpuMiner"
-    $global:lnkBubbles.Text    = Get-Text "LinkBubbles"
+    Update-FiatMenuLabel
 
-    $global:itemStartup.Text    = Get-Text "MenuStartup"
-    $global:lblDelayHeader.Text = Get-Text "DelayHeader"
-    if ($null -ne $delayMenuItems[5]) { $delayMenuItems[5].Text = Get-Text "DelayDefault" }
+    $global:lnkUpdates.Text = if ($global:UpdateAvailable -and (-not [string]::IsNullOrWhiteSpace($global:LatestRemoteVersion))) {
+        "$(Get-Text 'LinkUpdates') (v$($global:LatestRemoteVersion))"
+    } else { Get-Text "LinkUpdates" }
 
-    $global:itemWallet.Text    = Get-Text "MenuWallet"
-    $global:itemTestAlert.Text = Get-Text "MenuTestAlert"
-    $global:itemTtfStats.Text  = Get-Text "MenuTtfStats"
-    $global:itemTutorial.Text  = Get-Text "MenuTutorial"
-    $global:itemShare.Text     = Get-Text "MenuShare"
-    $global:itemShowHide.Text  = Get-Text "MenuShowHide"
+    $global:itemPause.Text = if ($global:IsPaused) { Get-Text "MenuResume" } else { Get-Text "MenuPause" }
 
-    if ($global:IsPaused) {
-        $global:itemPause.Text = Get-Text "MenuResume"
-    } else {
-        $global:itemPause.Text = Get-Text "MenuPause"
-    }
-    if ($null -ne $pauseMenuItems[0])   { $pauseMenuItems[0].Text   = Get-Text "PauseManual" }
-    if ($null -ne $pauseMenuItems[60])  { $pauseMenuItems[60].Text  = Get-Text "Pause1h" }
-    if ($null -ne $pauseMenuItems[120]) { $pauseMenuItems[120].Text = Get-Text "Pause2h" }
-
-    $global:itemPulse1.Text = Get-Text "Pulse2h"
-    $global:itemPulse2.Text = Get-Text "Pulse4h"
-    $global:itemExit.Text   = Get-Text "MenuExit"
-
-    foreach ($lKey in $langMenuItems.Keys) {
-        $langMenuItems[$lKey].Checked = ($lKey -eq $global:Language)
+    if ($null -ne $global:tutForm -and (-not $global:tutForm.IsDisposed) -and $null -ne $script:tut_web -and $null -ne $script:tut_web.Document) {
+        try { $script:tut_web.Document.InvokeScript("setTutorialLang", @([string]$global:Language)) | Out-Null } catch {}
     }
 
+    foreach ($lKey in $langMenuItems.Keys) { $langMenuItems[$lKey].Checked = ($lKey -eq $global:Language) }
     $menu.Invalidate()
     $global:LogQueue.Enqueue("[SISTEMA] $(Get-Text 'MenuLanguage'): $LangCode")
 }
 
-# Atualizacao dinamica dos checks ao abrir o menu
 $menu.Add_Opening({
     [ObsidianMenuColors]::CurrentLangBadge  = if ($global:Language -eq "PT") { "BR" } else { $global:Language }
     [ObsidianMenuColors]::IsUpdateAvailable = $global:UpdateAvailable
-    foreach ($n in $threadItems.Keys) {
-        $threadItems[$n].Checked = ($n -eq $global:CurrentThreads)
-    }
+    $global:itemCopyShareLink.Text          = Get-Text "MenuCopyLink"
+    foreach ($n in $threadItems.Keys) { $threadItems[$n].Checked = ($n -eq $global:CurrentThreads) }
     Update-StartupMenuChecks
-    $global:itemSoundKMS.Checked   = ($global:SoundFileName -eq $global:SoundFileKMS)
-    $global:itemSoundSenna.Checked = ($global:SoundFileName -eq $global:SoundFileSenna)
-    $global:itemSoundMforN.Checked = ($global:SoundFileName -eq $global:SoundFileMforN)
-    $global:itemSoundCoins.Checked = ($global:SoundFileName -eq $global:SoundFileCoins)
-    $global:itemPulse1.Checked     = ($global:PulseMode -eq "2hx5")
-    $global:itemPulse2.Checked     = ($global:PulseMode -eq "4hx5")
-    foreach ($lKey in $langMenuItems.Keys) {
-        $langMenuItems[$lKey].Checked = ($lKey -eq $global:Language)
-    }
+    $global:itemDesktopIcon.Checked = (Test-DesktopShortcutExists)
+    $global:itemSoundKMS.Checked    = ($global:SoundFileName -eq $global:SoundFileKMS)
+    $global:itemSoundSenna.Checked  = ($global:SoundFileName -eq $global:SoundFileSenna)
+    $global:itemSoundMforN.Checked  = ($global:SoundFileName -eq $global:SoundFileMforN)
+    $global:itemSoundCoins.Checked  = ($global:SoundFileName -eq $global:SoundFileCoins)
+    $global:itemPulse1.Checked      = ($global:PulseMode -eq "2hx5")
+    $global:itemPulse2.Checked      = ($global:PulseMode -eq "4hx5")
+    foreach ($lKey in $langMenuItems.Keys) { $langMenuItems[$lKey].Checked = ($lKey -eq $global:Language) }
 })
 
 $global:notifyIcon.ContextMenuStrip = $menu
 
 # ============================================================
-# TIMERS DE INICIO, PRECO, CHECAGEM DE VERSAO E LEITURA PRINCIPAL
+# TIMERS DE INICIO, PRECO, CHECAGEM DE VERSAO, BLOCO SOLO E LEITURA
 # ============================================================
 Initialize-CpuDetection
 
@@ -3268,43 +2720,38 @@ $startTimer.Interval = [Math]::Max(1, $global:StartupDelaySeconds) * 1000
 $startTimer.Add_Tick({
     $startTimer.Stop()
     Start-MinerTask $global:DefaultThreads
-    if ((-not $global:IsPaused) -and (Test-WalletConfigured)) { 
-        $global:notifyIcon.Text = "$($global:ShortVersion)" + [Environment]::NewLine + "$($global:DefaultThreads) Threads | $(Get-Text 'TrayCalculating')" 
+    if ((-not $global:IsPaused) -and (Test-WalletConfigured)) {
+        $global:notifyIcon.Text = "$($global:ShortVersion)" + [Environment]::NewLine + "$($global:DefaultThreads) Threads | $(Get-Text 'TrayCalculating')"
     }
 })
 $startTimer.Start()
 
 $btcTimer = New-Object System.Windows.Forms.Timer
-$btcTimer.Interval = 60000 # 60 segundos exatos
+$btcTimer.Interval = 60000
 $btcTimer.Add_Tick({ Update-BtcPrice })
 $btcTimer.Start()
-Update-BtcPrice # Dispara imediatamente na primeira abertura
+Update-BtcPrice
 
-# Timer de Checagem Silenciosa de Atualizacao (1a checagem 3s apos abrir e depois a cada 6 horas)
 $updateCheckTimer = New-Object System.Windows.Forms.Timer
 $updateCheckTimer.Interval = 3000
-$updateCheckTimer.Add_Tick({
-    $updateCheckTimer.Interval = 21600000 # 6 horas
-    Check-MinerUpdate
-})
+$updateCheckTimer.Add_Tick({ $updateCheckTimer.Interval = 21600000; Check-MinerUpdate })
 $updateCheckTimer.Start()
+
+$soloBlockTimer = New-Object System.Windows.Forms.Timer
+$soloBlockTimer.Interval = 10000
+$soloBlockTimer.Add_Tick({ $soloBlockTimer.Interval = 21600000; Check-LastSoloBlock })
+$soloBlockTimer.Start()
 
 $timer = New-Object System.Windows.Forms.Timer
 $timer.Interval = 300
 $timer.Add_Tick({
     try {
-        # 1. Verifica se ha pausa temporizada (ou pausa termica do Pulsar) para retomar automaticamente
         if ($global:IsPaused) {
-            if (($null -ne $global:PauseResumeAt) -and ((Get-Date) -ge ($global:PauseResumeAt))) {
-                Invoke-ResumeMining $true
-            }
-        }
-        # 2. Se estiver minerando ativo e com Modo Pulsar habilitado, verifica se chegou a hora da pausa termica
-        elseif (($global:PulseMode -ne "") -and ($null -ne $global:PulseNextSwitch) -and ((Get-Date) -ge ($global:PulseNextSwitch))) {
+            if (($null -ne $global:PauseResumeAt) -and ((Get-Date) -ge ($global:PauseResumeAt))) { Invoke-ResumeMining $true }
+        } elseif (($global:PulseMode -ne "") -and ($null -ne $global:PulseNextSwitch) -and ((Get-Date) -ge ($global:PulseNextSwitch))) {
             if (($null -ne $global:CurrentProc) -and (-not $global:CurrentProc.HasExited)) {
                 Suspend-MinerProcess
-                $global:IsPaused = $true
-                $global:itemPause.Text = Get-Text "MenuResume"
+                $global:IsPaused = $true; $global:itemPause.Text = Get-Text "MenuResume"
                 $global:PulseNextSwitch = (Get-Date).AddMinutes($global:PulsePauseMins)
                 $global:PauseResumeAt = $global:PulseNextSwitch
                 $resumeStr = $global:PulseNextSwitch.ToString("HH:mm")
@@ -3315,115 +2762,77 @@ $timer.Add_Tick({
 
         $events = Get-Event -SourceIdentifier "MinerOut" -ErrorAction SilentlyContinue
         $events += Get-Event -SourceIdentifier "MinerErr" -ErrorAction SilentlyContinue
-        
         foreach ($e in $events) {
             $line = $e.SourceEventArgs.Data
             Remove-Event -EventIdentifier $e.EventIdentifier -ErrorAction SilentlyContinue
-            
             if ([string]::IsNullOrWhiteSpace($line)) { continue }
             $line = [regex]::Replace($line, "\x1B\x5B[0-9;?]*[a-zA-Z]", "")
-            
             $global:LogQueue.Enqueue($line)
-            
             if ($line -match "(?i)yay" -or $line -match "S\d+\s+R\d+\s+B[1-9]" -or ($line -match "(?i)block" -and $line -match "(?i)found")) {
                 $global:BlockFoundLine = $line
             }
         }
 
-        $line = ""
-        $added = $false
+        $line = ""; $added = $false
         while ($global:LogQueue.TryDequeue([ref]$line)) {
             $global:RecentLines.Enqueue($line)
             while ($global:RecentLines.Count -gt 15) { $global:RecentLines.Dequeue() | Out-Null }
 
-            # Captura automaticamente a altura atual do Bloco da rede Bitcoin recebida via Stratum
-            if ($line -match "Block\s+(\d{6,7})\b") {
-                $bNum = [int]$Matches[1]
-                if ($bNum -gt $global:CurrentBlockHeight) {
-                    $global:CurrentBlockHeight = $bNum
-                    Save-MinerConfig
-                }
+            if ($line -match "Block\s+(\d{6,7})\b" -and ([int]$Matches[1] -gt $global:CurrentBlockHeight)) {
+                $global:CurrentBlockHeight = [int]$Matches[1]; Save-MinerConfig
             }
 
             if ($line -match "TTF @\s*([\d.,]+\s*\S+/s):\s*Block\s*([^,]+),\s*Share\s*(.+?)\s*$") {
-                $hr = $Matches[1]
-                $ttfBlock = $Matches[2].Trim()
-                $ttfShare = $Matches[3].Trim()
-                
-                # Tooltip limpo na tela
+                $hr = $Matches[1]; $ttfBlock = $Matches[2].Trim(); $ttfShare = $Matches[3].Trim()
                 if ((-not $global:IsPaused) -and (Test-WalletConfigured)) {
-                    if ($global:PulseMode -ne "") {
-                        $global:notifyIcon.Text = "$($global:ShortVersion) ($($global:PulseMode))" + [Environment]::NewLine + "$($global:CurrentThreads) Threads | $hr"
-                    } else {
-                        $global:notifyIcon.Text = "$($global:ShortVersion)" + [Environment]::NewLine + "$($global:CurrentThreads) Threads | $hr"
-                    }
+                    $pBadge = if ($global:PulseMode -ne "") { " ($($global:PulseMode))" } else { "" }
+                    $global:notifyIcon.Text = "$($global:ShortVersion)$pBadge" + [Environment]::NewLine + "$($global:CurrentThreads) Threads | $hr"
                 }
-
-                # Registra no log de TTF apenas apos os 60s de estabilizacao da partida/retomada
                 if ((Get-Date) -ge $global:TtfLogAllowedAt) {
                     $dias = Convert-TtfToDays $ttfBlock
                     if ($null -ne $dias) {
-                        # Filtro Inteligente: Busca o limite de dias baseado nos threads atuais
-                        $limiteDias = $global:TtfThresholds[$global:CurrentThreads]
-                        if ($null -eq $limiteDias) { $limiteDias = 365 } # Seguranca
-                        
+                        $limiteDias = if ($null -ne $global:TtfThresholds[$global:CurrentThreads]) { $global:TtfThresholds[$global:CurrentThreads] } else { 365 }
                         if (($dias -lt $limiteDias) -and ($ttfBlock -ne $global:LastTtfLogged)) {
                             $global:LastTtfLogged = $ttfBlock
                             $stamp = Get-Date -Format 'yyyy-MM-dd HH:mm:ss'
-                            $ttfEntry = "[$stamp] Threads: $($global:CurrentThreads) | Hashrate: $hr | TTF Bloco: $ttfBlock | TTF Share: $ttfShare | Linha: $line"
-                            $ttfEntry | Out-File -FilePath $global:TtfLogFile -Append -Encoding utf8
+                            "[$stamp] Threads: $($global:CurrentThreads) | Hashrate: $hr | TTF Bloco: $ttfBlock | TTF Share: $ttfShare | Linha: $line" | Out-File -FilePath $global:TtfLogFile -Append -Encoding utf8
                             try { Copy-Item -LiteralPath $global:TtfLogFile -Destination $global:BackupTtfLogFile -Force -ErrorAction SilentlyContinue } catch {}
                         }
                     }
                 }
             }
 
-            $global:logBox.SelectionStart = $global:logBox.TextLength
-            $global:logBox.SelectionLength = 0
-            if ($line -match "(?i)accepted")         { $global:logBox.SelectionColor = [System.Drawing.Color]::LimeGreen }
-            elseif ($line -match "(?i)rejected")     { $global:logBox.SelectionColor = [System.Drawing.Color]::Red }
-            elseif ($line -match "(?i)yay|B[1-9]")   { $global:logBox.SelectionColor = [System.Drawing.Color]::Gold }
-            elseif ($line -match "\x5BSISTEMA\x5D")  { $global:logBox.SelectionColor = [System.Drawing.Color]::Cyan }
-            else                                     { $global:logBox.SelectionColor = [System.Drawing.Color]::DarkGray }
+            $global:logBox.SelectionStart = $global:logBox.TextLength; $global:logBox.SelectionLength = 0
+            $global:logBox.SelectionColor = if ($line -match "(?i)accepted") { [System.Drawing.Color]::LimeGreen }
+                elseif ($line -match "(?i)rejected")    { [System.Drawing.Color]::Red }
+                elseif ($line -match "(?i)yay|B[1-9]")  { [System.Drawing.Color]::Gold }
+                elseif ($line -match "\x5BSISTEMA\x5D") { [System.Drawing.Color]::Cyan }
+                else                                    { [System.Drawing.Color]::DarkGray }
             $global:logBox.AppendText($line + [Environment]::NewLine)
             $added = $true
         }
 
-        # Limpeza de memoria preservando o cabecalho inicial em Ciano e as cores RTF de cada linha
         if ($global:logBox.TextLength -gt 300000) {
-            $headerEnd = 0
-            if ($global:logBox.Lines.Count -gt 5) {
-                $headerEnd = $global:logBox.GetFirstCharIndexFromLine(5)
-            }
-            if ($headerEnd -lt 0) { $headerEnd = 0 }
+            $headerEnd = if ($global:logBox.Lines.Count -gt 5) { [Math]::Max(0, $global:logBox.GetFirstCharIndexFromLine(5)) } else { 0 }
             $global:logBox.ReadOnly = $false
-            $global:logBox.Select($headerEnd, 100000)
-            $global:logBox.SelectedText = ""
-            $global:logBox.ReadOnly = $true
-            $global:logBox.SelectionStart = $global:logBox.TextLength
+            $global:logBox.Select($headerEnd, 100000); $global:logBox.SelectedText = ""
+            $global:logBox.ReadOnly = $true; $global:logBox.SelectionStart = $global:logBox.TextLength
         }
         if (($added) -and ($global:Visible)) {
-            $global:logBox.SelectionStart = $global:logBox.TextLength
-            $global:logBox.ScrollToCaret()
-            $global:logScrollBar.Invalidate()
+            $global:logBox.SelectionStart = $global:logBox.TextLength; $global:logBox.ScrollToCaret(); $global:logScrollBar.Invalidate()
         }
 
         if (($global:CurrentProc) -and ($global:CurrentProc.HasExited) -and (-not ($global:StopRequested)) -and (-not ($global:CrashNotified))) {
-            $global:CrashNotified = $true
-            $code = $global:CurrentProc.ExitCode
+            $global:CrashNotified = $true; $code = $global:CurrentProc.ExitCode
             $global:LogQueue.Enqueue("[SISTEMA] ATENCAO: o miner encerrou sozinho (codigo $code). Reiniciando em 15s...")
-            $global:notifyIcon.ShowBalloonTip(8000, "MinerIsma", "O miner encerrou (codigo $code). Veja a janela/log para detalhes. Reiniciando em 15s.", [System.Windows.Forms.ToolTipIcon]::Warning)
+            $global:notifyIcon.ShowBalloonTip(8000, "$($global:ShortVersion)", "O miner encerrou (codigo $code). Veja a janela/log para detalhes. Reiniciando em 15s.", [System.Windows.Forms.ToolTipIcon]::Warning)
             $global:RestartAt = (Get-Date).AddSeconds(15)
         }
         if (($global:RestartAt) -and ((Get-Date) -ge ($global:RestartAt))) {
-            $global:RestartAt = $null
-            Start-MinerTask $global:CurrentThreads
+            $global:RestartAt = $null; Start-MinerTask $global:CurrentThreads
         }
-
         if ($global:BlockFoundLine) {
-            $bLine = $global:BlockFoundLine
-            $global:BlockFoundLine = $null
-            Invoke-BlockAlert $bLine
+            $bLine = $global:BlockFoundLine; $global:BlockFoundLine = $null; Invoke-BlockAlert $bLine
         }
     } catch {}
 })
