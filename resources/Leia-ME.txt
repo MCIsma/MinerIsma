@@ -1,0 +1,345 @@
+Bitcoin, 11 de Novembro de 2026
+ 
+ 
+   *  MinerIsma: Mineração Solo de Bitcoin ao estilo "Lottery"  *
+              Tutorial para Windows - MinerIsma_v2.1.2
+ 
+→ MinerIsma é um gerenciador grátis, fácil e inclusivo à Mineração Cripto.	
+  • Dá remota possibilidade de descobrir um Bloco BTC, $ valendo muito $;
+  • Usa o incrível, auditado e seguro motor minerador cpuminer-opt de JayDDee;
+  • Não há frações pagas, deixe rodando e com Sorte quebre um Bloco Bitcoin.	-
+ 
+→ Em Documentos crie a pasta MINER e no Antivírus crie uma EXCEÇÃO para ela.
+  • Não é malware, mineradores são alvo de preconceito. O Código é aberto!
+  •"Carros já foram proibidos em Birmingham-UK, pois os bandidos usavam".
+  • No Windows: Segurança do Windows > Proteção contra vírus e ameaças >
+  Gerenciar configurações > Exclusões > Adicionar ou remover exclusões.
+  • Faça isso também no Antivírus, e após baixar o "MinerIsma_v2.X.X.exe"	-
+ 
+→ Baixe "MinerIsma_v2.X.X.exe" para pasta MINER em Documentos, e Execute.	-
+  • Se o Windows "proteger", → "Mais informações" e "Execute assim mesmo";
+  • A pasta 'BTC_MinerIsma' é criada, o programa inicia: insira sua carteira;
+  • Após 1ª vez, o MinerIsma inicia junto do S.O. oculto com ícone no Tray;
+→ Atualizando Versão: Apenas baixe/execute Nova versão na mesma pasta MINER.
+ 
+→ Em Carteira necessária, insira seu endereço BTC. Ou mude no ícone no tray.
+  • Se não possuir uma, baixe a Blue Wallet no link, é boa e fácil;
+  • Guarde BEM as 12 palavras, Papel e Caneta! Nada de Foto ou Notas;
+  • Tudo minúscula, não erre, confira 2x, não pronuncie as palavras;
+  • Em 'Receber' na Blue Wallet, Copie o seu novo Endereço Bitcoin;
+  → Volte no MinerIsma, insira o Endereço da Carteira, o Trabalhador, e Salve.	-
+  
+→ Acesse com botão direito, no ícone na seta do Tray, ao lado do relógio;
+  • Lá, explore configurações, monitoramento, aprendizado e curiosidades.
+  • Não recomendo aqui produtos ou investimentos, é apenas aprendizado.
+  • Os links anexos são apenas minhas experiências agradáveis, de meu uso.
+  • Ajuste Delay do Miner para carregar o S.O. e internet antes do Miner.
+  • O processo de mineração requer internet, mas o consumo é irrisório."
+  
+→ Use MinerIsma por sua conta e risco! Pode superaquecer, e gasta energia.
+→ Usando opção de mais threads da CPU, teste acompanhando a temperatura.
+  • Em Notebooks use na rede elétrica, menos threads, boa ventilação e Pulsar.
+  • Pause mineração no ícone/Tray, quando há outra grande demanda no Pc.
+  • Modo Pulsar: Mecanismo termoeficiente para quando usar mais threads.
+  • Modo Avançado: Maior Risco! Customize apenas com conhecimento avançado.	-
+  
+→ Não há garantia de Prêmio, aliás, é bem improvável. Mas possível. Fé! $
+  • É como um bilhete de loteria a cada ~10min! $$, mas contra milhares;
+  • Se milhões de cálculos casar a Hash do Pc, libera novo Bloco na Rede$
+  • Não há garantia de Aviso efetivo, verifique sua Carteira com o tempo;
+  
+→ Muito além do Prêmio: Rodar um Miner de Bitcoin é um ato libertário! 
+  • Você fortalece a descentralização financeira, contra opressão mundial.
+  • O Bitcoin foi idealizado por Satoshi Nakamoto, para trazer liberdade.
+ 
+→ "Se você tem menos de 40 anos, o Bitcoin é seu novo Ouro", Kevin Warsh.
+  • Libertário e Seguro, é um dos maiores ativos do planeta, pense Bitcoin.	-
+  • Evolua na Mineração, use sua GPU e ganhe em Bitcoin com a Kryptex $$
+ 
+→ Ganhou? Apoie, Doe Bitcoin: bc1qy2wuwjz0c5hcw4r835erf9w7kjz9kmzprvgd7m
+  • Suporte MinerIsma: 	emcis77@proton.me	
+  • Motor cpuminer-opt: https://github.com/jayddee/cpuminer-opt/releases
+  • Doações ao 'motor' cpuminer: BTC: 12tdvfF7KmAsihBXQXynT6E6th2c2pByTT
+ 
+→ Últimas Versões (MinerIsma fase Alpha): Atualizações: Links 1 e 2 opção:
+  • Link 1:  https://drive.proton.me/urls/WF022MG27W#YknkVYHMQO4w
+  • Link 2 Op.:  https://mega.nz/folder/1pEAyJRB#ZsvFzL9K-00y0iPqmwc8mQ
+  • Contém, Motor cpuminer-opt-26.1 e Gerenciador MinerIsma v2.1.2 - 11/2026.
+  • Desenvolvimento MinerIsma no GitHub: https://github.com/MCIsma/MinerIsma
+ 										→ Registro Blockchain...
+===============================================================================
+MinerIsma v2.1.2 Alpha - MinerManager.ps1 - Gerenciador Miner Solo BTC Tray Icon
+===============================================================================
+  PROOF OF EXISTENCE / PRIOR ART RECORD / INTELLECTUAL PROPERTY REGISTRATION
+-------------------------------------------------------------------------------
+Registered Previous Version : MinerIsma_v2.1.1.exe - Consolidated File Hex Hash:
+ (0x)6BBA5A122318F581CEB820C72C26AD03D2295B2226B98B29F1DC26C5A29C70CC
+Blockchain Network Polygon Mainnet / Ethereum Mainnet - Transaction ID:
+polygonscan: 0xda0aed37e52cde8a3fbb6d59f6f091d931384a7923068f5e7f5ec7e701fa161c 
+Subscriber Wallet copyright holders: 0xF72C0Ee272eEf5c52018dA877ED2EF61c9434015
+Copyright (c) MCIsma /2026 GNU General Public License v3.0 - resources\LICENSE⚖️
+Algoritmo Hash: SHA-256 (Get-FileHash) Timestamp: 2026-11-07 23:42 UCT-03 LOCAL
+Technical Note: Each record attests to the integrity and precedence of the
+complete package corresponding to the immediately preceding Consolidated Version
+A detailed version history is available at: resources\RELEASE_NOTES.md.
+================================================================================
+================================================================================
+ → Gostou? Apoie, Doe:
+================================================================================
+Inserir QRcodes "QRcode-LNURL-BTC_On-EVM-1800x580_450dpi.png" aqui:
+
+
+
+
+
+
+
+
+
+
+================================================================================
+
+
+ 
+ 
+⠀⠀⠀⠀⣿⡇⠀⢸⣿⡇⠀⠀⠀⠀
+⠸⠿⣿⣿⣿⡿⠿⠿⣿⣿⣿⣶⣄⠀
+⠀⠀⢸⣿⣿⡇⠀⠀⠀⠈⣿⣿⣿⣿
+⠀⠀⢸⣿⣿⡇⠀⠀⢀⣠⣿⣿⣿⠟
+⠀⠀⢸⣿⣿⡿⠿⠿⠿⣿⣿⣥⣄⠀
+⠀⠀⢸⣿⣿⡇⠀⠀⠀⠀⢻⣿⣿⣧
+⠀⠀⢸⣿⣿⡇⠀⠀⠀⠀⣼⣿⣿⣿
+⢰⣶⣿⣿⣿⣷⣶⣶⣾⣿⣿⠿⠟⠀
+⠀⠀⠀⠀⣿⡇⠀⢸⣿⡇⠀⠀⠀⠀
+ 
+ 
+   Boa mineração!
+ 
+ 
+================================================================================
+
+   ↓ CÓPIA DE README em BR ↓
+
+================================================================================
+
+---
+
+# README em Português BR
+
+---
+
+## **MinerIsma é um gerenciador grátis, fácil e inclusivo à Mineração Solo de Bitcoin ao estilo Lottery.**
+
+O **MinerIsma** foi desenvolvido para transformar qualquer computador com Windows 10/11 em um nó participante da mineração solo de Bitcoin. Operando de forma discreta a partir da bandeja do sistema (*System Tray*), ele automatiza o gerenciamento de afinidade de CPU, controle térmico e monitoramento de blocos sem interferir na usabilidade do seu computador.
+
+---
+
+## ⚡ Transparência, Segurança e Código Aberto
+
+- **Não é malware, mineradores são alvo de preconceito. O Código é aberto!**  
+  Devido à natureza dos algoritmos de mineração criptográfica, softwares antivírus e o Windows Defender frequentemente emitem alertas de "falso positivo" (PUP/CoinMiner). Todo o código do MinerIsma e seus motores são transparentes, auditável e distribuído sob licença livre **GNU General Public License v3.0 (GPLv3)**.
+- **Motor Seguro e Auditado:**  
+  O aplicativo utiliza como motor de computação o consagrado e auditado **`cpuminer-opt` (v26.1) desenvolvido ou otimizado por JayDDee**, com código aberto e ampla confiabilidade na comunidade cripto.
+- **Registro Imutável em Blockchain:**  
+  A integridade e autoria da base do código possuem registro oficial de propriedade intelectual e prova de existência gravados em Blockchain, nas redes **Polygon Mainnet** ou **Ethereum Mainnet**, com Transações perpétuas sempre assinadas pelos Detentores de direitos autorais Wallet EVM: 0xF72C0Ee272eEf5c52018dA877ED2EF61c9434015.
+
+---
+
+## ⚠️ Aviso de Responsabilidade (Disclaimer)
+
+> **Use o minerador por sua conta e risco! Pode superaquecer seu Pc, e aumenta o consumo de energia.**
+
+- A mineração com processador exige uso contínuo de hardware:
+    - Certifique-se de que o sistema de arrefecimento (ventoinhas/coolers e pasta térmica) do seu Pc esteja em bom estado.
+- Esteja ciente do impacto no consumo de energia elétrica da sua residência ou escritório.
+- Utilize os recursos integrados de **Perfis de Energia**, e o **Modo Pulsar** para manter as temperaturas sempre em níveis seguros. Todos os níveis de potência pré configurados são seguros, controlados e testados, mas requer monitoramento especial, e observação dedicada, pois pode funcionar diferente em cada Pc.
+- A utilização de configurações customizadas do Modo Avançado pode trazer ainda mais riscos, desestabilizar o funcionamento do Pc. Use por sua conta e risco, apenas se você tiver conhecimento avançado. É desaconselhado o uso de Modo Avançado em Notebook.
+- Os diversos tópicos contidos no MinerIsma são exclusivamente para fins educativos, não é recomendação ou venda de produtos, serviços ou investimentos!
+- Não há ganhos recorrentes de frações de Bitcoin, nem mesmo a garantia de sucesso, é apenas *Tentar a Sorte*
+    - Existe uma possibilidade muito infimamente remota de descobrir um Bloco de Bitcoin a cada ~10min., é um bilhete de Loteria com chances quase improváveis contra milhares de outros, mas sorte é sorte!
+
+---
+
+## 💻 Requisitos do Sistema
+
+- **Sistema Operacional:** Windows 10 ou Windows 11 (64 bits). Processadores de 32 bits **não** são suportados.
+- **Processador (CPU):** Qualquer processador x86-64 com suporte a instruções modernas (detecção automática para SSE2, AVX, AVX2, AVX-512, SHA e VAES).
+- **Carteira de Bitcoin:** É necessário possuir um endereço de carteira Bitcoin válido (SegWit nativo `bc1...`, Legacy ou Taproot) para onde o prêmio do bloco (3.125 BTC) será direcionado caso você encontre a solução.
+- **Conexão com a Internet:** Acesso estável à rede para comunicação com a pool via protocolo Stratum. Mas o consumo de banda é extremamente baixo.
+- **Fé e Constância:** Não adianta você rodar o **MinerIsma** *no máximo* durante uma hora ou uma semana pensando em ganhar uma grana e parar ou desistir tão rápido. A *Mineração Solo Lottery* é um processo de perseverança, persistência e paciência, pega leve e deixe rodando! Enquanto isso, aproveite os links e Aprenda Bitcoin.
+
+---
+
+## 🚀 Principais Funcionalidades
+
+- **Exposição à Sorte** O **MinerIsma** gerencia a execução do melhor motor de mineração com CPU para o algoritimo SHA256 do Bitcoin, o **cpuminer-opt**, e te dá a possibilidade (quase improvável mas possível), de seu processador calcular e *casar* a Hash de um Bloco, desbloqueando o *Nascimento* de **3.125BTC** que vem ao mundo direto para sua carteira! Lembre de nós se isso acontecer com você 🙌
+- **Operação Silenciosa no Tray:** Fica minimizado ao lado do relógio do Windows, sem janelas invasivas ou ações intrusívas. Feito para trabalhar calma e constantemente, todos os dias discretamente tentando te fazer mais rico, sem nenhuma ação necessária, exceto observância da temperatura do Pc nos primeiros dias e no verão. Encontre a potência de equilíbrio.
+- **Detecção Inteligente de CPU:** Identifica se o chip é AMD ou Intel e escolhe dinamicamente o executável otimizado com o melhor conjunto de instruções.
+- **Perfis Dinâmicos de Afinidade:** Distribui a carga entre threads lógicas com máscaras hexadecimais balanceadas (~10% a ~50% de uso), evitando congelamentos do sistema, e ampliando o desempenho da mineração.
+- **Modo Pulsar (Ciclos Térmicos):** Alterne automaticamente entre períodos de mineração intensa e pausas de alívio de 5 minutos (modos `2hx5` e `4hx5`). Essa função inteligente também contribui para a restauração de memória RAM para uso do S.O. quando há algum consumo de RAM na mineração, embora normalmente esse consumo não ocorra.
+- **Alerta de Bloco Encontrado:** Sistema audiovisual com suporte a captura de tela comprobatória e registro detalhado no log em caso de sucesso, com possibilidade de testes e customisação de avisos.
+- **Painel de Sorte (TTF):** Estatísticas em tempo real com estimativa média de tempo até um bloco (*Time to Find*), contagem regressiva para o Halving e consulta do último Bloco Solo minerado na rede global.
+- **Interface Multilíngue e Temas:** Suporte dinâmico a Português (BR), Inglês (EN) e Espanhol (ES), com temas Obsidian (Dark) e Pearl (Light).
+- **Conteúdo Educativo e Útil:** Links de conteúdos para aprendizado sobre Dinheiro, Bitcoin e Liberdade, Criptoativos, Mercado Financeiro, Custódia, Segurança e Privacidade, além de Cotação Bitcoin em Tempo Real.
+- **Portabilidade:** O **MinerIsma** é totalmente portátil, funcina em qualquer pasta do Windows, até mesmo em dispositivos externos, **MinerIsma** é inteligente, acessível, inclusivo e adaptadivo.
+
+---
+
+## 📥 Onde Baixar (Fontes Oficiais)
+
+O pacote oficial **`MinerIsma_v2.x.x.exe`** está disponível gratuitamente **somente** nos canais listados abaixo. **Não confie em outras fontes ou executáveis redistribuídos por terceiros!**
+
+- 🔗 **Link 1 (Proton Drive):** [Baixar Pacote Oficial](https://drive.proton.me/urls/WF022MG27W#YknkVYHMQO4w)
+- 🔗 **Link 2 (Mega.nz - Op.):** [Espelho de Download no Mega](https://mega.nz/folder/1pEAyJRB#ZsvFzL9K-00y0iPqmwc8mQ)
+- 🔗 **Link 3 (GitHub Releases):** [Repositório Oficial no GitHub](https://github.com/MCIsma/MinerIsma/releases/tag/v2.1.2)
+
+---
+
+## 🛠️ Como Iniciar
+
+1. Crie uma pasta com nome **MINER** em Documentos.
+2. Baixe o executável oficial **`MinerIsma_v2.x.x.exe`** direto para essa pasta **MINER** em Documentos.
+3. Adicione a pasta às exclusões do Windows Defender para evitar bloqueio automático do programa de mineração.
+        - Veja como fazer isso no mini-tutorial Configurações Antivírus abaixo.
+4. Execute o **`MinerIsma_v2.x.x.exe`** pela primeira vez:
+        - Se o Windows "proteger", → "Mais informações" e "Execute assim mesmo";
+        - Uma pasta "BTC_MinerIsma" será criada e o Miner iniciará automaticamente.
+> **Execute **`START_MinerIsma.exe`**, somente caso o Miner se feche ou não inicia junto com o sistema.**
+5. Uma janela se abrirá solicitando sua carteira Bitcoin, insira a carteira, ou providencie uma no link.
+        - Se precisar, acesse o MInerIsma com o direito no ícone na bandeja do sistema, junto ao relógio.
+        - Em **Painel do Minerador** ➔ **Sua Carteira Bitcoin** e insira seu endereço de Bitcoin,
+        - E no Trabalhador (*Worker*), insira algo como "PCGamer", e Salve. (Isso só é necessário uma única vez) 
+        - Pronto! Seu computador já está concorrendo na loteria da rede Bitcoin!
+
+### 🛡️ Mini-tutorial Configurações Antivírus - Adicione Exceção
+
+> *Não é malware, não há vírus! Mineradores são alvo de preconceito. O Código é aberto!*
+(*Carros já foram proibidos em Birmingham-UK, pois eram usados por bandidos em seus roubos*)
+#### Configure:
+
+1. No Windows: 
+    - Segurança do Windows → Proteção contra vírus e ameaças → Gerenciar configurações → Exclusões 
+    - Adicionar ou remover exclusões: Crie uma exceção para a nova pasta **MINER** criada.
+
+2. No Antivírus: Cada Antivírus é de um jeito, mas normalmente, procure por algo assim:
+    - Menu → Configurações → Exceções/Exclusões → Adicionar Exceção → Arquivo/Pasta
+    - Navegue até a pasta **MINER** criada em Documentos, seleciona ou tica e Ok.
+    - Após baixar o **MinerIsma_v2.x.x.exe** na pasta **MINER**, faça Exceção igua para ele.
+
+---
+
+## 📝 Caso não possua uma carteira Bitcoin, sigas esses passos:
+
+Baixe a **Blue Wallet**, é boa, gratuita e fácil: (https://bluewallet.io)
+
+1. Crie uma Nova Carteira Simples e Poderosa, em mais (+);
+2. Guarde BEM as 12 palavras, Papel e Caneta! Nada de Foto ou Notas, isso é sério;
+    - Tudo minúscula, não erre, confira 2x, não pronuncie as palavras, agora confira novamente;
+    - Atenção: De novo, guarde BEM as 12 palavras, Papel e Caneta! Nada de Foto ou Notas;
+    - Apenas essas 12 palavras garante o acesso ao seu dinheiro, se perder, não há com quem reclamar!
+3. Em 'Receber' na **Blue Wallet**, Copie o seu novo Endereço Bitcoin;
+    - Volte ao **MinerIsma**, lá no passo 5.
+
+---
+
+## ⛏️ Como usar:
+
+Acesse todas as Funções do **MinerIsma**, com o botão Direito do Mouse, no Ícone no Tray (ao lado do relógio).
+    - Escola o idioma, **Modo Claro/Escuro**, e veja a **Cotão Bitcoin** no Topo do Menu do ícone no tray;
+    - Mantenha "Iniciar com Windows" habilitado, mineração de Bitcoin é um **ato de fé constante**. 
+        - Escolha o **delay** para sua internet e Windows carregar antes do Miner, o "Padrão" é 5 segundos;
+    - Escolha "Mostrar / Ocultar Miner" para ver o Console do Minerador, é onde tudo acontece de fato.
+    - Em "Pausar/Retomar Mineracao" escolha tempo necessário para tarefas de alta demanda do Pc, depois volta a mineração,
+        - Escolha Pulsar para Pausas Térmicas de 5min. após 2 ou 4 horas de mineração. Isso também otmiza a RAM.
+    - Escolha o perfil de potência desejado no menu **Power**, são perfis seguros para manter seu Pc em atividade fluida mesmo durante a mineração.
+        - Observe a Temperatura do Pc, ou barulho da ventuínha, por um período de tempo e também dutante o verão, para encontrar a potência de equilíbrio para a sua máquina, conforto, e seu perfil de usuário.
+        - Em Notebook use somente conectado a energia. Escolha menos threads e Modo Pulsar, o arrefecimento nesses aparelhos sempre é deficitário. Não use o Modo Avançado em Notebook.
+    - Explore funções interessantes: "Testar Alerta de Bloco", "Estatística: Sua Sorte" e "Seu Miner na Pool".
+    - Aprenda sobre Bitcoin, Criptomoeda, Blockchain, Liberdade Financeira, Custódia e Privacidade com dezenas de links úteis.
+        - Não recomendo aqui produtos ou investimentos, é apenas aprendizado.
+    - Use o botão "Compartilhar MinerIsma" para copiar o link e indicar o **MinerIsma** para seus amigos, quem sabe um deles fica rico e paga uma pizza para eu e você!! 🍕 *Quanto mais pessoas minerando, mais forte ficamos* 💪
+
+---
+
+## 🔄️ Atualização Fácil ⟳:
+
+ - Seu MinerIsma notificará quando houver atualização com um ícone de seta circular "⟳" aceso no topo do Menu;
+ 1. Clique o ícone ⟳ ou em **Painel do Minerador** ➔ **Atualizacoes MinerIsma**. Uma página para Download se abrirá;
+ 2. Baixe o novo arquivo **`MinerIsma_v2.x.x.exe`** para a mesma pasta MINER criada anteriormente em Documentos;
+ 3. Execute o **`MinerIsma_v2.x.x.exe`**, o MinerIsma antigo será substituído automaticamente pelo novo;
+    - Se o Windows "proteger", → "Mais informações" e "Execute assim mesmo";
+    - Suas configurações estarão a salvo e restabelecidas, o Miner reiniciara automaticamente.
+
+---
+
+## 🗂️ Arquivos que compões o MinerIsma, em sua Pasta Raiz "BTC_MinerIsma", TODOS em sua Estrutura:
+
+- Pasta MINER ou Documentos (Pasta de Sugerida/Download no Pc do Usuário)
+    - MinerIsma_v2.X.X.exe (Arquivo .exe SFX → Gera a pasta "BTC_MinerIsma" portátil no Pc do usuário)
+        - Pasta BTC_MinerIsma  (Pasta gerada a partir do executável MinerIsma_v2.X.X.exe) 
+            - START_MinerIsma.exe (Lançador, antigo .bat, inicia com Windows, e para início eventual pelo usuário)
+            - README.md (Sobre/Registro/Licença/Resumo/Funções/Disclamer/Estrutura)
+            - Pasta "bin" (Conteúdo do cpuminer-opt)
+                - 8 arquivos cpuminer...exe
+                - 5 arquivos .dll
+                - 4 arquivos de Documentação do cpuminer-opt
+                - MinerManager.ps1 → Arquivo gerenciador MinerIsma
+            - Pasta "resources"
+                - Leia-ME.txt (É uma cópia do Tutorial, mais uma cópia do README só para Português)
+                - RELEASE_NOTES.md (PROOF OF EXISTENCE- Blockchain - Registro Contínuo - Atualizações)
+                - README.txt (Função de Manter Cópia de .md em resorces, .txt fácil acesso usuário)
+                - LICENSE (Licença padrão GPLv3 restringindo o uso comercial do MinerIsma de código aberto)
+                - MinerIsma AUDITORIA Motor.txt (Verificações contínuas de saúde dos arquivos anexados para SFX)
+		- QRcode-LNURL-BTC_On-EVM-1800x580_450dpi.png (Arquivo de imagem para Janela "Apóie o Projeto, Doe")
+                - iconeMinerIsmaFull4b.ico
+                - 4 arquivos .mp3 (para "alerta_de_bloco")
+                - 3 arquivos .mp3 (para "botões animados")
+                - Tutorial.html
+
+> *Não remova ou altere qualquer pasta ou arquivo, todo conteúdo é fundamental para eficiência do sistema.*
+
+### Arquivos Gerados na Utilização do MinerIsma
+  - Pasta BTC_MinerIsma (Pasta gerada a partir do executável MinerIsma_v2.X.X.exe)
+    - BLOCK_FOUND_LOG.txt (Registro de Encontro de Bloco → Eureka!)
+    - MinerIsma_Stats_2026xxxx_024xxx.png (Capturas de Telas de Opção Exclusiva do Usuário)
+    - Pasta "resources"
+        - MinerIsma_Config.json (Arquivo de gravação e leitura automática de configurações salvas)
+        - MinerIsma_TTF_LOG.txt (Arquivo de gravação e leitura de estatísticas)
+        - MinerManager_ERROS.log (Arquivo de Registro de possíveis Erros identificados)
+  → C:\Users\Your User\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Startup
+        - MinerIsma (Arquivo Atalho de inicialização automática → Opção do usuário pelo ícone do tray)
+  → C:\Users\Your User\Desktop
+        - MinerIsma (Arquivo Atalho de "START_MinerIsma.exe" → Criado por de Opção do usuário pelo ícone no tray)
+  → C:\Users\Your User\AppData\Local\MinerIsma
+        - Pasta MinerIsma (Pasta de BackUp do MinerIsma no Sistema)
+                - MinerIsma_Config.json (Arquivo de gravação e leitura de configurações salvas, de Backup)
+                - MinerIsma_TTF_LOG.txt (Arquivo de gravação e leitura de estatísticas, de BackUp)
+
+---
+
+## 🤝 Suporte e Comunidade
+
+- **E-mail de Suporte:** [emcis77\@proton.me](mailto:emcis77@proton.me)
+- **Desenvolvimento e Código:** [GitHub MCIsma/MinerIsma](https://github.com/MCIsma/MinerIsma)
+
+---
+
+## 🧡 Apoie o Projeto
+
+O MinerIsma é 100% gratuito e de código aberto. Se o projeto te ajudou, gerou aprendizado, ou se você deseja contribuir com o desenvolvimento contínuo, envie qualquer quantia para o endereço oficial:
+
+- **Bitcoin On-Chain:** `bc1qy2wuwjz0c5hcw4r835erf9w7kjz9kmzprvgd7m`
+- **Lightning Network:** `lnurl1dp68gurn8ghj7mnpd4jhxtnrda5kummn9e5k7tmvde6hymrs9a5hxmtp2alrwl` *(ou via chave isma\@coinos.io)*
+- **Redes EVM (Polygon / Base / Arbitrum / BNB):** `0xF72C0Ee272eEf5c52018dA877ED2EF61c9434015`
+
+---
+*Licenciado sob a GNU General Public License v3.0 (GPLv3).*
+
+
+
+
+
+
+
+
+

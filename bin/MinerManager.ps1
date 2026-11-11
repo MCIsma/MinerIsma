@@ -1,19 +1,18 @@
-# ============================================================================
-# MinerManager.ps1 - MinerIsma v2.1.1 - Alpha (Gerenciador Solo com Tray Icon)
-# ============================================================================
-# REGISTRO DE PROPRIEDADE INTELECTUAL EM BLOCKCHAIN (PROVA DE EXISTENCIA)
-# [REGISTRO #08 - BASE CONSOLIDADA V2.0.4 - Alpha]
-# Data do Registro : 29/10/2026
-# Autor / Carteira : 0xF72C0Ee272eEf5c52018dA877ED2EF61c9434015 (MetaMask / EVM)
-# Pacote Base (RAR): BTC_MinerIsma_v2.0.4.rar
-# Hash .rar SHA-256: (0x)D59C650C194ABD5B705A87BC3CA52AB2B0DBF898FDBDB8645893A8348FFC43E9
-# Hash .exe SHA-256: (0x)562FE5421EFF21B6D3FAC1D961AB70CE99D880ABBD4138DF4746A6302F158A4D  Registro_GitHub
-# Rede Blockchain  : Polygon Mainnet
-# Transacao (TxID) : 0xbb6f434687e9b242248304dfc50acb855df03f616c0370c582d8eb4e2e36a89b
-# Link Verificador : https://polygonscan.com/tx/0xbb6f434687e9b242248304dfc50acb855df03f616c0370c582d8eb4e2e36a89b
-# Licenca do Codigo: GNU General Public License v3.0 (GPLv3) - resources\LICENSE
-# Historico detalhado disponivel em: resources\REGISTRO_PROPRIEDADE_INTELECTUAL.txt
-# ============================================================================
+# ===============================================================================
+# MinerIsma v2.1.2 Alpha - MinerManager.ps1 Gerenciador Miner Solo BTC Tray Icon
+# ===============================================================================
+#  PROOF OF EXISTENCE / PRIOR ART RECORD / INTELLECTUAL PROPERTY REGISTRATION
+# -------------------------------------------------------------------------------
+# Registered Previous Version : MinerIsma_v2.1.1.exe (BTC_MinerIsma_v2.1.1.exe)
+# Consolidated File Hex Hash  : (0x)6BBA5A122318F581CEB820C72C26AD03D2295B2226B98B29F1DC26C5A29C70CC
+# Blockchain Network          : Polygon Mainnet / Ethereum Mainnet
+# Transaction ID (polygonscan): 0xda0aed37e52cde8a3fbb6d59f6f091d931384a7923068f5e7f5ec7e701fa161c
+# Link Verificador            : https://polygonscan.com/tx/0xda0aed37e52cde8a3fbb6d59f6f091d931384a7923068f5e7f5ec7e701fa161c
+# Subscriber Wallet (Author)  : 0xF72C0Ee272eEf5c52018dA877ED2EF61c9434015
+# Copyright (c) MCIsma / 2026 : GNU General Public License v3.0 - resources\LICENSE
+# Algoritmo Hash              : SHA-256 (Get-FileHash) | Timestamp: 2026-11-07 23:42 UTC-03
+# Historico detalhado disponivel em: resources\RELEASE_NOTES.md
+# ===============================================================================
 
 [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Tls12
 
@@ -30,7 +29,7 @@ $global:MinerExeName         = "cpuminer-avx2-sha.exe"
 $global:LauncherFileName     = "START_MinerIsma.exe"
 $global:TutorialFileName     = "Tutorial.html"
 $global:CustomIconFileName   = "iconeMinerIsmaFull4b.ico"
-$global:DonateQrFileName     = "QRcode-LNURL-BTC_On-EVM-1800x580_450dpi.png"
+$global:DonateQrFileName     = "QRcode-LNURL-BTC_On-EVM-2300x720dpi.png"
 
 $global:SoundFileKMS         = "alerta_de_bloco-KMS.mp3"
 $global:SoundFileSenna       = "alerta_de_bloco-Senna.mp3"
@@ -320,9 +319,9 @@ function Get-Text {
 Add-Type -AssemblyName System.Windows.Forms, System.Drawing, PresentationCore
 [System.Windows.Forms.Application]::EnableVisualStyles()
 
-$global:AppVersion          = "MinerIsma_v2.1.1 - Alpha"
-$global:VersionNumber       = "2.1.1"
-$global:ShortVersion        = "MinerIsma v2.1.1"
+$global:AppVersion          = "MinerIsma_v2.1.2 - Alpha"
+$global:VersionNumber       = "2.1.2"
+$global:ShortVersion        = "MinerIsma v2.1.2"
 $global:BtcSym              = [string][char]0x20BF
 $global:BoltSym             = [string][char]0x26A1
 $global:StarSym             = [string][char]0x2605
@@ -727,7 +726,7 @@ public class ObsidianMenuRenderer : ToolStripProfessionalRenderer {
 }
 "@
 
-try { [ProcCtl]::SetCurrentProcessExplicitAppUserModelID("MinerIsma.SoloMiner.v2.1.1") | Out-Null } catch {}
+try { [ProcCtl]::SetCurrentProcessExplicitAppUserModelID("MinerIsma.SoloMiner.v2.1.2") | Out-Null } catch {}
 
 # ============================================================
 # FUNCOES HELPER DE INTERFACE, TEMA E CONTROLES VISUAIS
@@ -924,20 +923,24 @@ function Set-AppTheme {
 # ============================================================
 # FALLBACK INTELIGENTE DE LINKS E CHECAGEM DE BLOCO SOLO
 # ============================================================
+function Test-InternetConnected {
+    try { return [System.Net.NetworkInformation.NetworkInterface]::GetIsNetworkAvailable() } catch { return $true }
+}
+
 function Test-UrlReachable {
     param([string]$Url)
-    if ([string]::IsNullOrWhiteSpace($Url)) { return $false }
+    if ([string]::IsNullOrWhiteSpace($Url) -or (-not (Test-InternetConnected))) { return $false }
     $cleanUrl = ($Url -replace '#.*$', '').Trim()
     $curlExe = Join-Path $env:SystemRoot "System32\curl.exe"
     if (Test-Path -LiteralPath $curlExe) {
         try {
-            $httpCode = & $curlExe -s -L -o NUL -w "%{http_code}" --max-time 3 -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/124.0.0.0" $cleanUrl 2>$null
+            $httpCode = & $curlExe -s -L -o NUL -w "%{http_code}" --connect-timeout 2 --max-time 3 -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/124.0.0.0" $cleanUrl 2>$null
             if ($httpCode -match "^(2\d\d|3\d\d)$") { return $true }
         } catch {}
     }
     try {
         $req = [System.Net.HttpWebRequest]::Create($cleanUrl)
-        $req.Method = "GET"; $req.Timeout = 2500
+        $req.Method = "GET"; $req.Timeout = 2000
         $req.UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/124.0.0.0"
         $res = $req.GetResponse(); $res.Close()
         return $true
@@ -1007,11 +1010,11 @@ function Open-LightningIntroLink { Open-FallbackUrlList @($global:UrlLightningIn
 
 function Fetch-UrlTextContent {
     param([string]$Url)
-    if ([string]::IsNullOrWhiteSpace($Url)) { return "" }
+    if ([string]::IsNullOrWhiteSpace($Url) -or (-not (Test-InternetConnected))) { return "" }
     $curlExe = Join-Path $env:SystemRoot "System32\curl.exe"
     if (Test-Path -LiteralPath $curlExe) {
         try {
-            $out = & $curlExe -s -L --max-time 4 -H "Cache-Control: no-cache" -H "Pragma: no-cache" -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36" $Url 2>$null
+            $out = & $curlExe -s -L --connect-timeout 2 --max-time 3 -H "Cache-Control: no-cache" -H "Pragma: no-cache" -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36" $Url 2>$null
             if ($null -ne $out) {
                 $txt = ($out -join "`n").Trim()
                 if (-not [string]::IsNullOrWhiteSpace($txt)) { return $txt }
@@ -1021,7 +1024,7 @@ function Fetch-UrlTextContent {
     try {
         try { [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Tls12 -bor 3072 -bor 12288 } catch {}
         $req = [System.Net.HttpWebRequest]::Create($Url)
-        $req.Method = "GET"; $req.Timeout = 4000
+        $req.Method = "GET"; $req.Timeout = 2500
         $req.UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
         $req.Headers.Add("Cache-Control", "no-cache")
         $res = $req.GetResponse(); $stream = $res.GetResponseStream()
@@ -1048,7 +1051,7 @@ function Extract-VersionFromText {
 }
 
 function Check-MinerUpdate {
-    if ([string]::IsNullOrWhiteSpace($global:VersionCheckUrl)) { return }
+    if ([string]::IsNullOrWhiteSpace($global:VersionCheckUrl) -or (-not (Test-InternetConnected))) { return }
     try {
         $baseUrl = $global:VersionCheckUrl.Trim().TrimEnd('/')
         $urlsToTry = @()
@@ -1083,6 +1086,7 @@ function Check-MinerUpdate {
 }
 
 function Check-LastSoloBlock {
+    if (-not (Test-InternetConnected)) { return }
     $soloPools = [ordered]@{
         "Public Pool" = "https://mempool.space/api/v1/mining/pool/public-pool/blocks"
         "Solo CK"     = "https://mempool.space/api/v1/mining/pool/solock/blocks"
@@ -1117,6 +1121,9 @@ function Check-LastSoloBlock {
         $global:LastSoloBlockPool = $bestPool; $global:LastSoloBlockReward = $bestReward
         Save-MinerConfig
         $global:LogQueue.Enqueue("[SISTEMA] Ultimo Bloco Miner Solo na rede: #$bestHeight ($bestPool) em $bestTime | Premio: $bestReward")
+        if ($null -ne $global:statForm -and (-not $global:statForm.IsDisposed) -and ($null -ne $script:stat_populateVisors)) {
+            try { & $script:stat_populateVisors } catch {}
+        }
         if ($isNewDiscovery) {
             try { $global:notifyIcon.ShowBalloonTip(6000, "$($global:ShortVersion) - Bloco Solo na Rede!", "Um Minerador Solo ($bestPool) encontrou o Bloco #$bestHeight ($bestReward)!", [System.Windows.Forms.ToolTipIcon]::Info) } catch {}
         }
@@ -1237,6 +1244,8 @@ function Show-SupportDialog {
 
     $qrCandidates = @(
         $global:DonateQrPath,
+        (Join-Path $global:ResPath "QRcode-LNURL-BTC_On-EVM-2300x720dpi.png"),
+        (Join-Path $global:ResPath "QRcode-LNURL-BTC_On-EVM-1800x580_450dpi.png"),
         (Join-Path $global:ResPath "QRcode-LNURL-BTC_On-EVM-1800x580_450dpi.jpg"),
         (Join-Path $global:ResPath "QRcode_LNURL-BTC_On-EVM_4000x1300dpi.png")
     )
@@ -1683,7 +1692,7 @@ function Show-TtfStats {
         if ($global:statForm.WindowState -eq "Minimized") { $global:statForm.WindowState = "Normal" }
         $global:statForm.Activate(); return
     }
-    if ($global:LastSoloBlockHeight -le 0) { Check-LastSoloBlock }
+
     $lines = if (Test-Path $global:TtfLogFile) { @(Get-Content $global:TtfLogFile) } else { @() }
     $bestLine = ""; $bestDays = 999999.0; $sumDays = 0.0; $count = 0
 
@@ -1706,9 +1715,10 @@ function Show-TtfStats {
         }
     }
 
+    # Altura aumentada (436px) e visores inferiores com 76px internos para nao cortar a 3a linha em notebooks (14", 15", 17")
     $global:statForm = New-Object System.Windows.Forms.Form
     $global:statForm.Text = "$($global:ShortVersion) - $(Get-Text 'TtfWinTitle')"
-    $global:statForm.Size = New-Object System.Drawing.Size(620, 412); $global:statForm.StartPosition = "CenterScreen"
+    $global:statForm.Size = New-Object System.Drawing.Size(620, 436); $global:statForm.StartPosition = "CenterScreen"
     $global:statForm.BackColor = Get-WindowBgColor; $global:statForm.FormBorderStyle = "FixedSingle"; $global:statForm.MaximizeBox = $false
     $global:statForm.ShowIcon = $true; $global:statForm.ShowInTaskbar = $true; $global:statForm.Icon = $global:AppIcon
 
@@ -1753,13 +1763,13 @@ function Show-TtfStats {
     $script:stat_fontNoData  = New-Object System.Drawing.Font("Consolas", 9.5, [System.Drawing.FontStyle]::Regular)
 
     $script:stat_txtSolo = New-Object System.Windows.Forms.RichTextBox
-    $script:stat_txtSolo.Multiline = $true; $script:stat_txtSolo.BorderStyle = "None"; $script:stat_txtSolo.Location = New-Object System.Drawing.Point(31, 216)
-    $script:stat_txtSolo.Size = New-Object System.Drawing.Size(250, 56); $script:stat_txtSolo.ReadOnly = $true; $script:stat_txtSolo.TabStop = $false; $script:stat_txtSolo.ScrollBars = "None"
+    $script:stat_txtSolo.Multiline = $true; $script:stat_txtSolo.BorderStyle = "None"; $script:stat_txtSolo.Location = New-Object System.Drawing.Point(31, 215)
+    $script:stat_txtSolo.Size = New-Object System.Drawing.Size(250, 76); $script:stat_txtSolo.ReadOnly = $true; $script:stat_txtSolo.TabStop = $false; $script:stat_txtSolo.ScrollBars = "None"
     $script:stat_txtSolo.Cursor = [System.Windows.Forms.Cursors]::Hand; $script:stat_txtSolo.Font = $script:stat_fontRegular
 
     $script:stat_txtBest = New-Object System.Windows.Forms.RichTextBox
-    $script:stat_txtBest.Multiline = $true; $script:stat_txtBest.BorderStyle = "None"; $script:stat_txtBest.Location = New-Object System.Drawing.Point(323, 216)
-    $script:stat_txtBest.Size = New-Object System.Drawing.Size(250, 56); $script:stat_txtBest.ReadOnly = $true; $script:stat_txtBest.TabStop = $false; $script:stat_txtBest.ScrollBars = "None"
+    $script:stat_txtBest.Multiline = $true; $script:stat_txtBest.BorderStyle = "None"; $script:stat_txtBest.Location = New-Object System.Drawing.Point(323, 215)
+    $script:stat_txtBest.Size = New-Object System.Drawing.Size(250, 76); $script:stat_txtBest.ReadOnly = $true; $script:stat_txtBest.TabStop = $false; $script:stat_txtBest.ScrollBars = "None"
     $script:stat_txtBest.Font = $script:stat_fontRegular
 
     $script:stat_populateVisors = {
@@ -1783,7 +1793,7 @@ function Show-TtfStats {
         $script:stat_txtBest.BackColor = $vBg; $script:stat_txtBest.ForeColor = $gCol; $script:stat_txtBest.Clear()
         if (-not $script:stat_hasData) {
             $script:stat_txtBest.SelectionFont = $script:stat_fontNoData; $script:stat_txtBest.SelectionColor = $gCol
-            $script:stat_txtBest.AppendText((Get-Text "TtfNoDataBox1") + $nl + (Get-Text "TtfNoDataBox2"))
+            $script:stat_txtBest.AppendText($nl + (Get-Text "TtfNoDataBox1") + $nl + (Get-Text "TtfNoDataBox2"))
         } elseif ($script:stat_isParsed) {
             $script:stat_txtBest.SelectionFont = $script:stat_fontRegular; $script:stat_txtBest.SelectionColor = $gCol
             $script:stat_txtBest.AppendText("$(Get-Text 'TtfDate') $($script:stat_bDate)" + $nl + "$(Get-Text 'TtfLuck') ")
@@ -1810,20 +1820,20 @@ function Show-TtfStats {
         $e.Graphics.FillRectangle($bCard, 312, 14, 272, 130); $e.Graphics.DrawRectangle($pBronze, 312, 14, 271, 129)
         $e.Graphics.DrawLine($pBronze, 334, 100, 562, 100)
 
-        $e.Graphics.FillRectangle($bCard, 20, 158, 272, 134);  $e.Graphics.DrawRectangle($pBronze, 20, 158, 271, 133)
-        $e.Graphics.FillRectangle($bCard, 312, 158, 272, 134); $e.Graphics.DrawRectangle($pBronze, 312, 158, 271, 133)
+        $e.Graphics.FillRectangle($bCard, 20, 158, 272, 154);  $e.Graphics.DrawRectangle($pBronze, 20, 158, 271, 153)
+        $e.Graphics.FillRectangle($bCard, 312, 158, 272, 154); $e.Graphics.DrawRectangle($pBronze, 312, 158, 271, 153)
 
-        $e.Graphics.FillRectangle($bVisor, 30, 210, 252, 68);  $e.Graphics.DrawRectangle($pBronze, 30, 210, 251, 67)
-        $e.Graphics.FillRectangle($bVisor, 322, 210, 252, 68); $e.Graphics.DrawRectangle($pBronze, 322, 210, 251, 67)
+        $e.Graphics.FillRectangle($bVisor, 30, 210, 252, 86);  $e.Graphics.DrawRectangle($pBronze, 30, 210, 251, 85)
+        $e.Graphics.FillRectangle($bVisor, 322, 210, 252, 86); $e.Graphics.DrawRectangle($pBronze, 322, 210, 251, 85)
         $bCard.Dispose(); $bVisor.Dispose(); $pBronze.Dispose()
     })
 
     $script:stat_btnSave = New-Object System.Windows.Forms.Button
-    $script:stat_btnSave.Text = Get-Text "BtnSaveImg"; $script:stat_btnSave.Location = New-Object System.Drawing.Point(20, 312); $script:stat_btnSave.Size = New-Object System.Drawing.Size(160, 40)
+    $script:stat_btnSave.Text = Get-Text "BtnSaveImg"; $script:stat_btnSave.Location = New-Object System.Drawing.Point(20, 332); $script:stat_btnSave.Size = New-Object System.Drawing.Size(160, 40)
     $script:stat_btnSave.Font = New-Object System.Drawing.Font("Segoe UI", 10); Set-ObsidianButtonStyle $script:stat_btnSave $false
 
     $script:stat_btnReset = New-Object System.Windows.Forms.Button
-    $script:stat_btnReset.Text = Get-Text "BtnResetTtf"; $script:stat_btnReset.Location = New-Object System.Drawing.Point(222, 312); $script:stat_btnReset.Size = New-Object System.Drawing.Size(160, 40)
+    $script:stat_btnReset.Text = Get-Text "BtnResetTtf"; $script:stat_btnReset.Location = New-Object System.Drawing.Point(222, 332); $script:stat_btnReset.Size = New-Object System.Drawing.Size(160, 40)
     $script:stat_btnReset.Font = New-Object System.Drawing.Font("Segoe UI", 10, [System.Drawing.FontStyle]::Bold); Set-ObsidianButtonStyle $script:stat_btnReset $true
     $script:stat_btnReset.Add_Click({
         $ans = [System.Windows.Forms.MessageBox]::Show((Get-Text "TtfResetConfirm"), "$($global:ShortVersion)", [System.Windows.Forms.MessageBoxButtons]::OKCancel, [System.Windows.Forms.MessageBoxIcon]::Warning)
@@ -1834,7 +1844,7 @@ function Show-TtfStats {
     })
 
     $script:stat_btnClose = New-Object System.Windows.Forms.Button
-    $script:stat_btnClose.Text = Get-Text "BtnClose"; $script:stat_btnClose.Location = New-Object System.Drawing.Point(424, 312); $script:stat_btnClose.Size = New-Object System.Drawing.Size(160, 40)
+    $script:stat_btnClose.Text = Get-Text "BtnClose"; $script:stat_btnClose.Location = New-Object System.Drawing.Point(424, 332); $script:stat_btnClose.Size = New-Object System.Drawing.Size(160, 40)
     $script:stat_btnClose.Font = New-Object System.Drawing.Font("Segoe UI", 10); Set-ObsidianButtonStyle $script:stat_btnClose $false
     $script:stat_btnClose.Add_Click({ $global:statForm.Close() })
 
@@ -1860,7 +1870,11 @@ function Show-TtfStats {
     $global:statForm.Add_FormClosed({ $global:statForm = $null })
     $global:statForm.Controls.AddRange(@($script:stat_lblPrizeHdr, $script:stat_lblPrizeBtc, $script:stat_lblPrizeUsd, $script:stat_lblDrawInfo, $script:stat_lblHalving, $script:stat_lblAvgHdr, $script:stat_lblAvgSub, $script:stat_lblAvgVal, $script:stat_lblCount, $script:stat_lblSoloTitle, $script:stat_lblSoloSub, $script:stat_txtSolo, $script:stat_lblBestTitle, $script:stat_lblBestSub, $script:stat_txtBest, $script:stat_btnSave, $script:stat_btnReset, $script:stat_btnClose))
     $global:statForm.ActiveControl = $script:stat_btnClose
-    $global:statForm.Add_Shown({ Set-WindowDarkTheme $global:statForm; $script:stat_btnClose.Focus() | Out-Null })
+    $global:statForm.Add_Shown({
+        Set-WindowDarkTheme $global:statForm
+        $script:stat_btnClose.Focus() | Out-Null
+        if ($global:LastSoloBlockHeight -le 0) { Check-LastSoloBlock }
+    })
     $global:statForm.Show()
 }
 
@@ -1973,6 +1987,7 @@ function Update-FiatMenuLabel {
 }
 
 function Update-UsdBrlPrice {
+    if (-not (Test-InternetConnected)) { return }
     try {
         $rawFiat = Fetch-UrlTextContent $global:FiatPriceUrl
         if (-not [string]::IsNullOrWhiteSpace($rawFiat)) {
@@ -1992,10 +2007,11 @@ function Update-UsdBrlPrice {
 }
 
 function Update-BtcPrice {
+    if (-not (Test-InternetConnected)) { return }
     try {
         $url = $global:BtcPriceUrl + "&t=" + [DateTimeOffset]::Now.ToUnixTimeMilliseconds()
         $req = [System.Net.WebRequest]::Create($url)
-        $req.Method = "GET"; $req.Timeout = 3000; $req.UserAgent = "MinerIsma/2.1.1"
+        $req.Method = "GET"; $req.Timeout = 2500; $req.UserAgent = "MinerIsma/2.1.2"
         $res = $req.GetResponse(); $stream = $res.GetResponseStream()
         $reader = New-Object System.IO.StreamReader($stream)
         $jsonText = $reader.ReadToEnd()
@@ -2277,9 +2293,18 @@ function Start-MinerTask {
 }
 
 # ============================================================
-# MENUS DO TRAY E SUBMENUS COM CRIADOR AUTOMATICO (V2.1.1)
+# MENUS DO TRAY E SUBMENUS COM CRIADOR AUTOMATICO (V2.1.2)
 # ============================================================
 $menu = New-Object System.Windows.Forms.ContextMenuStrip
+$script:KeepMenuOpenOnLangChange = $false
+$menu.Add_Closing({
+    param($sender, $e)
+    if ($script:KeepMenuOpenOnLangChange -and ($e.CloseReason -eq [System.Windows.Forms.ToolStripDropDownCloseReason]::ItemClicked)) {
+        $e.Cancel = $true
+        $script:KeepMenuOpenOnLangChange = $false
+    }
+})
+
 $global:I18nMenuMap = New-Object System.Collections.Generic.List[object]
 
 function Register-I18nItem {
@@ -2319,7 +2344,7 @@ function Add-MenuLink {
 
 $global:notifyIcon.Add_MouseClick({ param($s, $e) if ($e.Button -eq [System.Windows.Forms.MouseButtons]::Left) { Toggle-LogWindow } })
 
-# 1. Cabecalho Laranja: ⟳ (Ciano na margem esquerda se houver update) + MinerIsma v2.1.1 + [☾]/[☀] e [BR] ▸
+# 1. Cabecalho Laranja: ⟳ (Ciano na margem esquerda se houver update) + MinerIsma v2.1.2 + [☾]/[☀] e [BR] ▸
 $headerItem = New-Object System.Windows.Forms.ToolStripMenuItem("$($global:ShortVersion)                    ")
 $headerItem.Name = "HeaderItem"; $headerItem.Padding = New-Object System.Windows.Forms.Padding(0, 4, 0, 4)
 $headerItem.ForeColor = [System.Drawing.Color]::FromArgb(255, 247, 147, 26)
@@ -2329,7 +2354,11 @@ $langMenuItems = @{}
 foreach ($entry in ([ordered]@{ "PT" = "Portugues"; "EN" = "English"; "ES" = "Espanol" }).GetEnumerator()) {
     $lItem = New-Object System.Windows.Forms.ToolStripMenuItem([string]$entry.Value)
     $lItem.Tag = [string]$entry.Key
-    $lItem.Add_Click({ Set-AppLanguage ([string]$this.Tag) })
+    $lItem.Add_MouseDown({ $script:KeepMenuOpenOnLangChange = $true })
+    $lItem.Add_Click({
+        $script:KeepMenuOpenOnLangChange = $true
+        Set-AppLanguage ([string]$this.Tag)
+    })
     $headerItem.DropDownItems.Add($lItem) | Out-Null
     $langMenuItems[[string]$entry.Key] = $lItem
 }
@@ -2659,7 +2688,7 @@ $global:itemExit = Add-MenuLink $menu "MenuExit" {
 
 Set-MenuObsidianTheme $menu
 
-# Comutacao dinamica de idioma via lista automatizada $global:I18nMenuMap
+# Comutacao dinamica de idioma via lista automatizada $global:I18nMenuMap mantendo o Menu Principal aberto
 function Set-AppLanguage {
     param([string]$LangCode)
     if ($LangCode -notin @("PT", "EN", "ES")) { return }
@@ -2688,6 +2717,7 @@ function Set-AppLanguage {
     }
 
     foreach ($lKey in $langMenuItems.Keys) { $langMenuItems[$lKey].Checked = ($lKey -eq $global:Language) }
+    $menu.PerformLayout()
     $menu.Invalidate()
     $global:LogQueue.Enqueue("[SISTEMA] $(Get-Text 'MenuLanguage'): $LangCode")
 }
@@ -2715,8 +2745,9 @@ $global:notifyIcon.ContextMenuStrip = $menu
 # ============================================================
 Initialize-CpuDetection
 
+# Se a carteira ainda nao estiver configurada (1a execucao), abre a janela em 0,8s sem esperar os 5s de delay
 $startTimer = New-Object System.Windows.Forms.Timer
-$startTimer.Interval = [Math]::Max(1, $global:StartupDelaySeconds) * 1000
+$startTimer.Interval = if (Test-WalletConfigured) { [Math]::Max(1, $global:StartupDelaySeconds) * 1000 } else { 800 }
 $startTimer.Add_Tick({
     $startTimer.Stop()
     Start-MinerTask $global:DefaultThreads
@@ -2726,19 +2757,24 @@ $startTimer.Add_Tick({
 })
 $startTimer.Start()
 
+# 1a busca de cotacao escalonada 2s apos a interface ja estar livre na bandeja (e depois a cada 60s)
 $btcTimer = New-Object System.Windows.Forms.Timer
-$btcTimer.Interval = 60000
-$btcTimer.Add_Tick({ Update-BtcPrice })
+$btcTimer.Interval = 2000
+$btcTimer.Add_Tick({
+    $btcTimer.Interval = 60000
+    Update-BtcPrice
+})
 $btcTimer.Start()
-Update-BtcPrice
 
+# Checagem de atualizacao escalonada 6s apos abrir (e depois a cada 6 horas)
 $updateCheckTimer = New-Object System.Windows.Forms.Timer
-$updateCheckTimer.Interval = 3000
+$updateCheckTimer.Interval = 6000
 $updateCheckTimer.Add_Tick({ $updateCheckTimer.Interval = 21600000; Check-MinerUpdate })
 $updateCheckTimer.Start()
 
+# Checagem de ultimo bloco solo escalonada 12s apos abrir (e depois a cada 6 horas)
 $soloBlockTimer = New-Object System.Windows.Forms.Timer
-$soloBlockTimer.Interval = 10000
+$soloBlockTimer.Interval = 12000
 $soloBlockTimer.Add_Tick({ $soloBlockTimer.Interval = 21600000; Check-LastSoloBlock })
 $soloBlockTimer.Start()
 
@@ -2838,6 +2874,8 @@ $timer.Add_Tick({
 })
 $timer.Start()
 
-$global:notifyIcon.ShowBalloonTip(5000, "$($global:ShortVersion)", "$(Get-Text 'BalloonStart1') $($global:StartupDelaySeconds) $(Get-Text 'BalloonStart2')", [System.Windows.Forms.ToolTipIcon]::Info)
+if (Test-WalletConfigured) {
+    $global:notifyIcon.ShowBalloonTip(5000, "$($global:ShortVersion)", "$(Get-Text 'BalloonStart1') $($global:StartupDelaySeconds) $(Get-Text 'BalloonStart2')", [System.Windows.Forms.ToolTipIcon]::Info)
+}
 
 [System.Windows.Forms.Application]::Run()
