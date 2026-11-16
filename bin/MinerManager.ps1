@@ -1,16 +1,16 @@
 # ===============================================================================
-# MinerIsma v2.1.2 Alpha - MinerManager.ps1 Gerenciador Miner Solo BTC Tray Icon
+# MinerIsma v2.2.0 Beta - MinerManager.ps1 - Gerenciador Miner Solo BTC Tray Icon
 # ===============================================================================
 #  PROOF OF EXISTENCE / PRIOR ART RECORD / INTELLECTUAL PROPERTY REGISTRATION
 # -------------------------------------------------------------------------------
-# Registered Previous Version : MinerIsma_v2.1.1.exe (BTC_MinerIsma_v2.1.1.exe)
-# Consolidated File Hex Hash  : (0x)6BBA5A122318F581CEB820C72C26AD03D2295B2226B98B29F1DC26C5A29C70CC
+# Registered Previous Version : MinerIsma_v2.1.2.exe
+# Consolidated File Hex Hash  : (0x)E5FE414E13E83C5CAC49A4AF3455715E99E637461EDC99AB7EDC78939A433637
 # Blockchain Network          : Polygon Mainnet / Ethereum Mainnet
-# Transaction ID (polygonscan): 0xda0aed37e52cde8a3fbb6d59f6f091d931384a7923068f5e7f5ec7e701fa161c
-# Link Verificador            : https://polygonscan.com/tx/0xda0aed37e52cde8a3fbb6d59f6f091d931384a7923068f5e7f5ec7e701fa161c
+# Transaction ID (polygonscan): 0x0e3f70814115e5bbbb66409f61944c560e99b498befcbd9d1a37c9b8c4b7e00e
+# Link Verificador            : https://polygonscan.com/tx/0x0e3f70814115e5bbbb66409f61944c560e99b498befcbd9d1a37c9b8c4b7e00e
 # Subscriber Wallet (Author)  : 0xF72C0Ee272eEf5c52018dA877ED2EF61c9434015
 # Copyright (c) MCIsma / 2026 : GNU General Public License v3.0 - resources\LICENSE
-# Algoritmo Hash              : SHA-256 (Get-FileHash) | Timestamp: 2026-11-07 23:42 UTC-03
+# Algoritmo Hash              : SHA-256 (Get-FileHash) | Timestamp: 2026-11-11 20:47 UTC-03
 # Historico detalhado disponivel em: resources\RELEASE_NOTES.md
 # ===============================================================================
 
@@ -22,14 +22,23 @@
 $global:Wallet               = "minha_carteira.WORKER"   # <<< TROQUE pela sua Carteira e Trabalhador
 $global:DefaultPoolUrl       = "stratum+tcp://public-pool.io:3333"
 $global:DefaultExtraArgs     = "--cpu-priority=1"
+$global:DefaultNodeRpcUrl    = "http://127.0.0.1:8332"
+$global:DefaultNodeRpcAuth   = "user:senha123"
+
 $global:PoolUrl              = $global:DefaultPoolUrl
 $global:ExtraArgs            = $global:DefaultExtraArgs
+$global:UseLocalNode         = $false
+$global:NodeRpcUrl           = $global:DefaultNodeRpcUrl
+$global:NodeRpcAuth          = $global:DefaultNodeRpcAuth
+$global:UseHardMode          = $false
+$global:SavedHardExtraArgs   = ""
 
 $global:MinerExeName         = "cpuminer-avx2-sha.exe"
 $global:LauncherFileName     = "START_MinerIsma.exe"
 $global:TutorialFileName     = "Tutorial.html"
 $global:CustomIconFileName   = "iconeMinerIsmaFull4b.ico"
-$global:DonateQrFileName     = "QRcode-LNURL-BTC_On-EVM-2300x720dpi.png"
+$global:DonateQrFileName     = "QRcode-LNURL-BTC_On-EVM-1800x580_450dpi.png"
+$global:LangPacksFileName    = "MinerIsma_Langs.json"
 
 $global:SoundFileKMS         = "alerta_de_bloco-KMS.mp3"
 $global:SoundFileSenna       = "alerta_de_bloco-Senna.mp3"
@@ -59,6 +68,8 @@ $global:UrlTutorial          = "https://github.com/MCIsma/MinerIsma"
 $global:UrlBlueWallet        = "https://bluewallet.io/"
 $global:UrlCoinGecko         = "https://www.coingecko.com/pt-br"
 $global:UrlCalcConverter     = "https://coinmarketcap.com/pt-br/converter"
+$global:UrlAffinityCalc      = "https://bitsum.com/tools/cpu-affinity-calculator"
+$global:UrlFeedbackForm      = "https://docs.google.com/forms/d/e/1FAIpQLSe43fnq_EONpBqmIk37Shyf3j1WiWqDaPfECperMae3x2Purg/viewform?usp=publish-editor"
 
 $global:UrlHalving1          = "https://boletimbitcoin.com/halving-bitcoin/"
 $global:UrlHalving2          = "https://br.investing.com/academy/crypto/halving-bitcoin/"
@@ -66,7 +77,8 @@ $global:UrlHalving3          = "https://bitcoin-org.translate.goog/en/halving?_x
 $global:UrlLightningInfo1    = "https://kriptobr.com/lightning-network-o-que-e-e-como-usar-bitcoin-no-dia-a-dia"
 $global:UrlLightningInfo2    = "https://blog.areabitcoin.com.br/lightning-network"
 
-$global:TtfThresholds        = @{ 10 = 240; 8 = 300; 7 = 330; 6 = 365; 5 = 547; 4 = 730; 3 = 912; 2 = 1095; 1 = 1277 }
+# Limite de dias elegiveis para TTF (Fixado em 300 dias para 8, 10 ou mais Threads)
+$global:TtfThresholds        = @{ 10 = 300; 8 = 300; 7 = 330; 6 = 365; 5 = 547; 4 = 730; 3 = 912; 2 = 1095; 1 = 1277 }
 
 # ================================================================
 #  2. INTELIGENCIA DE PERFIS DINAMICOS (Baseado na CPU)
@@ -120,6 +132,7 @@ if ($global:LogicalCores -ge 24) {
         1 = "~12% $arrSym  1  ....!....."
     }
 }
+$global:MaxProfileThreads = [int](($global:ThreadProfiles.Keys | Measure-Object -Maximum).Maximum)
 
 # ================================================================
 #  3. TABELA DE IDIOMAS UNIFICADA (Indice 0 = PT | 1 = EN | 2 = ES)
@@ -127,6 +140,7 @@ if ($global:LogicalCores -ge 24) {
 $boltChar        = [string][char]0x26A1
 $euroChar        = [string][char]0x20AC
 $warnChar        = [string][char]0x26A0
+$starChar        = [string][char]0x2605
 $lblMissaoPT     = "Miss" + [char]0x00E3 + "o 1 Bitcoin"
 $lblMissaoES     = "Misi" + [char]0x00F3 + "n 1 Bitcoin"
 $lblRetireES     = "Jubilaci" + [char]0x00F3 + "n BTC"
@@ -204,12 +218,17 @@ $global:LangTable = @{
     DelayDefault      = @("Padrao", "Default", "Por defecto")
     MenuWallet        = @("Sua Carteira Bitcoin", "Your Bitcoin Wallet", "Tu Billetera Bitcoin")
     MenuTestAlert     = @("Testar Alerta de Bloco", "Test Block Alert", "Probar Alerta de Bloque")
+    MenuMute          = @("Mutar", "Mute", "Silenciar")
     MenuTtfStats      = @($lblStatsMenuPT, "Stats: Your Luck", $lblStatsMenuES)
     MenuDesktopIcon   = @("Criar Icone Desktop", "Create Desktop Icon", "Crear Icono Escritorio")
+    MenuThreadsPc     = @("Suas Threads no Pc", "Your Threads on PC", "Tus Threads en el PC")
     MenuAdvanced      = @("Avancado (PERIGO!)", "Advanced (DANGER!)", "Avanzado (PELIGRO!)")
+    MenuCustomAdv     = @("Custom Avancado", "Custom Advanced", "Custom Avanzado")
     MenuSupport       = @("Apoie este Projeto", "Support this Project", "Apoya este Proyecto")
     MenuLanguage      = @("Idioma", "Language", "Idioma")
+    MenuTutFeedback   = @("Tutorial e Feedback", "Tutorial & Feedback", "Tutorial y Feedback")
     MenuTutorial      = @("Tutorial MinerIsma", "MinerIsma Tutorial", "Tutorial MinerIsma")
+    MenuFeedback      = @("Sugestao e Experiencia", "Suggestion & Experience", "Sugerencia y Experiencia")
     MenuShare         = @("Compartilhar MinerIsma", "Share MinerIsma", "Compartir MinerIsma")
     MenuCopyLink      = @("Copiar Link", "Copy Link", "Copiar Enlace")
     ShareCopiedShort  = @("Link copiado!", "Link copied!", "Enlace copiado!")
@@ -241,6 +260,7 @@ $global:LangTable = @{
     BtnSaveImg        = @("Salvar Imagem", "Save Image", "Guardar Imagen")
     BtnResetTtf       = @("Zerar TTF", "Reset TTF", "Reiniciar TTF")
     BtnClose          = @("Fechar", "Close", "Cerrar")
+    BtnCloseWin       = @("Fechar Janela", "Close Window", "Cerrar Ventana")
     BtnCreateWallet   = @("Criar Carteira", "Create Wallet", "Crear Billetera")
     BtnCelebrate      = @("Comemorar!", "Celebrate!", "Celebrar!")
     BtnSaveApply      = @("Salvar e Aplicar", "Save & Apply", "Guardar y Aplicar")
@@ -251,12 +271,37 @@ $global:LangTable = @{
     AdvWarn2          = @("So altere caso voce tenha certeza do que esta fazendo, e ciente de seu risco!", "Only change if you are sure of what you are doing and aware of the risk!", "Solo modifica si estas seguro de lo que haces y consciente del riesgo!")
     AdvWarn3          = @("* Mude Threads, Afinidades e Carteira somente nos menus proprios.", "* Change Threads, Affinity, and Wallet only in their respective menus.", "* Cambia Threads, Afinidad y Billetera solo en sus menus propios.")
     AdvLblPool        = @("Endereco da Pool Solo (Ex.: stratum+tcp://public-pool.io:3333):", "Solo Pool Address (e.g., stratum+tcp://public-pool.io:3333):", "Direccion de Pool Solo (Ej.: stratum+tcp://public-pool.io:3333):")
+    AdvBtnPing        = @("Testar Latencia", "Test Latency", "Probar Latencia")
+    AdvPingHint       = @("Clique em 'Testar Latencia' para medir a resposta da Pool/Node configurado.", "Click 'Test Latency' to measure the configured Pool/Node response.", "Haz clic en 'Probar Latencia' para medir la respuesta de la Pool/Node.")
+    AdvPingTesting    = @("Testando conexao com", "Testing connection to", "Probando conexion con")
+    AdvPingTier1      = @("Excelente! Ideal para mineracao Solo (<= 80ms).", "Excellent! Ideal for Solo mining (<= 80ms).", "Excelente! Ideal para mineria Solo (<= 80ms).")
+    AdvPingTier2      = @("Bom! Latencia segura no padrao global (81-180ms).", "Good! Safe latency in global standard (81-180ms).", "Bueno! Latencia segura en estandar global (81-180ms).")
+    AdvPingTier3      = @("Aceitavel, leve risco de atraso/stale (181-260ms).", "Acceptable, slight block delay/stale risk (181-260ms).", "Aceptable, leve riesgo de retraso/stale (181-260ms).")
+    AdvPingTier4      = @("Ruim! Servidor distante ou rota lenta (> 260ms).", "Poor! Distant server or slow route (> 260ms).", "Malo! Servidor distante o ruta lenta (> 260ms).")
+    AdvPingFail       = @("Sem resposta: Servidor ou porta inacessivel.", "No response: Server or port unreachable.", "Sin respuesta: Servidor o puerto inaccesible.")
+    AdvNobleHdr       = @("$starChar Usuario Nobre $arrSym Node Proprio (Bitcoin Core RPC)", "$starChar Noble User $arrSym Own Node (Bitcoin Core RPC)", "$starChar Usuario Noble $arrSym Nodo Propio (Bitcoin Core RPC)")
+    AdvNobleChk       = @("Habilitar Miner para Node Proprio (No Local / RPC)", "Enable Miner for Own Node (Local Node / RPC)", "Habilitar Miner para Nodo Propio (Nodo Local / RPC)")
+    AdvNobleTip       = @("Dica: Ative o 'Modo Pulsar' (em Pausar Mineracao) para restaurar a memoria RAM periodicamente.", "Tip: Enable 'Pulse Mode' (in Pause Mining) to periodically restore RAM.", "Consejo: Activa el 'Modo Pulsar' (en Pausar Mineria) para restaurar la RAM periodicamente.")
+    AdvLblNodeUrl     = @("Host RPC (Ex.: http://127.0.0.1:8332):", "RPC Host (e.g., http://127.0.0.1:8332):", "Host RPC (Ej.: http://127.0.0.1:8332):")
+    AdvLblNodeAuth    = @("User:Senha RPC (Ex.: user:senha123):", "RPC User:Pass (e.g., user:pass123):", "User:Pass RPC (Ej.: user:clave123):")
+    AdvInvalidNodeUrl = @("O Host RPC do Node deve comecar com 'http://' ou 'https://' (Ex.: http://127.0.0.1:8332).", "Node RPC Host must start with 'http://' or 'https://' (e.g., http://127.0.0.1:8332).", "El Host RPC del Nodo debe comenzar con 'http://' o 'https://' (Ej.: http://127.0.0.1:8332).")
+    AdvInvalidNodeAuth= @("Insira as credenciais RPC no formato 'usuario:senha' (Ex.: user:senha123).", "Enter RPC credentials in 'user:password' format (e.g., user:senha123).", "Ingresa las credenciales RPC en formato 'usuario:contrasena' (Ej.: user:senha123).")
     AdvLblExtra       = @("Parametros Extras pertinentes ao motor cpuminer-opt:", "Extra Parameters for the cpuminer-opt engine:", "Parametros Extras pertinentes al motor cpuminer-opt:")
+    AdvChkPriority    = @("Manter --cpu-priority=1", "Keep --cpu-priority=1", "Mantener --cpu-priority=1")
+    AdvDuplicateArgs  = @("Foram detectados parametros duplicados de Threads (-t) ou Afinidade (--cpu-affinity) nos Parametros Extras. Deixe apenas uma definicao de cada.", "Duplicate Thread (-t) or Affinity (--cpu-affinity) flags detected in Extra Parameters. Keep only one of each.", "Se detectaron parametros duplicados de Threads (-t) o Afinidad (--cpu-affinity) en Parametros Extras. Deja solo uno de cada.")
+    AdvHardHdr        = @("$boltChar Usuario Hard $arrSym Controle Manual de Threads e Afinidade", "$boltChar Hard User $arrSym Manual Threads & Affinity Control", "$boltChar Usuario Hard $arrSym Control Manual de Threads y Afinidad")
+    AdvHardChk        = @('"Fritar" Meu Pc! (!PERIGO!)', '"Fry" My PC! (!DANGER!)', '"Freir" Mi PC! (!PELIGRO!)')
+    AdvHardSubDefault = @("Ajuste manual '-t x --cpu-affinity 0x...' (Desbloqueia limite de Threads)", "Manual '-t x --cpu-affinity 0x...' setup (Unlocks Thread limit)", "Ajuste manual '-t x --cpu-affinity 0x...' (Desbloquea limite de Threads)")
+    AdvHardSubActive  = @("Ativo: Insira '-t N' e '--cpu-affinity 0x...' acima (evite os primeiros threads e monitore temp.!)", "Active: Enter '-t N' & '--cpu-affinity 0x...' above (avoid first threads & monitor temp.!)", "Activo: Ingresa '-t N' y '--cpu-affinity 0x...' arriba (evita primeros threads y monitorea temp.!)")
+    AdvBtnCalcAff     = @("Obter Afinidade Hex", "Get Hex Affinity", "Obtener Afinidad Hex")
+    AdvBtnRecoverHard = @("Recuperar Perfil Hard", "Recover Hard Profile", "Recuperar Perfil Hard")
+    AdvHardWarnMsg    = @("ADVERTENCIA DE RISCO EXTREMO:`n`nO modo 'Fritar Meu Pc' desbloqueia o controle manual de Threads (-t) e Afinidade (--cpu-affinity), podendo causar superaquecimento severo, travamentos e alto consumo eletrico.`n`n- Necessario inserir ao menos '-t N' no campo Parametros Extras.`n- Use '--cpu-affinity 0x...' para definir os nucleos (evite os primeiros threads).`n- E FORTEMENTE recomendado monitorar a temperatura da CPU com software dedicado!`n`nClique em OK para declarar ciencia por sua conta e risco, ou Cancelar.", "EXTREME RISK WARNING:`n`n'Fry My PC' mode unlocks manual Threads (-t) and Affinity (--cpu-affinity) control, which can cause severe overheating, system freezes, and high power consumption.`n`n- You must enter at least '-t N' in Extra Parameters.`n- Use '--cpu-affinity 0x...' to set cores (avoid the first threads).`n- Monitoring CPU temperature with dedicated software is STRONGLY recommended!`n`nClick OK to accept full responsibility at your own risk, or Cancel.", "ADVERTENCIA DE RIESGO EXTREMO:`n`nEl modo 'Freir Mi PC' desbloquea el control manual de Threads (-t) y Afinidad (--cpu-affinity), pudiendo causar sobrecalentamiento severo, bloqueos y alto consumo electrico.`n`n- Es necesario ingresar al menos '-t N' en Parametros Extras.`n- Usa '--cpu-affinity 0x...' para elegir nucleos (evita los primeros threads).`n- Se recomienda FUERTEMENTE monitorear la temperatura de la CPU con software dedicado!`n`nHaz clic en Aceptar bajo tu propio riesgo, o Cancelar.")
     AdvLblPreview     = @("Somente Visualizacao (Comando Completo):", "Read-Only Preview (Full Command):", "Solo Visualizacion (Comando Completo):")
     AdvConfirmMsg     = @("Confirmar alteracoes no Modo Avancado e reiniciar o minerador agora?", "Confirm Advanced Mode changes and restart the miner now?", "Confirmar cambios en Modo Avanzado y reiniciar el minero ahora?")
-    AdvRestoreMsg     = @("Deseja restaurar a Pool e os Parametros Extras para o padrao de fabrica?", "Do you want to restore Pool and Extra Parameters to factory defaults?", "Deseas restaurar la Pool y los Parametros Extras al patron de fabrica?")
+    AdvRestoreMsg     = @("Deseja restaurar a Pool, Node e Parametros Extras para o padrao de fabrica?", "Do you want to restore Pool, Node, and Extra Parameters to factory defaults?", "Deseas restaurar la Pool, Nodo y Parametros Extras al patron de fabrica?")
     AdvInvalidPool    = @("O endereco da Pool deve comecar com 'stratum+tcp://' ou 'stratum+ssl://'.", "Pool address must start with 'stratum+tcp://' or 'stratum+ssl://'.", "La direccion de la Pool debe comenzar con 'stratum+tcp://' o 'stratum+ssl://'.")
-    AdvForbiddenArgs  = @("Nao insira parametros de Threads (-t), Afinidade, Pool (-o) ou Carteira (-u) nos Parametros Extras. Use os menus proprios.", "Do not insert Thread (-t), Affinity, Pool (-o), or Wallet (-u) flags in Extra Parameters. Use their own menus.", "No ingreses parametros de Threads (-t), Afinidad, Pool (-o) o Billetera (-u) en Parametros Extras. Usa sus menus propios.")
+    AdvForbiddenArgs  = @("Nao insira parametros de Threads (-t), Afinidade, Pool (-o) ou Carteira (-u) nos Parametros Extras. Use os menus proprios (ou habilite o modo Usuario Hard para -t e afinidade).", "Do not insert Thread (-t), Affinity, Pool (-o), or Wallet (-u) flags in Extra Parameters. Use their own menus (or enable Hard User mode for -t and affinity).", "No ingreses parametros de Threads (-t), Afinidad, Pool (-o) o Billetera (-u) en Parametros Extras. Usa sus menus propios (o habilita el modo Usuario Hard para -t y afinidad).")
+    AdvForbiddenHard  = @("No modo Usuario Hard, nao insira parametros de Pool (-o), Carteira (-u) ou Algoritmo (-a) nos Parametros Extras.", "In Hard User mode, do not insert Pool (-o), Wallet (-u), or Algorithm (-a) flags in Extra Parameters.", "En modo Usuario Hard, no ingreses parametros de Pool (-o), Billetera (-u) o Algoritmo (-a) en Parametros Extras.")
     WalletWinTitle    = @("Sua Carteira Bitcoin", "Your Bitcoin Wallet", "Tu Billetera Bitcoin")
     WalletHeader      = @("Configure endereco Bitcoin para iniciar Miner:", "Configure Bitcoin address to start Miner:", "Configura direccion Bitcoin para iniciar Miner:")
     WalletLblAddr     = @("Insira seu endereco de carteira Bitcoin (Ex.: bc1...):", "Enter your Bitcoin wallet address (e.g., bc1...):", "Ingresa tu direccion de billetera Bitcoin (Ej.: bc1...):")
@@ -300,17 +345,34 @@ $global:LangTable = @{
     AlertInFolder     = @("na pasta do MinerIsma.", "in the MinerIsma folder.", "en la carpeta de MinerIsma.")
 }
 
+$global:ExtraLangPacks = @{}
+$global:ExtraLangNames = [ordered]@{}
+
 function Get-Text {
     param([string]$Key)
+    if (($global:Language -notin @("PT", "EN", "ES")) -and ($null -ne $global:ExtraLangPacks) -and $global:ExtraLangPacks.ContainsKey($global:Language)) {
+        $extDict = $global:ExtraLangPacks[$global:Language]
+        if ($extDict.ContainsKey($Key) -and (-not [string]::IsNullOrWhiteSpace($extDict[$Key]))) {
+            return [string]$extDict[$Key]
+        }
+    }
     $arr = $global:LangTable[$Key]
     if ($null -eq $arr) { return $Key }
     if ($arr -is [array]) {
-        $idx = switch ($global:Language) { "EN" { 1 } "ES" { 2 } default { 0 } }
+        $idx = switch ($global:Language) { "PT" { 0 } "ES" { 2 } default { 1 } }
         $val = $arr[$idx]
+        if ([string]::IsNullOrWhiteSpace($val)) { $val = $arr[1] }
         if ([string]::IsNullOrWhiteSpace($val)) { $val = $arr[0] }
         return [string]$val
     }
     return [string]$arr
+}
+
+function Get-BtcLineText {
+    param([string]$Key, [string]$Suffix = "")
+    $txt = Get-Text $Key
+    $pref = if ($txt -match "^itcoin") { $global:BtcSym } else { "" }
+    return "$pref$txt$Suffix"
 }
 
 # ================================================================
@@ -319,9 +381,9 @@ function Get-Text {
 Add-Type -AssemblyName System.Windows.Forms, System.Drawing, PresentationCore
 [System.Windows.Forms.Application]::EnableVisualStyles()
 
-$global:AppVersion          = "MinerIsma_v2.1.2 - Alpha"
-$global:VersionNumber       = "2.1.2"
-$global:ShortVersion        = "MinerIsma v2.1.2"
+$global:AppVersion          = "MinerIsma_v2.2.0 - Beta"
+$global:VersionNumber       = "2.2.0"
+$global:ShortVersion        = "MinerIsma v2.2.0"
 $global:BtcSym              = [string][char]0x20BF
 $global:BoltSym             = [string][char]0x26A1
 $global:StarSym             = [string][char]0x2605
@@ -357,6 +419,25 @@ $global:ConfigFile       = Join-Path $global:ResPath "MinerIsma_Config.json"
 $global:TutorialFile     = Join-Path $global:ResPath $global:TutorialFileName
 $global:CustomIconPath   = Join-Path $global:ResPath $global:CustomIconFileName
 $global:DonateQrPath     = Join-Path $global:ResPath $global:DonateQrFileName
+$global:LangPacksFile    = Join-Path $global:ResPath $global:LangPacksFileName
+
+if (Test-Path -LiteralPath $global:LangPacksFile) {
+    try {
+        $rawLp = [System.IO.File]::ReadAllText($global:LangPacksFile, [System.Text.Encoding]::UTF8) | ConvertFrom-Json
+        foreach ($langProp in $rawLp.PSObject.Properties) {
+            $lCode = ([string]$langProp.Name).Trim().ToUpper()
+            if (($lCode -notin @("PT", "EN", "ES")) -and (-not $lCode.StartsWith("_")) -and ($null -ne $langProp.Value)) {
+                $dict = @{}
+                foreach ($kProp in $langProp.Value.PSObject.Properties) {
+                    $dict[[string]$kProp.Name] = [string]$kProp.Value
+                }
+                $global:ExtraLangPacks[$lCode] = $dict
+                $global:ExtraLangNames[$lCode] = if (-not [string]::IsNullOrWhiteSpace($dict["_MenuName"])) { $dict["_MenuName"] } else { $lCode }
+            }
+        }
+    } catch {}
+}
+
 $global:BackupConfigFile = Join-Path $global:BackupDir "MinerIsma_Config.json"
 $global:BackupTtfLogFile = Join-Path $global:BackupDir "MinerIsma_TTF_LOG.txt"
 
@@ -383,7 +464,8 @@ $global:DesktopShortcutPath = Join-Path $global:DesktopFolder "MinerIsma.lnk"
 $global:RunRegKey           = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Run"
 $global:RunRegName          = "MinerIsma"
 
-$global:DefaultThreads      = if ($global:LogicalCores -ge 16) { 4 } else { 3 }
+$global:FactoryDefaultThreads = if ($global:LogicalCores -ge 16) { 4 } else { 3 }
+$global:DefaultThreads        = $global:FactoryDefaultThreads
 $global:ConfiguredDelay     = $global:DefaultStartupDelay
 $global:StartupInitialized  = $false
 $global:StartupEnabled      = $true
@@ -404,12 +486,23 @@ if (Test-Path $global:ConfigFile) {
         }
         if (-not [string]::IsNullOrWhiteSpace($cfg.PoolUrl)) { $global:PoolUrl = [string]$cfg.PoolUrl }
         if ($null -ne $cfg.ExtraArgs) { $global:ExtraArgs = [string]$cfg.ExtraArgs }
+        if ($null -ne $cfg.UseLocalNode) { $global:UseLocalNode = [bool]$cfg.UseLocalNode }
+        if (-not [string]::IsNullOrWhiteSpace($cfg.NodeRpcUrl)) { $global:NodeRpcUrl = [string]$cfg.NodeRpcUrl }
+        if (-not [string]::IsNullOrWhiteSpace($cfg.NodeRpcAuth)) { $global:NodeRpcAuth = [string]$cfg.NodeRpcAuth }
+        if ($null -ne $cfg.UseHardMode) { $global:UseHardMode = [bool]$cfg.UseHardMode }
+        if ($null -ne $cfg.SavedHardExtraArgs) { $global:SavedHardExtraArgs = [string]$cfg.SavedHardExtraArgs }
         if ($null -ne $cfg.StartupDelay -and ([int]$cfg.StartupDelay -in @(5, 15, 30, 60))) { $global:ConfiguredDelay = [int]$cfg.StartupDelay }
-        if ($cfg.SoundFileName -in @($global:SoundFileKMS, $global:SoundFileSenna, $global:SoundFileMforN, $global:SoundFileCoins)) { $global:SoundFileName = [string]$cfg.SoundFileName }
+        if ($cfg.SoundFileName -in @($global:SoundFileKMS, $global:SoundFileSenna, $global:SoundFileMforN, $global:SoundFileCoins, "MUTE")) { $global:SoundFileName = [string]$cfg.SoundFileName }
         if ($null -ne $cfg.StartupInitialized) { $global:StartupInitialized = [bool]$cfg.StartupInitialized }
         if ($null -ne $cfg.StartupEnabled) { $global:StartupEnabled = [bool]$cfg.StartupEnabled }
         if ($cfg.PulseMode -in @("2hx5", "4hx5")) { $global:SavedPulseMode = [string]$cfg.PulseMode }
-        if ($cfg.Language -in @("PT", "EN", "ES")) { $global:Language = [string]$cfg.Language }
+        if (-not [string]::IsNullOrWhiteSpace($cfg.Language)) {
+            $savedLang = ([string]$cfg.Language).Trim().ToUpper()
+            if (($savedLang -in @("PT", "EN", "ES")) -or $global:ExtraLangPacks.ContainsKey($savedLang)) {
+                $global:Language = $savedLang
+                $global:LangLoadedFromCfg = $true
+            }
+        }
         if ($cfg.Theme -in @("Dark", "Light")) { $global:Theme = [string]$cfg.Theme }
         if (($null -ne $cfg.LastBlockHeight) -and ([int]$cfg.LastBlockHeight -gt 840000)) { $global:CurrentBlockHeight = [int]$cfg.LastBlockHeight }
         if (($null -ne $cfg.LastSoloBlockHeight) -and ([int]$cfg.LastSoloBlockHeight -gt 840000)) {
@@ -419,6 +512,16 @@ if (Test-Path $global:ConfigFile) {
             $global:LastSoloBlockReward = [string]$cfg.LastSoloBlockReward
         }
     } catch {}
+}
+if (-not $global:LangLoadedFromCfg) {
+    try {
+        $osLang = [System.Globalization.CultureInfo]::InstalledUICulture.TwoLetterISOLanguageName.ToUpper()
+        if (($osLang -in @("PT", "EN", "ES")) -or $global:ExtraLangPacks.ContainsKey($osLang)) {
+            $global:Language = $osLang
+        } else {
+            $global:Language = "EN"
+        }
+    } catch { $global:Language = "EN" }
 }
 
 $global:SoundFile = Join-Path $global:ResPath $global:SoundFileName
@@ -474,7 +577,7 @@ $global:RecentLines        = New-Object System.Collections.Generic.Queue[string]
 
 function Play-EffectSound {
     param([string]$SfxFileName)
-    if ([string]::IsNullOrWhiteSpace($SfxFileName)) { return }
+    if (($global:SoundFileName -eq "MUTE") -or [string]::IsNullOrWhiteSpace($SfxFileName)) { return }
     try {
         $sfxPath = Join-Path $global:ResPath $SfxFileName
         if (Test-Path -LiteralPath $sfxPath) {
@@ -487,7 +590,7 @@ function Play-EffectSound {
 }
 
 # ============================================================
-# API DO WINDOWS (THREADS + DWM + ICONE TASKBAR + MENU E SCROLLBAR)
+# API DO WINDOWS (THREADS + RAM + DWM + ICONE + MENU E SCROLLBAR)
 # ============================================================
 Add-Type -ReferencedAssemblies System.Windows.Forms, System.Drawing -TypeDefinition @"
 using System;
@@ -504,6 +607,7 @@ public class ProcCtl {
     [DllImport("kernel32.dll")] public static extern int ResumeThread(IntPtr hThread);
     [DllImport("kernel32.dll")] public static extern bool CloseHandle(IntPtr h);
     [DllImport("kernel32.dll")] public static extern IntPtr GetConsoleWindow();
+    [DllImport("psapi.dll")] public static extern bool EmptyWorkingSet(IntPtr hwProc);
     [DllImport("dwmapi.dll")] public static extern int DwmSetWindowAttribute(IntPtr hwnd, int attr, ref int attrValue, int attrSize);
     [DllImport("dwmapi.dll")] public static extern int DwmGetWindowAttribute(IntPtr hwnd, int attr, out DwmRect rect, int rectSize);
     [DllImport("user32.dll")] public static extern IntPtr SendMessage(IntPtr hWnd, int msg, IntPtr wParam, IntPtr lParam);
@@ -612,6 +716,7 @@ public class ObsidianMenuColors : ProfessionalColorTable {
     public static bool IsLightMode = false;
     public static string CurrentLangBadge = "BR";
     public static bool IsUpdateAvailable = false;
+    public static bool IsAudioMuted = false;
 
     private Color BgColor     { get { return IsLightMode ? Color.FromArgb(244, 241, 234) : Color.FromArgb(16, 21, 28); } }
     private Color MarginColor { get { return IsLightMode ? Color.FromArgb(232, 226, 214) : Color.FromArgb(10, 14, 20); } }
@@ -649,7 +754,7 @@ public class ObsidianMenuRenderer : ToolStripProfessionalRenderer {
     }
 
     protected override void OnRenderMenuItemBackground(ToolStripItemRenderEventArgs e) {
-        if (e.Item != null && e.Item.Name == "HeaderItem") return;
+        if (e.Item != null && (e.Item.Name == "HeaderItem" || !e.Item.Enabled)) return;
         base.OnRenderMenuItemBackground(e);
     }
     protected override void OnRenderArrow(ToolStripArrowRenderEventArgs e) {
@@ -693,6 +798,25 @@ public class ObsidianMenuRenderer : ToolStripProfessionalRenderer {
             }
             return;
         }
+        if (e.Item != null && e.Item.Name == "TestAlertItem") {
+            base.OnRenderItemText(e);
+            if (ObsidianMenuColors.IsAudioMuted) {
+                Graphics g = e.Graphics;
+                g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
+                int cx = 13, cy = e.Item.Height / 2;
+                Color muteCol = ObsidianMenuColors.IsLightMode ? Color.FromArgb(205, 102, 0) : Color.FromArgb(247, 147, 26);
+                Color haloCol = ObsidianMenuColors.IsLightMode ? Color.FromArgb(232, 226, 214) : Color.FromArgb(10, 14, 20);
+                Point[] spk = new Point[] {
+                    new Point(cx - 6, cy - 3), new Point(cx - 2, cy - 3),
+                    new Point(cx + 3, cy - 7), new Point(cx + 3, cy + 7),
+                    new Point(cx - 2, cy + 3), new Point(cx - 6, cy + 3)
+                };
+                using (SolidBrush bSpk = new SolidBrush(muteCol)) { g.FillPolygon(bSpk, spk); }
+                using (Pen pHalo = new Pen(haloCol, 3.8f)) { g.DrawLine(pHalo, cx - 7, cy - 7, cx + 6, cy + 7); }
+                using (Pen pSlash = new Pen(muteCol, 2.0f)) { g.DrawLine(pSlash, cx - 7, cy - 7, cx + 6, cy + 7); }
+            }
+            return;
+        }
         if (e.Item != null && e.Item.Name == "ThreadItem") {
             string txt = e.Text;
             int dotIdx = txt.IndexOf('.');
@@ -711,6 +835,11 @@ public class ObsidianMenuRenderer : ToolStripProfessionalRenderer {
                 return;
             }
         }
+        if (e.Item != null && !e.Item.Enabled) {
+            Color disCol = ObsidianMenuColors.IsLightMode ? Color.FromArgb(145, 135, 120) : Color.FromArgb(95, 105, 118);
+            TextRenderer.DrawText(e.Graphics, e.Text, e.TextFont, e.TextRectangle, disCol, e.TextFormat);
+            return;
+        }
         base.OnRenderItemText(e);
     }
     protected override void OnRenderItemCheck(ToolStripItemImageRenderEventArgs e) {
@@ -726,7 +855,7 @@ public class ObsidianMenuRenderer : ToolStripProfessionalRenderer {
 }
 "@
 
-try { [ProcCtl]::SetCurrentProcessExplicitAppUserModelID("MinerIsma.SoloMiner.v2.1.2") | Out-Null } catch {}
+try { [ProcCtl]::SetCurrentProcessExplicitAppUserModelID("MinerIsma.SoloMiner.v2.2.0") | Out-Null } catch {}
 
 # ============================================================
 # FUNCOES HELPER DE INTERFACE, TEMA E CONTROLES VISUAIS
@@ -734,6 +863,7 @@ try { [ProcCtl]::SetCurrentProcessExplicitAppUserModelID("MinerIsma.SoloMiner.v2
 function Get-WindowBgColor      { if ($global:Theme -eq "Light") { return $global:ColorPearl } return $global:ColorObsidian }
 function Get-CardBgColor        { if ($global:Theme -eq "Light") { return [System.Drawing.Color]::FromArgb(236, 231, 220) } return [System.Drawing.Color]::FromArgb(12, 17, 24) }
 function Get-VisorBgColor       { if ($global:Theme -eq "Light") { return [System.Drawing.Color]::FromArgb(228, 222, 210) } return [System.Drawing.Color]::FromArgb(9, 13, 18) }
+function Get-VisorDisabledBg    { if ($global:Theme -eq "Light") { return [System.Drawing.Color]::FromArgb(215, 210, 200) } return [System.Drawing.Color]::FromArgb(14, 18, 24) }
 function Get-PrimaryTextColor   { if ($global:Theme -eq "Light") { return [System.Drawing.Color]::FromArgb(26, 20, 14) } return [System.Drawing.Color]::White }
 function Get-SecondaryTextColor { if ($global:Theme -eq "Light") { return [System.Drawing.Color]::FromArgb(85, 70, 55) } return [System.Drawing.Color]::LightGray }
 function Get-AccentOrangeColor  { if ($global:Theme -eq "Light") { return [System.Drawing.Color]::FromArgb(205, 102, 0) } return [System.Drawing.Color]::FromArgb(255, 247, 147, 26) }
@@ -847,6 +977,30 @@ function Set-ObsidianButtonStyle {
     $Btn.FlatStyle = [System.Windows.Forms.FlatStyle]::Flat
     $Btn.FlatAppearance.BorderSize = 1
     $Btn.FlatAppearance.BorderColor = $global:ColorBronzeBorder
+    if ($null -eq $Btn.AccessibleDescription) {
+        $Btn.AccessibleDescription = "ObsidianBtn"
+        $Btn.Add_Paint({
+            param($sender, $e)
+            if (-not $sender.Enabled) {
+                $isL = ($global:Theme -eq "Light")
+                $bgC = if ($isL) { [System.Drawing.Color]::FromArgb(218, 212, 202) } else { [System.Drawing.Color]::FromArgb(18, 24, 32) }
+                $fgC = if ($isL) { [System.Drawing.Color]::FromArgb(120, 110, 98) }  else { [System.Drawing.Color]::FromArgb(115, 125, 138) }
+                $bBg = New-Object System.Drawing.SolidBrush($bgC)
+                $pBr = New-Object System.Drawing.Pen($global:ColorBronzeBorder, 1)
+                $e.Graphics.FillRectangle($bBg, $sender.ClientRectangle)
+                $e.Graphics.DrawRectangle($pBr, 0, 0, ($sender.Width - 1), ($sender.Height - 1))
+                $flags = [System.Windows.Forms.TextFormatFlags]::HorizontalCenter -bor [System.Windows.Forms.TextFormatFlags]::VerticalCenter -bor [System.Windows.Forms.TextFormatFlags]::NoPadding
+                [System.Windows.Forms.TextRenderer]::DrawText($e.Graphics, $sender.Text, $sender.Font, $sender.ClientRectangle, $fgC, $flags)
+                $bBg.Dispose(); $pBr.Dispose()
+            }
+        })
+    }
+    if (-not $Btn.Enabled) {
+        $Btn.BackColor = if ($isLight) { [System.Drawing.Color]::FromArgb(218, 212, 202) } else { [System.Drawing.Color]::FromArgb(18, 24, 32) }
+        $Btn.ForeColor = [System.Drawing.Color]::Gray
+        $Btn.Invalidate()
+        return
+    }
     if ($isLight) {
         $Btn.BackColor = [System.Drawing.Color]::FromArgb(232, 226, 214)
         $Btn.FlatAppearance.MouseOverBackColor = [System.Drawing.Color]::FromArgb(255, 236, 209)
@@ -858,6 +1012,7 @@ function Set-ObsidianButtonStyle {
         $Btn.FlatAppearance.MouseDownBackColor = [System.Drawing.Color]::FromArgb(62, 42, 20)
         $Btn.ForeColor = if ($IsAccent) { [System.Drawing.Color]::FromArgb(255, 247, 147, 26) } else { [System.Drawing.Color]::White }
     }
+    $Btn.Invalidate()
 }
 
 function Set-MenuObsidianTheme {
@@ -921,10 +1076,77 @@ function Set-AppTheme {
 }
 
 # ============================================================
-# FALLBACK INTELIGENTE DE LINKS E CHECAGEM DE BLOCO SOLO
+# REDE, TESTE DE LATENCIA (PING TCP/ICMP) E BLOCO SOLO
 # ============================================================
 function Test-InternetConnected {
     try { return [System.Net.NetworkInformation.NetworkInterface]::GetIsNetworkAvailable() } catch { return $true }
+}
+
+function Measure-PoolLatency {
+    param([string]$RawTarget)
+    if ([string]::IsNullOrWhiteSpace($RawTarget)) { return @{ Success = $false; Ms = 0; Host = "" } }
+    $clean = $RawTarget.Trim()
+    $targetHost = $clean
+    $targetPort = 3333
+
+    if ($clean -match "^(?:stratum\+(?:tcp|ssl)|https?)://([^:/\s]+)(?::(\d+))?") {
+        $targetHost = $Matches[1]
+        if (-not [string]::IsNullOrWhiteSpace($Matches[2])) { $targetPort = [int]$Matches[2] }
+        elseif ($clean -match "^https://") { $targetPort = 443 }
+        elseif ($clean -match "^http://")  { $targetPort = 8332 }
+    } elseif ($clean -match "^([^:/\s]+):(\d+)$") {
+        $targetHost = $Matches[1]
+        $targetPort = [int]$Matches[2]
+    }
+
+    $hostLabel = "$targetHost`:$targetPort"
+    $global:LogQueue.Enqueue("[SISTEMA] [LATENCIA] Iniciando teste de conexao para $hostLabel ...")
+    [System.Windows.Forms.Application]::DoEvents()
+
+    $samples = New-Object System.Collections.Generic.List[double]
+    for ($i = 1; $i -le 3; $i++) {
+        $tcp = New-Object System.Net.Sockets.TcpClient
+        $sw  = [System.Diagnostics.Stopwatch]::StartNew()
+        try {
+            $iar = $tcp.BeginConnect($targetHost, $targetPort, $null, $null)
+            if ($iar.AsyncWaitHandle.WaitOne(1800, $false) -and $tcp.Connected) {
+                $sw.Stop()
+                $msVal = [int][Math]::Max(1, [Math]::Round($sw.Elapsed.TotalMilliseconds))
+                $samples.Add($msVal)
+                $global:LogQueue.Enqueue("[SISTEMA] [LATENCIA] Disparo $i/3 (TCP $hostLabel): $msVal ms")
+            } else {
+                $global:LogQueue.Enqueue("[SISTEMA] [LATENCIA] Disparo $i/3 (TCP $hostLabel): Tempo esgotado")
+            }
+        } catch {
+            $global:LogQueue.Enqueue("[SISTEMA] [LATENCIA] Disparo $i/3 (TCP $hostLabel): Falha de socket")
+        } finally {
+            try { $tcp.Close() } catch {}
+        }
+        [System.Windows.Forms.Application]::DoEvents()
+        Start-Sleep -Milliseconds 80
+    }
+
+    if ($samples.Count -eq 0) {
+        try {
+            $pingObj = New-Object System.Net.NetworkInformation.Ping
+            for ($i = 1; $i -le 2; $i++) {
+                $rep = $pingObj.Send($targetHost, 1500)
+                if ($rep.Status -eq [System.Net.NetworkInformation.IPStatus]::Success) {
+                    $msIcmp = [int][Math]::Max(1, $rep.RoundtripTime)
+                    $samples.Add([double]$msIcmp)
+                    $global:LogQueue.Enqueue("[SISTEMA] [LATENCIA] Disparo Fallback ICMP $i/2 ($targetHost): $msIcmp ms")
+                    [System.Windows.Forms.Application]::DoEvents()
+                }
+            }
+            $pingObj.Dispose()
+        } catch {}
+    }
+
+    if ($samples.Count -gt 0) {
+        $avgMs = [int][Math]::Round(($samples | Measure-Object -Average).Average)
+        return @{ Success = $true; Ms = [Math]::Max(1, $avgMs); Host = $hostLabel }
+    }
+    return @{ Success = $false; Ms = 0; Host = $hostLabel }
 }
 
 function Test-UrlReachable {
@@ -960,6 +1182,10 @@ function Open-UpdateDownloadLink {
 }
 
 function Open-ActivePoolDashboard {
+    if ($global:UseLocalNode) {
+        if (-not $global:Visible) { Toggle-LogWindow } else { $global:logForm.Activate() }
+        return
+    }
     $addr = ($global:Wallet -replace '\..*?$', '').Trim()
     if ($global:PoolUrl -match "(?i)ckpool\.org") {
         Start-Process ("https://solostats.ckpool.org/users/" + $addr)
@@ -1190,9 +1416,6 @@ function Initialize-CpuDetection {
     }
 }
 
-# ============================================================
-# JANELAS INDEPENDENTES COM ESCOPO PERSISTENTE ($script:...)
-# ============================================================
 function Test-WalletConfigured {
     if ([string]::IsNullOrWhiteSpace($global:Wallet)) { return $false }
     $addr = ($global:Wallet -replace '\..*?$', '').Trim()
@@ -1206,6 +1429,11 @@ function Save-MinerConfig {
             Wallet              = $global:Wallet
             PoolUrl             = $global:PoolUrl
             ExtraArgs           = $global:ExtraArgs
+            UseLocalNode        = $global:UseLocalNode
+            NodeRpcUrl          = $global:NodeRpcUrl
+            NodeRpcAuth         = $global:NodeRpcAuth
+            UseHardMode         = $global:UseHardMode
+            SavedHardExtraArgs  = $global:SavedHardExtraArgs
             StartupDelay        = $global:ConfiguredDelay
             SoundFileName       = $global:SoundFileName
             StartupInitialized  = $global:StartupInitialized
@@ -1224,6 +1452,105 @@ function Save-MinerConfig {
     } catch {}
 }
 
+function Get-Affinity {
+    param([int]$Threads)
+    foreach ($entry in $global:ThreadProfiles.GetEnumerator()) {
+        if ([int]$entry.Key -eq $Threads) { return [string]$entry.Value }
+    }
+    foreach ($entry in $global:ThreadProfiles.GetEnumerator()) {
+        if ([int]$entry.Key -eq $global:FactoryDefaultThreads) { return [string]$entry.Value }
+    }
+    foreach ($entry in $global:ThreadProfiles.GetEnumerator()) { return [string]$entry.Value }
+    return "0x55"
+}
+
+function Remove-HardFlagsFromExtra {
+    param([string]$ExtraText)
+    if ([string]::IsNullOrWhiteSpace($ExtraText)) { return "" }
+    $c = $ExtraText -replace '(?:^|\s)(?:-t|--threads)(?:[\s=]+\d+)?\b', ' '
+    $c = $c -replace '(?:^|\s)--cpu-affinity(?:[\s=]+\S+)?\b', ' '
+    return ($c -replace '\s+', ' ').Trim()
+}
+
+function Build-MinerCommandArgs {
+    param(
+        [bool]$IsNodeMode = $global:UseLocalNode,
+        [string]$PoolStr  = $global:PoolUrl,
+        [string]$NodeUrl  = $global:NodeRpcUrl,
+        [string]$NodeAuth = $global:NodeRpcAuth,
+        [bool]$IsHardMode = $global:UseHardMode,
+        [string]$ExtraStr = $global:ExtraArgs,
+        [int]$MenuThreads = $global:CurrentThreads
+    )
+    $cleanExtra = ($ExtraStr -replace '\s+', ' ').Trim()
+    $effThreads = $MenuThreads
+    $threadPart = ""
+
+    if ($IsHardMode) {
+        if ($cleanExtra -match '(?:^|\s)(?:-t|--threads)[\s=]+(\d+)\b') {
+            $effThreads = [Math]::Max(1, [int]$Matches[1])
+            $threadPart = ""
+        } else {
+            $effThreads = $global:MaxProfileThreads
+            $maxAff     = Get-Affinity $effThreads
+            if ($cleanExtra -match '(?:^|\s)--cpu-affinity\b') {
+                $threadPart = "-t $effThreads"
+            } else {
+                $threadPart = "-t $effThreads --cpu-affinity $maxAff"
+            }
+        }
+    } else {
+        $cleanExtra = Remove-HardFlagsFromExtra $cleanExtra
+        if (-not $global:ThreadProfiles.Contains($effThreads)) {
+            $effThreads = $global:FactoryDefaultThreads
+        }
+        $aff = Get-Affinity $effThreads
+        $threadPart = "-t $effThreads --cpu-affinity $aff"
+    }
+
+    if ($IsNodeMode) {
+        $cleanWalletAddr = ($global:Wallet -replace '\..*?$', '').Trim()
+        $lpFlag = if ($cleanExtra -match '(?:^|\s)--no-longpoll\b') { "" } else { "--no-longpoll" }
+        $cmdArgs = "-a sha256d -O $($NodeAuth.Trim()) -o $($NodeUrl.Trim()) --coinbase-addr=$cleanWalletAddr $threadPart $lpFlag $cleanExtra"
+    } else {
+        $cmdArgs = "-a sha256d -o $($PoolStr.Trim()) -u $($global:Wallet) -p x $threadPart $cleanExtra"
+    }
+
+    return @{
+        Args             = ($cmdArgs -replace '\s+', ' ').Trim()
+        EffectiveThreads = $effThreads
+    }
+}
+
+function Write-ErrorLog {
+    param([string]$Message)
+    try { Add-Content -Path $global:ErrorLog -Value "[$(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')] $Message" } catch {}
+}
+
+function Convert-TtfToDays {
+    param([string]$ttf)
+    if ($ttf -notmatch "\d") { return $null }
+    $days = 0.0
+    if ($ttf -match "(\d+)y") { $days += 365.0 * [int]$Matches[1] }
+    if ($ttf -match "(\d+)d") { $days += [int]$Matches[1] }
+    if ($ttf -match "(\d+)h") { $days += [int]$Matches[1] / 24.0 }
+    if ($ttf -match "(\d+)m") { $days += [int]$Matches[1] / 1440.0 }
+    if ($ttf -match "(\d+)s") { $days += [int]$Matches[1] / 86400.0 }
+    return $days
+}
+
+function Get-RemainingHalvingBlocks {
+    foreach ($l in @($global:RecentLines)) {
+        if ($l -match "Block\s+(\d{6,7})\b" -and ([int]$Matches[1] -gt $global:CurrentBlockHeight)) { $global:CurrentBlockHeight = [int]$Matches[1] }
+    }
+    $anchorUtc = [datetime]::new(2024, 4, 20, 0, 9, 27, [System.DateTimeKind]::Utc)
+    $estHeight = 840000 + [int][Math]::Floor(([datetime]::UtcNow - $anchorUtc).TotalMinutes / 10.0)
+    return [Math]::Max(1, (1050000 - [Math]::Max($global:CurrentBlockHeight, $estHeight)))
+}
+
+# ============================================================
+# JANELAS INDEPENDENTES COM ESCOPO PERSISTENTE ($script:...)
+# ============================================================
 function Show-SupportDialog {
     if ($null -ne $global:donForm -and (-not $global:donForm.IsDisposed)) {
         if ($global:donForm.WindowState -eq "Minimized") { $global:donForm.WindowState = "Normal" }
@@ -1244,7 +1571,6 @@ function Show-SupportDialog {
 
     $qrCandidates = @(
         $global:DonateQrPath,
-        (Join-Path $global:ResPath "QRcode-LNURL-BTC_On-EVM-2300x720dpi.png"),
         (Join-Path $global:ResPath "QRcode-LNURL-BTC_On-EVM-1800x580_450dpi.png"),
         (Join-Path $global:ResPath "QRcode-LNURL-BTC_On-EVM-1800x580_450dpi.jpg"),
         (Join-Path $global:ResPath "QRcode_LNURL-BTC_On-EVM_4000x1300dpi.png")
@@ -1369,7 +1695,8 @@ function Show-Tutorial {
     $script:tut_web.Add_DocumentCompleted({
         param($sender, $e)
         Set-TutorialWebScrollbarTheme
-        try { if ($null -ne $sender.Document) { $sender.Document.InvokeScript("setTutorialLang", @([string]$global:Language)) | Out-Null } } catch {}
+        $tutLang = if ($global:Language -in @("PT", "EN", "ES")) { $global:Language } else { "EN" }
+        try { if ($null -ne $sender.Document) { $sender.Document.InvokeScript("setTutorialLang", @([string]$tutLang)) | Out-Null } } catch {}
     })
     $script:tut_web.Add_Navigating({ param($sender, $e) if ($e.Url.Scheme -match "^https?$") { $e.Cancel = $true; Start-Process $e.Url.AbsoluteUri } })
 
@@ -1523,168 +1850,449 @@ function Show-AdvancedConfig {
     }
     $global:advForm = New-Object System.Windows.Forms.Form
     $global:advForm.Text = "$($global:ShortVersion) - $(Get-Text 'AdvWinTitle')"
-    $global:advForm.Size = New-Object System.Drawing.Size(620, 440); $global:advForm.StartPosition = "CenterScreen"
+    $global:advForm.Size = New-Object System.Drawing.Size(680, 718); $global:advForm.StartPosition = "CenterScreen"
     $global:advForm.BackColor = Get-WindowBgColor; $global:advForm.FormBorderStyle = "FixedSingle"; $global:advForm.MaximizeBox = $false
     $global:advForm.ShowIcon = $true; $global:advForm.ShowInTaskbar = $true; $global:advForm.Icon = $global:AppIcon
 
-    $fDanger = New-Object System.Drawing.Font("Segoe UI", 14, [System.Drawing.FontStyle]::Bold)
-    $fWrn1   = New-Object System.Drawing.Font("Segoe UI", 10.5, [System.Drawing.FontStyle]::Bold)
-    $fWrn2   = New-Object System.Drawing.Font("Segoe UI", 10, [System.Drawing.FontStyle]::Regular)
-    $fLbl    = New-Object System.Drawing.Font("Segoe UI", 10, [System.Drawing.FontStyle]::Bold)
+    $fDanger  = New-Object System.Drawing.Font("Segoe UI", 14, [System.Drawing.FontStyle]::Bold)
+    $fWrn1    = New-Object System.Drawing.Font("Segoe UI", 10.25, [System.Drawing.FontStyle]::Bold)
+    $fWrn2    = New-Object System.Drawing.Font("Segoe UI", 9.75, [System.Drawing.FontStyle]::Regular)
+    $fLbl     = New-Object System.Drawing.Font("Segoe UI", 10, [System.Drawing.FontStyle]::Bold)
+    $fCardHdr = New-Object System.Drawing.Font("Segoe UI", 10.5, [System.Drawing.FontStyle]::Bold)
+    $fTip     = New-Object System.Drawing.Font("Segoe UI", 9.5, [System.Drawing.FontStyle]::Regular)
+    $fSub     = New-Object System.Drawing.Font("Segoe UI", 9.5, [System.Drawing.FontStyle]::Regular)
+    $fPing    = New-Object System.Drawing.Font("Segoe UI", 9.5, [System.Drawing.FontStyle]::Bold)
 
-    $script:adv_lblDanger = New-UiLabel (Get-Text "AdvDangerHdr") 20 12 564 26 $fDanger (Get-DangerTextColor)
-    $script:adv_lblWarn1  = New-UiLabel (Get-Text "AdvWarn1") 20 42 564 22 $fWrn1 (Get-AccentOrangeColor)
-    $script:adv_lblWarn2  = New-UiLabel (Get-Text "AdvWarn2") 20 65 564 20 $fWrn2 (Get-PrimaryTextColor)
-    $script:adv_lblWarn3  = New-UiLabel (Get-Text "AdvWarn3") 20 86 564 20 $fWrn2 (Get-PrimaryTextColor)
+    # 1. Topo Centralizado: Zona de Perigo e Avisos
+    $script:adv_lblDanger = New-UiLabel (Get-Text "AdvDangerHdr") 20 10 624 26 $fDanger (Get-DangerTextColor)
+    $script:adv_lblWarn1  = New-UiLabel (Get-Text "AdvWarn1") 20 38 624 20 $fWrn1 (Get-AccentOrangeColor)
+    $script:adv_lblWarn2  = New-UiLabel (Get-Text "AdvWarn2") 20 60 624 20 $fWrn2 (Get-PrimaryTextColor)
+    $script:adv_lblWarn3  = New-UiLabel (Get-Text "AdvWarn3") 20 80 624 20 $fWrn2 (Get-PrimaryTextColor)
 
-    $script:adv_lblPool   = New-UiLabel (Get-Text "AdvLblPool") 20 116 0 0 $fLbl (Get-PrimaryTextColor)
+    # 2. Bloco 1: Endereco da Pool Solo + Botao Testar Latencia + Faixa de Resultado Espacada
+    $script:adv_lblPool   = New-UiLabel (Get-Text "AdvLblPool") 20 108 0 0 $fLbl (Get-PrimaryTextColor)
     $script:adv_txtPool   = New-Object System.Windows.Forms.TextBox
     $script:adv_txtPool.Text = $global:PoolUrl; $script:adv_txtPool.BorderStyle = "None"
-    $script:adv_txtPool.Location = New-Object System.Drawing.Point(25, 144); $script:adv_txtPool.Size = New-Object System.Drawing.Size(554, 19)
-    $script:adv_txtPool.BackColor = Get-VisorBgColor; $script:adv_txtPool.ForeColor = Get-GoldTextColor
+    $script:adv_txtPool.Location = New-Object System.Drawing.Point(25, 137); $script:adv_txtPool.Size = New-Object System.Drawing.Size(454, 19)
     $script:adv_txtPool.Font = New-Object System.Drawing.Font("Consolas", 10.5)
 
-    $script:adv_lblExtra  = New-UiLabel (Get-Text "AdvLblExtra") 20 176 0 0 $fLbl (Get-PrimaryTextColor)
-    $script:adv_txtExtra  = New-Object System.Windows.Forms.TextBox
-    $script:adv_txtExtra.Text = $global:ExtraArgs; $script:adv_txtExtra.BorderStyle = "None"
-    $script:adv_txtExtra.Location = New-Object System.Drawing.Point(25, 204); $script:adv_txtExtra.Size = New-Object System.Drawing.Size(554, 19)
-    $script:adv_txtExtra.BackColor = Get-VisorBgColor; $script:adv_txtExtra.ForeColor = Get-CyanTextColor
+    $script:adv_btnPing = New-Object System.Windows.Forms.Button
+    $script:adv_btnPing.Text = Get-Text "AdvBtnPing"; $script:adv_btnPing.Location = New-Object System.Drawing.Point(494, 132); $script:adv_btnPing.Size = New-Object System.Drawing.Size(150, 28)
+    $script:adv_btnPing.Font = New-Object System.Drawing.Font("Segoe UI", 9.5, [System.Drawing.FontStyle]::Bold)
+    Set-ObsidianButtonStyle $script:adv_btnPing $true
+
+    $script:adv_lblPingRes = New-UiLabel (Get-Text "AdvPingHint") 20 166 0 0 $fPing (Get-SecondaryTextColor)
+    $script:adv_PingTier   = 0
+
+    $script:adv_btnPing.Add_Click({
+        $targetStr = if ($script:adv_chkNode.Checked) { $script:adv_txtNodeUrl.Text } else { $script:adv_txtPool.Text }
+        $script:adv_lblPingRes.ForeColor = Get-GoldTextColor
+        $script:adv_lblPingRes.Text = "$(Get-Text 'AdvPingTesting') $($targetStr.Trim()) ..."
+        $global:advForm.Refresh()
+        [System.Windows.Forms.Application]::DoEvents()
+
+        $res = Measure-PoolLatency $targetStr
+        if ($res.Success) {
+            $ms = $res.Ms
+            if ($ms -le 80) {
+                $script:adv_PingTier = 1
+                $script:adv_lblPingRes.ForeColor = Get-GreenTextColor
+                $script:adv_lblPingRes.Text = "Ping [$($res.Host)]: Media = $($ms)ms - $(Get-Text 'AdvPingTier1')"
+            } elseif ($ms -le 180) {
+                $script:adv_PingTier = 2
+                $script:adv_lblPingRes.ForeColor = Get-CyanTextColor
+                $script:adv_lblPingRes.Text = "Ping [$($res.Host)]: Media = $($ms)ms - $(Get-Text 'AdvPingTier2')"
+            } elseif ($ms -le 260) {
+                $script:adv_PingTier = 3
+                $script:adv_lblPingRes.ForeColor = Get-GoldTextColor
+                $script:adv_lblPingRes.Text = "Ping [$($res.Host)]: Media = $($ms)ms - $(Get-Text 'AdvPingTier3')"
+            } else {
+                $script:adv_PingTier = 4
+                $script:adv_lblPingRes.ForeColor = Get-DangerTextColor
+                $script:adv_lblPingRes.Text = "Ping [$($res.Host)]: Media = $($ms)ms - $(Get-Text 'AdvPingTier4')"
+            }
+        } else {
+            $script:adv_PingTier = 4
+            $script:adv_lblPingRes.ForeColor = Get-DangerTextColor
+            $script:adv_lblPingRes.Text = "$(Get-Text 'AdvPingFail') [$($res.Host)]"
+        }
+        $global:LogQueue.Enqueue("[SISTEMA] [LATENCIA] $($script:adv_lblPingRes.Text)")
+    })
+
+    # 3. Bloco 2: Quadro Usuario Nobre -> Node Proprio (Y=194, H=132)
+    $cardBg = Get-CardBgColor
+    $script:adv_lblNobleHdr = New-UiLabel (Get-Text "AdvNobleHdr") 30 200 0 0 $fCardHdr (Get-AccentOrangeColor) $cardBg
+
+    $script:adv_chkNode = New-Object System.Windows.Forms.CheckBox
+    $script:adv_chkNode.Text = Get-Text "AdvNobleChk"
+    $script:adv_chkNode.Location = New-Object System.Drawing.Point(32, 225); $script:adv_chkNode.AutoSize = $true
+    $script:adv_chkNode.BackColor = $cardBg; $script:adv_chkNode.ForeColor = Get-PrimaryTextColor
+    $script:adv_chkNode.Font = New-Object System.Drawing.Font("Segoe UI", 10, [System.Drawing.FontStyle]::Bold)
+    $script:adv_chkNode.Checked = $global:UseLocalNode
+
+    $script:adv_lblNobleTip = New-UiLabel (Get-Text "AdvNobleTip") 32 249 0 0 $fTip (Get-GoldTextColor) $cardBg
+
+    $script:adv_lblNodeUrl  = New-UiLabel (Get-Text "AdvLblNodeUrl") 32 272 0 0 $fSub (Get-SecondaryTextColor) $cardBg
+    $script:adv_txtNodeUrl  = New-Object System.Windows.Forms.TextBox
+    $script:adv_txtNodeUrl.Text = $global:NodeRpcUrl; $script:adv_txtNodeUrl.BorderStyle = "None"
+    $script:adv_txtNodeUrl.Location = New-Object System.Drawing.Point(37, 297); $script:adv_txtNodeUrl.Size = New-Object System.Drawing.Size(326, 18)
+    $script:adv_txtNodeUrl.Font = New-Object System.Drawing.Font("Consolas", 10)
+
+    $script:adv_lblNodeAuth = New-UiLabel (Get-Text "AdvLblNodeAuth") 384 272 0 0 $fSub (Get-SecondaryTextColor) $cardBg
+    $script:adv_txtNodeAuth = New-Object System.Windows.Forms.TextBox
+    $script:adv_txtNodeAuth.Text = $global:NodeRpcAuth; $script:adv_txtNodeAuth.BorderStyle = "None"
+    $script:adv_txtNodeAuth.Location = New-Object System.Drawing.Point(389, 297); $script:adv_txtNodeAuth.Size = New-Object System.Drawing.Size(238, 18)
+    $script:adv_txtNodeAuth.Font = New-Object System.Drawing.Font("Consolas", 10)
+
+    # 4. Bloco 3: Parametros Extras + Checkbox Incluir --cpu-priority=1 + Quadro Usuario Hard
+    $script:adv_lblExtra = New-UiLabel (Get-Text "AdvLblExtra") 20 336 0 0 $fLbl (Get-PrimaryTextColor)
+
+    $initExtraText = if ($global:UseHardMode) { $global:ExtraArgs } else { Remove-HardFlagsFromExtra $global:ExtraArgs }
+
+    $script:adv_chkPriority = New-Object System.Windows.Forms.CheckBox
+    $script:adv_chkPriority.Text = Get-Text "AdvChkPriority"
+    $script:adv_chkPriority.Location = New-Object System.Drawing.Point(450, 335); $script:adv_chkPriority.AutoSize = $true
+    $script:adv_chkPriority.BackColor = Get-WindowBgColor; $script:adv_chkPriority.ForeColor = Get-AccentOrangeColor
+    $script:adv_chkPriority.Font = New-Object System.Drawing.Font("Segoe UI", 9.25, [System.Drawing.FontStyle]::Bold)
+    $script:adv_chkPriority.Checked = ($initExtraText -match '(?:^|\s)--cpu-priority(?:=\d+|\s+\d+)\b')
+
+    $script:adv_txtExtra = New-Object System.Windows.Forms.TextBox
+    $script:adv_txtExtra.Text = $initExtraText; $script:adv_txtExtra.BorderStyle = "None"
+    $script:adv_txtExtra.Location = New-Object System.Drawing.Point(25, 365); $script:adv_txtExtra.Size = New-Object System.Drawing.Size(614, 19)
     $script:adv_txtExtra.Font = New-Object System.Drawing.Font("Consolas", 10.5)
 
-    $script:adv_lblPreview = New-UiLabel (Get-Text "AdvLblPreview") 20 236 0 0 $fLbl (Get-SecondaryTextColor)
+    $script:adv_lblHardHdr = New-UiLabel (Get-Text "AdvHardHdr") 30 404 0 0 $fCardHdr (Get-AccentOrangeColor) $cardBg
+
+    $script:adv_chkHard = New-Object System.Windows.Forms.CheckBox
+    $script:adv_chkHard.Text = Get-Text "AdvHardChk"
+    $script:adv_chkHard.Location = New-Object System.Drawing.Point(32, 434); $script:adv_chkHard.AutoSize = $true
+    $script:adv_chkHard.BackColor = $cardBg; $script:adv_chkHard.ForeColor = Get-DangerTextColor
+    $script:adv_chkHard.Font = New-Object System.Drawing.Font("Segoe UI", 10, [System.Drawing.FontStyle]::Bold)
+    $script:adv_chkHard.Checked = $global:UseHardMode
+
+    $script:adv_btnCalcAff = New-Object System.Windows.Forms.Button
+    $script:adv_btnCalcAff.Text = Get-Text "AdvBtnCalcAff"; $script:adv_btnCalcAff.Location = New-Object System.Drawing.Point(286, 430); $script:adv_btnCalcAff.Size = New-Object System.Drawing.Size(166, 30)
+    $script:adv_btnCalcAff.Font = New-Object System.Drawing.Font("Segoe UI", 9.25, [System.Drawing.FontStyle]::Bold)
+    $script:adv_btnCalcAff.Enabled = $global:UseHardMode
+    Set-ObsidianButtonStyle $script:adv_btnCalcAff $true
+    $script:adv_btnCalcAff.Add_Click({ Start-Process $global:UrlAffinityCalc })
+
+    $script:adv_btnRecoverHard = New-Object System.Windows.Forms.Button
+    $script:adv_btnRecoverHard.Text = Get-Text "AdvBtnRecoverHard"; $script:adv_btnRecoverHard.Location = New-Object System.Drawing.Point(462, 430); $script:adv_btnRecoverHard.Size = New-Object System.Drawing.Size(170, 30)
+    $script:adv_btnRecoverHard.Font = New-Object System.Drawing.Font("Segoe UI", 9.25, [System.Drawing.FontStyle]::Bold)
+    $script:adv_btnRecoverHard.Enabled = (-not [string]::IsNullOrWhiteSpace($global:SavedHardExtraArgs))
+    Set-ObsidianButtonStyle $script:adv_btnRecoverHard $false
+
+    $script:adv_lblHardSub = New-UiLabel $(if ($global:UseHardMode) { Get-Text "AdvHardSubActive" } else { Get-Text "AdvHardSubDefault" }) 32 468 0 0 $fSub $(if ($global:UseHardMode) { Get-GoldTextColor } else { Get-SecondaryTextColor }) $cardBg
+
+    # 5. Bloco 4: Visor Somente Visualizacao (Comando Completo) + Botoes Inferiores
+    $script:adv_lblPreview = New-UiLabel (Get-Text "AdvLblPreview") 20 508 0 0 $fLbl (Get-SecondaryTextColor)
     $script:adv_txtPreview = New-Object System.Windows.Forms.TextBox
     $script:adv_txtPreview.Multiline = $true; $script:adv_txtPreview.ReadOnly = $true; $script:adv_txtPreview.TabStop = $false; $script:adv_txtPreview.BorderStyle = "None"
-    $script:adv_txtPreview.Location = New-Object System.Drawing.Point(25, 264); $script:adv_txtPreview.Size = New-Object System.Drawing.Size(554, 52)
-    $script:adv_txtPreview.BackColor = Get-VisorBgColor; $script:adv_txtPreview.ForeColor = Get-SecondaryTextColor
-    $script:adv_txtPreview.Font = New-Object System.Drawing.Font("Consolas", 9.5)
+    $script:adv_txtPreview.Location = New-Object System.Drawing.Point(25, 537); $script:adv_txtPreview.Size = New-Object System.Drawing.Size(614, 72)
+    $script:adv_txtPreview.Font = New-Object System.Drawing.Font("Consolas", 9.75)
+
+    $script:adv_SuppressHardPrompt   = $false
+    $script:adv_SuppressPrioritySync = $false
+
+    $script:adv_syncFieldStates = {
+        $isNode = $script:adv_chkNode.Checked
+        $isHard = $script:adv_chkHard.Checked
+        $vBg    = Get-VisorBgColor
+        $vDis   = Get-VisorDisabledBg
+
+        $script:adv_txtPool.Enabled      = (-not $isNode)
+        $script:adv_txtPool.BackColor    = if ($isNode) { $vDis } else { $vBg }
+        $script:adv_txtPool.ForeColor    = if ($isNode) { [System.Drawing.Color]::Gray } else { Get-GoldTextColor }
+
+        $script:adv_txtNodeUrl.Enabled   = $isNode
+        $script:adv_txtNodeUrl.BackColor = if ($isNode) { $vBg } else { $vDis }
+        $script:adv_txtNodeUrl.ForeColor = if ($isNode) { Get-GoldTextColor } else { [System.Drawing.Color]::Gray }
+
+        $script:adv_txtNodeAuth.Enabled   = $isNode
+        $script:adv_txtNodeAuth.BackColor = if ($isNode) { $vBg } else { $vDis }
+        $script:adv_txtNodeAuth.ForeColor = if ($isNode) { Get-CyanTextColor } else { [System.Drawing.Color]::Gray }
+
+        $script:adv_btnCalcAff.Enabled   = $isHard
+        Set-ObsidianButtonStyle $script:adv_btnCalcAff $true
+
+        $script:adv_btnRecoverHard.Enabled = (-not [string]::IsNullOrWhiteSpace($global:SavedHardExtraArgs))
+        Set-ObsidianButtonStyle $script:adv_btnRecoverHard $false
+
+        $script:adv_lblHardSub.Text      = if ($isHard) { Get-Text "AdvHardSubActive" } else { Get-Text "AdvHardSubDefault" }
+        $script:adv_lblHardSub.ForeColor = if ($isHard) { Get-GoldTextColor } else { Get-SecondaryTextColor }
+        $global:advForm.Invalidate()
+    }
 
     $script:adv_updatePreview = {
-        $aff  = Get-Affinity $global:CurrentThreads
-        $pStr = ($script:adv_txtPool.Text).Trim()
-        $eStr = ($script:adv_txtExtra.Text).Trim()
-        $cmd  = "$($global:DetectedMinerExe) -a sha256d -o $pStr -u $($global:Wallet) -p x -t $($global:CurrentThreads) --cpu-affinity $aff $eStr"
-        $script:adv_txtPreview.Text = ($cmd -replace '\s+', ' ').Trim()
+        $previewBaseThreads = if ($global:ThreadProfiles.Contains($global:CurrentThreads)) { $global:CurrentThreads } else { $global:FactoryDefaultThreads }
+        $built = Build-MinerCommandArgs -IsNodeMode $script:adv_chkNode.Checked -PoolStr $script:adv_txtPool.Text -NodeUrl $script:adv_txtNodeUrl.Text -NodeAuth $script:adv_txtNodeAuth.Text -IsHardMode $script:adv_chkHard.Checked -ExtraStr $script:adv_txtExtra.Text -MenuThreads $previewBaseThreads
+        $script:adv_txtPreview.Text = "$($global:DetectedMinerExe) $($built.Args)"
     }
-    & $script:adv_updatePreview
+
+    $script:adv_chkPriority.Add_CheckedChanged({
+        if ($script:adv_SuppressPrioritySync) { return }
+        $script:adv_SuppressPrioritySync = $true
+        $cur = ($script:adv_txtExtra.Text).Trim()
+        if ($script:adv_chkPriority.Checked) {
+            if ($cur -notmatch '(?:^|\s)--cpu-priority(?:=\d+|\s+\d+)\b') {
+                $script:adv_txtExtra.Text = "$cur --cpu-priority=1".Trim()
+            }
+        } else {
+            $cleaned = ($cur -replace '(?:^|\s)--cpu-priority(?:=\d+|\s+\d+)?\b', ' ' -replace '\s+', ' ').Trim()
+            $script:adv_txtExtra.Text = $cleaned
+        }
+        $script:adv_SuppressPrioritySync = $false
+        & $script:adv_updatePreview
+    })
+
+    $script:adv_chkNode.Add_CheckedChanged({
+        & $script:adv_syncFieldStates
+        & $script:adv_updatePreview
+    })
+
+    $script:adv_chkHard.Add_CheckedChanged({
+        if ($script:adv_SuppressHardPrompt) { return }
+        if ($script:adv_chkHard.Checked) {
+            $ans = [System.Windows.Forms.MessageBox]::Show((Get-Text "AdvHardWarnMsg"), "$($global:ShortVersion) - $(Get-Text 'AdvHardChk')", [System.Windows.Forms.MessageBoxButtons]::OKCancel, [System.Windows.Forms.MessageBoxIcon]::Warning)
+            if ($ans -ne [System.Windows.Forms.DialogResult]::OK) {
+                $script:adv_SuppressHardPrompt = $true
+                $script:adv_chkHard.Checked = $false
+                $script:adv_SuppressHardPrompt = $false
+            } elseif ($script:adv_txtExtra.Text -notmatch '(?:^|\s)(?:-t|--threads)\b') {
+                $maxT = $global:MaxProfileThreads
+                $maxA = Get-Affinity $maxT
+                $baseExtra = Remove-HardFlagsFromExtra $script:adv_txtExtra.Text
+                $script:adv_txtExtra.Text = "-t $maxT --cpu-affinity $maxA $baseExtra".Trim()
+            }
+        } else {
+            $stripped = Remove-HardFlagsFromExtra $script:adv_txtExtra.Text
+            if ([string]::IsNullOrWhiteSpace($stripped) -and $script:adv_chkPriority.Checked) {
+                $stripped = $global:DefaultExtraArgs
+            }
+            $script:adv_txtExtra.Text = $stripped
+        }
+        & $script:adv_syncFieldStates
+        & $script:adv_updatePreview
+    })
+
+    $script:adv_btnRecoverHard.Add_Click({
+        if (-not [string]::IsNullOrWhiteSpace($global:SavedHardExtraArgs)) {
+            $script:adv_SuppressHardPrompt = $true
+            $script:adv_chkHard.Checked = $true
+            $script:adv_SuppressHardPrompt = $false
+            $script:adv_txtExtra.Text = $global:SavedHardExtraArgs
+            & $script:adv_syncFieldStates
+            & $script:adv_updatePreview
+        }
+    })
+
     $script:adv_txtPool.Add_TextChanged($script:adv_updatePreview)
-    $script:adv_txtExtra.Add_TextChanged($script:adv_updatePreview)
+    $script:adv_txtNodeUrl.Add_TextChanged($script:adv_updatePreview)
+    $script:adv_txtNodeAuth.Add_TextChanged($script:adv_updatePreview)
+    $script:adv_txtExtra.Add_TextChanged({
+        if (-not $script:adv_SuppressPrioritySync) {
+            $script:adv_SuppressPrioritySync = $true
+            $script:adv_chkPriority.Checked = ($script:adv_txtExtra.Text -match '(?:^|\s)--cpu-priority(?:=\d+|\s+\d+)\b')
+            $script:adv_SuppressPrioritySync = $false
+        }
+        & $script:adv_updatePreview
+    })
+
+    & $script:adv_syncFieldStates
+    & $script:adv_updatePreview
 
     $global:advForm.Add_Paint({
         param($s, $e)
-        $bFill = New-Object System.Drawing.SolidBrush((Get-VisorBgColor))
+        $bCard   = New-Object System.Drawing.SolidBrush((Get-CardBgColor))
+        $bVisor  = New-Object System.Drawing.SolidBrush((Get-VisorBgColor))
+        $bDis    = New-Object System.Drawing.SolidBrush((Get-VisorDisabledBg))
         $pBronze = New-Object System.Drawing.Pen($global:ColorBronzeBorder, 1)
-        $e.Graphics.FillRectangle($bFill, 20, 139, 564, 28); $e.Graphics.DrawRectangle($pBronze, 20, 139, 563, 27)
-        $e.Graphics.FillRectangle($bFill, 20, 199, 564, 28); $e.Graphics.DrawRectangle($pBronze, 20, 199, 563, 27)
-        $e.Graphics.FillRectangle($bFill, 20, 259, 564, 62); $e.Graphics.DrawRectangle($pBronze, 20, 259, 563, 61)
-        $bFill.Dispose(); $pBronze.Dispose()
+
+        # Quadro Nobre (Y=194, H=132) e Quadro Hard (Y=398, H=100)
+        $e.Graphics.FillRectangle($bCard, 20, 194, 624, 132); $e.Graphics.DrawRectangle($pBronze, 20, 194, 623, 131)
+        $e.Graphics.FillRectangle($bCard, 20, 398, 624, 100); $e.Graphics.DrawRectangle($pBronze, 20, 398, 623, 99)
+
+        $isN = $script:adv_chkNode.Checked
+        $bPoolBox = if ($isN) { $bDis } else { $bVisor }
+        $bNodeBox = if ($isN) { $bVisor } else { $bDis }
+
+        # Molduras dos campos de texto
+        $e.Graphics.FillRectangle($bPoolBox, 20, 132, 464, 28); $e.Graphics.DrawRectangle($pBronze, 20, 132, 463, 27)
+        $e.Graphics.FillRectangle($bNodeBox, 32, 293, 336, 26); $e.Graphics.DrawRectangle($pBronze, 32, 293, 335, 25)
+        $e.Graphics.FillRectangle($bNodeBox, 384, 293, 248, 26); $e.Graphics.DrawRectangle($pBronze, 384, 293, 247, 25)
+        $e.Graphics.FillRectangle($bVisor, 20, 360, 624, 28);   $e.Graphics.DrawRectangle($pBronze, 20, 360, 623, 27)
+        $e.Graphics.FillRectangle($bVisor, 20, 532, 624, 82);   $e.Graphics.DrawRectangle($pBronze, 20, 532, 623, 81)
+
+        $bCard.Dispose(); $bVisor.Dispose(); $bDis.Dispose(); $pBronze.Dispose()
     })
 
     $script:adv_btnSave = New-Object System.Windows.Forms.Button
-    $script:adv_btnSave.Text = Get-Text "BtnSaveApply"; $script:adv_btnSave.Location = New-Object System.Drawing.Point(20, 340); $script:adv_btnSave.Size = New-Object System.Drawing.Size(172, 40)
+    $script:adv_btnSave.Text = Get-Text "BtnSaveApply"; $script:adv_btnSave.Location = New-Object System.Drawing.Point(20, 628); $script:adv_btnSave.Size = New-Object System.Drawing.Size(196, 40)
     $script:adv_btnSave.Font = New-Object System.Drawing.Font("Segoe UI", 10, [System.Drawing.FontStyle]::Bold)
     Set-ObsidianButtonStyle $script:adv_btnSave $false
     $script:adv_btnSave.Add_Click({
+        $isNode   = $script:adv_chkNode.Checked
+        $isHard   = $script:adv_chkHard.Checked
         $newPool  = ($script:adv_txtPool.Text).Trim()
+        $newNUrl  = ($script:adv_txtNodeUrl.Text).Trim()
+        $newNAuth = ($script:adv_txtNodeAuth.Text).Trim()
         $newExtra = ($script:adv_txtExtra.Text).Trim()
-        if ($newExtra -match '(^|\s)(-t|--threads|--cpu-affinity|-u|--user|-o|--url|-a|--algo)(\s|=|$)') {
-            [System.Windows.Forms.MessageBox]::Show((Get-Text "AdvForbiddenArgs"), "$($global:ShortVersion)", 0, 48) | Out-Null; return
+
+        if ($isHard) {
+            if ($newExtra -match '(^|\s)(-u|--user|-o|--url|-O|--userpass|-a|--algo)(\s|=|$)') {
+                [System.Windows.Forms.MessageBox]::Show((Get-Text "AdvForbiddenHard"), "$($global:ShortVersion)", 0, 48) | Out-Null; return
+            }
+            $tMatches = [regex]::Matches($newExtra, '(?:^|\s)(?:-t|--threads)\b')
+            $aMatches = [regex]::Matches($newExtra, '(?:^|\s)--cpu-affinity\b')
+            if (($tMatches.Count -gt 1) -or ($aMatches.Count -gt 1)) {
+                [System.Windows.Forms.MessageBox]::Show((Get-Text "AdvDuplicateArgs"), "$($global:ShortVersion)", 0, 48) | Out-Null; return
+            }
+        } else {
+            $newExtra = Remove-HardFlagsFromExtra $newExtra
+            $script:adv_txtExtra.Text = $newExtra
+            if ($newExtra -match '(^|\s)(-t|--threads|--cpu-affinity|-u|--user|-o|--url|-O|--userpass|-a|--algo)(\s|=|$)') {
+                [System.Windows.Forms.MessageBox]::Show((Get-Text "AdvForbiddenArgs"), "$($global:ShortVersion)", 0, 48) | Out-Null; return
+            }
         }
-        if (($newExtra -notmatch '(?i)--benchmark') -and ($newPool -notmatch '^(stratum\+(tcp|ssl)://).+')) {
-            [System.Windows.Forms.MessageBox]::Show((Get-Text "AdvInvalidPool"), "$($global:ShortVersion)", 0, 16) | Out-Null; return
+
+        if ($isNode) {
+            if ($newNUrl -notmatch '^https?://.+') {
+                [System.Windows.Forms.MessageBox]::Show((Get-Text "AdvInvalidNodeUrl"), "$($global:ShortVersion)", 0, 16) | Out-Null; return
+            }
+            if ($newNAuth -notmatch '^[^:\s]+:.+') {
+                [System.Windows.Forms.MessageBox]::Show((Get-Text "AdvInvalidNodeAuth"), "$($global:ShortVersion)", 0, 16) | Out-Null; return
+            }
+        } else {
+            if (($newExtra -notmatch '(?i)--benchmark') -and ($newPool -notmatch '^(stratum\+(tcp|ssl)://).+')) {
+                [System.Windows.Forms.MessageBox]::Show((Get-Text "AdvInvalidPool"), "$($global:ShortVersion)", 0, 16) | Out-Null; return
+            }
         }
+
         $ans = [System.Windows.Forms.MessageBox]::Show((Get-Text "AdvConfirmMsg"), "$($global:ShortVersion)", [System.Windows.Forms.MessageBoxButtons]::OKCancel, [System.Windows.Forms.MessageBoxIcon]::Warning)
         if ($ans -eq [System.Windows.Forms.DialogResult]::OK) {
-            $global:PoolUrl   = $newPool
-            $global:ExtraArgs = $newExtra
+            $wasHard = $global:UseHardMode
+            $global:UseLocalNode = $isNode
+            $global:UseHardMode  = $isHard
+            $global:PoolUrl      = $newPool
+            if (-not [string]::IsNullOrWhiteSpace($newNUrl))  { $global:NodeRpcUrl  = $newNUrl }
+            if (-not [string]::IsNullOrWhiteSpace($newNAuth)) { $global:NodeRpcAuth = $newNAuth }
+            $global:ExtraArgs    = $newExtra
+
+            if ($isHard) {
+                $global:SavedHardExtraArgs = $newExtra
+            } elseif ($wasHard -or (-not $global:ThreadProfiles.Contains($global:CurrentThreads))) {
+                $global:CurrentThreads = $global:FactoryDefaultThreads
+            }
+
             Save-MinerConfig
-            $global:LogQueue.Enqueue("[SISTEMA] Modo Avancado aplicado: Pool=$newPool | ExtraArgs=$newExtra")
+            $modeDesc = if ($isNode) { "Node=$($global:NodeRpcUrl)" } else { "Pool=$newPool" }
+            $global:LogQueue.Enqueue("[SISTEMA] Modo Avancado aplicado ($modeDesc | Hard=$isHard | ExtraArgs=$newExtra)")
             if ($global:IsPaused) { $global:itemPause.Text = Get-Text "MenuPause"; $global:IsPaused = $false; $global:PauseResumeAt = $null }
             Start-MinerTask $global:CurrentThreads
-            $global:advForm.Close()
+            & $script:adv_syncFieldStates
+            & $script:adv_updatePreview
         }
     })
 
     $script:adv_btnRestore = New-Object System.Windows.Forms.Button
-    $script:adv_btnRestore.Text = Get-Text "BtnRestoreDef"; $script:adv_btnRestore.Location = New-Object System.Drawing.Point(216, 340); $script:adv_btnRestore.Size = New-Object System.Drawing.Size(172, 40)
+    $script:adv_btnRestore.Text = Get-Text "BtnRestoreDef"; $script:adv_btnRestore.Location = New-Object System.Drawing.Point(234, 628); $script:adv_btnRestore.Size = New-Object System.Drawing.Size(196, 40)
     $script:adv_btnRestore.Font = New-Object System.Drawing.Font("Segoe UI", 10, [System.Drawing.FontStyle]::Bold)
     Set-ObsidianButtonStyle $script:adv_btnRestore $true
     $script:adv_btnRestore.Add_Click({
         $ans = [System.Windows.Forms.MessageBox]::Show((Get-Text "AdvRestoreMsg"), "$($global:ShortVersion)", [System.Windows.Forms.MessageBoxButtons]::OKCancel, [System.Windows.Forms.MessageBoxIcon]::Question)
         if ($ans -eq [System.Windows.Forms.DialogResult]::OK) {
-            $script:adv_txtPool.Text  = $global:DefaultPoolUrl
-            $script:adv_txtExtra.Text = $global:DefaultExtraArgs
-            $global:PoolUrl           = $global:DefaultPoolUrl
-            $global:ExtraArgs         = $global:DefaultExtraArgs
+            if (-not [string]::IsNullOrWhiteSpace($script:adv_txtNodeUrl.Text))  { $global:NodeRpcUrl  = ($script:adv_txtNodeUrl.Text).Trim() }
+            if (-not [string]::IsNullOrWhiteSpace($script:adv_txtNodeAuth.Text)) { $global:NodeRpcAuth = ($script:adv_txtNodeAuth.Text).Trim() }
+
+            $script:adv_SuppressHardPrompt = $true
+            $script:adv_chkNode.Checked    = $false
+            $script:adv_chkHard.Checked    = $false
+            $script:adv_SuppressHardPrompt = $false
+            $script:adv_txtPool.Text       = $global:DefaultPoolUrl
+            $script:adv_txtExtra.Text      = $global:DefaultExtraArgs
+
+            $global:UseLocalNode   = $false
+            $global:UseHardMode    = $false
+            $global:PoolUrl        = $global:DefaultPoolUrl
+            $global:ExtraArgs      = $global:DefaultExtraArgs
+            $global:CurrentThreads = $global:FactoryDefaultThreads
+            $global:DefaultThreads = $global:FactoryDefaultThreads
             Save-MinerConfig
-            $global:LogQueue.Enqueue("[SISTEMA] Modo Avancado restaurado para o padrao de fabrica.")
+            $global:LogQueue.Enqueue("[SISTEMA] Modo Avancado restaurado para o padrao de fabrica ($($global:FactoryDefaultThreads) Threads).")
             if ($global:IsPaused) { $global:itemPause.Text = Get-Text "MenuPause"; $global:IsPaused = $false; $global:PauseResumeAt = $null }
-            Start-MinerTask $global:CurrentThreads
-            $global:advForm.Close()
+            Start-MinerTask $global:FactoryDefaultThreads
+            & $script:adv_syncFieldStates
+            & $script:adv_updatePreview
         }
     })
 
     $script:adv_btnClose = New-Object System.Windows.Forms.Button
-    $script:adv_btnClose.Text = Get-Text "BtnClose"; $script:adv_btnClose.Location = New-Object System.Drawing.Point(412, 340); $script:adv_btnClose.Size = New-Object System.Drawing.Size(172, 40)
+    $script:adv_btnClose.Text = Get-Text "BtnCloseWin"; $script:adv_btnClose.Location = New-Object System.Drawing.Point(448, 628); $script:adv_btnClose.Size = New-Object System.Drawing.Size(196, 40)
     $script:adv_btnClose.Font = New-Object System.Drawing.Font("Segoe UI", 10)
     Set-ObsidianButtonStyle $script:adv_btnClose $false; $script:adv_btnClose.Add_Click({ $global:advForm.Close() })
 
     $global:advForm.Tag = {
-        $script:adv_lblDanger.ForeColor  = Get-DangerTextColor
-        $script:adv_lblWarn1.ForeColor   = Get-AccentOrangeColor
-        $script:adv_lblWarn2.ForeColor   = Get-PrimaryTextColor
-        $script:adv_lblWarn3.ForeColor   = Get-PrimaryTextColor
-        $script:adv_lblPool.ForeColor    = Get-PrimaryTextColor
-        $script:adv_lblExtra.ForeColor   = Get-PrimaryTextColor
-        $script:adv_lblPreview.ForeColor = Get-SecondaryTextColor
-        $script:adv_txtPool.BackColor    = Get-VisorBgColor; $script:adv_txtPool.ForeColor    = Get-GoldTextColor
+        $cBg = Get-CardBgColor
+        $script:adv_lblDanger.ForeColor   = Get-DangerTextColor
+        $script:adv_lblWarn1.ForeColor    = Get-AccentOrangeColor
+        $script:adv_lblWarn2.ForeColor    = Get-PrimaryTextColor
+        $script:adv_lblWarn3.ForeColor    = Get-PrimaryTextColor
+        $script:adv_lblPool.ForeColor     = Get-PrimaryTextColor
+        $script:adv_lblExtra.ForeColor    = Get-PrimaryTextColor
+        $script:adv_chkPriority.BackColor = Get-WindowBgColor
+        $script:adv_chkPriority.ForeColor = Get-AccentOrangeColor
+        $script:adv_lblPreview.ForeColor  = Get-SecondaryTextColor
+
+        foreach ($ctrl in @($script:adv_lblNobleHdr, $script:adv_chkNode, $script:adv_lblNobleTip, $script:adv_lblNodeUrl, $script:adv_lblNodeAuth, $script:adv_lblHardHdr, $script:adv_chkHard, $script:adv_lblHardSub)) {
+            $ctrl.BackColor = $cBg
+        }
+        $script:adv_lblNobleHdr.ForeColor = Get-AccentOrangeColor
+        $script:adv_chkNode.ForeColor     = Get-PrimaryTextColor
+        $script:adv_lblNobleTip.ForeColor = Get-GoldTextColor
+        $script:adv_lblNodeUrl.ForeColor  = Get-SecondaryTextColor
+        $script:adv_lblNodeAuth.ForeColor = Get-SecondaryTextColor
+        $script:adv_lblHardHdr.ForeColor  = Get-AccentOrangeColor
+        $script:adv_chkHard.ForeColor     = Get-DangerTextColor
+
+        $script:adv_lblPingRes.ForeColor = switch ($script:adv_PingTier) {
+            1 { Get-GreenTextColor }
+            2 { Get-CyanTextColor }
+            3 { Get-GoldTextColor }
+            4 { Get-DangerTextColor }
+            default { Get-SecondaryTextColor }
+        }
+
         $script:adv_txtExtra.BackColor   = Get-VisorBgColor; $script:adv_txtExtra.ForeColor   = Get-CyanTextColor
         $script:adv_txtPreview.BackColor = Get-VisorBgColor; $script:adv_txtPreview.ForeColor = Get-SecondaryTextColor
-        Set-ObsidianButtonStyle $script:adv_btnSave $false; Set-ObsidianButtonStyle $script:adv_btnRestore $true; Set-ObsidianButtonStyle $script:adv_btnClose $false
+        & $script:adv_syncFieldStates
+        Set-ObsidianButtonStyle $script:adv_btnPing $true
+        Set-ObsidianButtonStyle $script:adv_btnSave $false
+        Set-ObsidianButtonStyle $script:adv_btnRestore $true
+        Set-ObsidianButtonStyle $script:adv_btnClose $false
     }
 
     $global:advForm.Add_FormClosed({ $global:advForm = $null })
-    $global:advForm.Controls.AddRange(@($script:adv_lblDanger, $script:adv_lblWarn1, $script:adv_lblWarn2, $script:adv_lblWarn3, $script:adv_lblPool, $script:adv_txtPool, $script:adv_lblExtra, $script:adv_txtExtra, $script:adv_lblPreview, $script:adv_txtPreview, $script:adv_btnSave, $script:adv_btnRestore, $script:adv_btnClose))
+    $global:advForm.Controls.AddRange(@(
+        $script:adv_lblDanger, $script:adv_lblWarn1, $script:adv_lblWarn2, $script:adv_lblWarn3,
+        $script:adv_lblPool, $script:adv_txtPool, $script:adv_btnPing, $script:adv_lblPingRes,
+        $script:adv_lblNobleHdr, $script:adv_chkNode, $script:adv_lblNobleTip, $script:adv_lblNodeUrl, $script:adv_txtNodeUrl, $script:adv_lblNodeAuth, $script:adv_txtNodeAuth,
+        $script:adv_lblExtra, $script:adv_chkPriority, $script:adv_txtExtra,
+        $script:adv_lblHardHdr, $script:adv_chkHard, $script:adv_lblHardSub, $script:adv_btnCalcAff, $script:adv_btnRecoverHard,
+        $script:adv_lblPreview, $script:adv_txtPreview,
+        $script:adv_btnSave, $script:adv_btnRestore, $script:adv_btnClose
+    ))
     $global:advForm.ActiveControl = $script:adv_btnClose
     $global:advForm.Add_Shown({
         Set-WindowDarkTheme $global:advForm
         $script:adv_txtPool.SelectionLength = 0
+        $script:adv_txtNodeUrl.SelectionLength = 0
+        $script:adv_txtNodeAuth.SelectionLength = 0
         $script:adv_txtExtra.SelectionLength = 0
         $script:adv_txtPreview.SelectionLength = 0
         $script:adv_btnClose.Focus() | Out-Null
     })
     $global:advForm.Show()
-}
-
-function Get-Affinity {
-    param([int]$Threads)
-    foreach ($entry in $global:ThreadProfiles.GetEnumerator()) { if ([int]$entry.Key -eq $Threads) { return [string]$entry.Value } }
-    return $null
-}
-
-function Write-ErrorLog {
-    param([string]$Message)
-    try { Add-Content -Path $global:ErrorLog -Value "[$(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')] $Message" } catch {}
-}
-
-function Convert-TtfToDays {
-    param([string]$ttf)
-    if ($ttf -notmatch "\d") { return $null }
-    $days = 0.0
-    if ($ttf -match "(\d+)y") { $days += 365.0 * [int]$Matches[1] }
-    if ($ttf -match "(\d+)d") { $days += [int]$Matches[1] }
-    if ($ttf -match "(\d+)h") { $days += [int]$Matches[1] / 24.0 }
-    if ($ttf -match "(\d+)m") { $days += [int]$Matches[1] / 1440.0 }
-    if ($ttf -match "(\d+)s") { $days += [int]$Matches[1] / 86400.0 }
-    return $days
-}
-
-function Get-RemainingHalvingBlocks {
-    foreach ($l in @($global:RecentLines)) {
-        if ($l -match "Block\s+(\d{6,7})\b" -and ([int]$Matches[1] -gt $global:CurrentBlockHeight)) { $global:CurrentBlockHeight = [int]$Matches[1] }
-    }
-    $anchorUtc = [datetime]::new(2024, 4, 20, 0, 9, 27, [System.DateTimeKind]::Utc)
-    $estHeight = 840000 + [int][Math]::Floor(([datetime]::UtcNow - $anchorUtc).TotalMinutes / 10.0)
-    return [Math]::Max(1, (1050000 - [Math]::Max($global:CurrentBlockHeight, $estHeight)))
 }
 
 function Show-TtfStats {
@@ -1715,7 +2323,6 @@ function Show-TtfStats {
         }
     }
 
-    # Altura aumentada (436px) e visores inferiores com 76px internos para nao cortar a 3a linha em notebooks (14", 15", 17")
     $global:statForm = New-Object System.Windows.Forms.Form
     $global:statForm.Text = "$($global:ShortVersion) - $(Get-Text 'TtfWinTitle')"
     $global:statForm.Size = New-Object System.Drawing.Size(620, 436); $global:statForm.StartPosition = "CenterScreen"
@@ -1890,13 +2497,15 @@ function Invoke-BlockAlert {
     $logText += "Threads em uso: $($global:CurrentThreads)" + $nl + "Linha do evento: $bLine" + $nl + "--- Contexto ---" + $nl + (@($global:RecentLines) -join $nl) + $nl
     $logText | Out-File -FilePath $global:LogFile -Append -Encoding utf8
 
-    $global:SoundFile = Join-Path $global:ResPath $global:SoundFileName
-    if (Test-Path $global:SoundFile) {
-        try {
-            if ($null -ne $global:SoundPlayer) { $global:SoundPlayer.Stop(); $global:SoundPlayer.Close() }
-            $global:SoundPlayer = New-Object System.Windows.Media.MediaPlayer
-            $global:SoundPlayer.Open([Uri]$global:SoundFile); $global:SoundPlayer.Play()
-        } catch {}
+    if ($global:SoundFileName -ne "MUTE") {
+        $global:SoundFile = Join-Path $global:ResPath $global:SoundFileName
+        if (Test-Path -LiteralPath $global:SoundFile) {
+            try {
+                if ($null -ne $global:SoundPlayer) { $global:SoundPlayer.Stop(); $global:SoundPlayer.Close() }
+                $global:SoundPlayer = New-Object System.Windows.Media.MediaPlayer
+                $global:SoundPlayer.Open([Uri]$global:SoundFile); $global:SoundPlayer.Play()
+            } catch {}
+        }
     }
 
     if (-not $global:Visible) { Toggle-LogWindow }
@@ -2011,7 +2620,7 @@ function Update-BtcPrice {
     try {
         $url = $global:BtcPriceUrl + "&t=" + [DateTimeOffset]::Now.ToUnixTimeMilliseconds()
         $req = [System.Net.WebRequest]::Create($url)
-        $req.Method = "GET"; $req.Timeout = 2500; $req.UserAgent = "MinerIsma/2.1.2"
+        $req.Method = "GET"; $req.Timeout = 2500; $req.UserAgent = "MinerIsma/2.2.0"
         $res = $req.GetResponse(); $stream = $res.GetResponseStream()
         $reader = New-Object System.IO.StreamReader($stream)
         $jsonText = $reader.ReadToEnd()
@@ -2022,7 +2631,7 @@ function Update-BtcPrice {
             $price = [double]$json.bitcoin.usd
             $global:LastBtcUsdValue = $price
             $global:LastBtcUsdFormatted = $price.ToString("N2", [System.Globalization.CultureInfo]::InvariantCulture)
-            $global:btcPriceItem.Text = "$($global:BtcSym)$(Get-Text 'BtcNowPrefix')$($global:LastBtcUsdFormatted)"
+            $global:btcPriceItem.Text = Get-BtcLineText "BtcNowPrefix" $global:LastBtcUsdFormatted
         }
     } catch {}
     Update-UsdBrlPrice
@@ -2122,19 +2731,29 @@ $global:logForm.Add_FormClosing({
 })
 
 function Toggle-LogWindow {
+    param([bool]$KeepMenuFocus = $false)
     if ($global:Visible) {
         $global:Visible = $false; $global:logForm.Hide()
     } else {
         $global:Visible = $true; $global:logForm.Show(); Set-WindowDarkTheme $global:logForm
         if ($global:logForm.WindowState -eq "Minimized") { $global:logForm.WindowState = "Normal" }
         $global:logBox.SelectionStart = $global:logBox.TextLength; $global:logBox.ScrollToCaret()
-        $global:logScrollBar.Invalidate(); $global:logForm.Activate()
+        $global:logScrollBar.Invalidate()
+        if (-not $KeepMenuFocus) { $global:logForm.Activate() }
     }
 }
 
 # ============================================================
-# FUNCOES DE PAUSA / RETOMADA, MODO PULSAR E MOTOR DO MINERADOR
+# FUNCOES DE PAUSA, RESTAURACAO DE RAM E MOTOR DO MINERADOR
 # ============================================================
+function Clear-MinerWorkingSet {
+    try {
+        if ($null -ne $global:CurrentProc -and (-not $global:CurrentProc.HasExited)) {
+            [ProcCtl]::EmptyWorkingSet($global:CurrentProc.Handle) | Out-Null
+        }
+    } catch {}
+}
+
 function Suspend-MinerProcess {
     if (-not $global:CurrentProc -or $global:CurrentProc.HasExited) { return }
     $global:CurrentProc.Refresh()
@@ -2142,6 +2761,7 @@ function Suspend-MinerProcess {
         $h = [ProcCtl]::OpenThread(0x0002, $false, [uint32]$t.Id)
         if ($h -ne [IntPtr]::Zero) { [ProcCtl]::SuspendThread($h) | Out-Null; [ProcCtl]::CloseHandle($h) | Out-Null }
     }
+    Clear-MinerWorkingSet
 }
 
 function Resume-MinerProcess {
@@ -2151,6 +2771,7 @@ function Resume-MinerProcess {
         $h = [ProcCtl]::OpenThread(0x0002, $false, [uint32]$t.Id)
         if ($h -ne [IntPtr]::Zero) { [ProcCtl]::ResumeThread($h) | Out-Null; [ProcCtl]::CloseHandle($h) | Out-Null }
     }
+    Clear-MinerWorkingSet
 }
 
 function Disable-PulseMode {
@@ -2175,9 +2796,15 @@ function Set-PulseMode {
     $global:PulseMode = $ModeName; $global:PulseActiveMins = $ActiveMins; $global:PulsePauseMins = $PauseMins
     Save-MinerConfig
     if ($global:IsPaused) {
-        Resume-MinerProcess; $global:IsPaused = $false; $global:PauseResumeAt = $null
-        $global:itemPause.Text = Get-Text "MenuPause"
-        $global:TtfLogAllowedAt = (Get-Date).AddSeconds($global:TtfWarmupSeconds)
+        if ($null -eq $global:CurrentProc -or $global:CurrentProc.HasExited) {
+            $global:IsPaused = $false; $global:PauseResumeAt = $null
+            $global:itemPause.Text = Get-Text "MenuPause"
+            Start-MinerTask $global:CurrentThreads
+        } else {
+            Resume-MinerProcess; $global:IsPaused = $false; $global:PauseResumeAt = $null
+            $global:itemPause.Text = Get-Text "MenuPause"
+            $global:TtfLogAllowedAt = (Get-Date).AddSeconds($global:TtfWarmupSeconds)
+        }
     }
     if ($null -ne $global:itemPulse1) { $global:itemPulse1.Checked = ($global:PulseMode -eq "2hx5") }
     if ($null -ne $global:itemPulse2) { $global:itemPulse2.Checked = ($global:PulseMode -eq "4hx5") }
@@ -2207,15 +2834,21 @@ function Set-MinerPause {
 function Invoke-ResumeMining {
     param([bool]$Auto = $false)
     if (-not $global:IsPaused) { return }
-    Resume-MinerProcess
     $global:IsPaused = $false; $global:PauseResumeAt = $null
     $global:TtfLogAllowedAt = (Get-Date).AddSeconds($global:TtfWarmupSeconds)
     $global:itemPause.Text = Get-Text "MenuPause"
     $global:notifyIcon.Text = "$($global:ShortVersion)" + [Environment]::NewLine + "$($global:CurrentThreads) Threads | $(Get-Text 'TrayResuming')"
+
+    if ($null -eq $global:CurrentProc -or $global:CurrentProc.HasExited) {
+        Start-MinerTask $global:CurrentThreads
+    } else {
+        Resume-MinerProcess
+    }
+
     if ($global:PulseMode -ne "") {
         $global:PulseNextSwitch = (Get-Date).AddMinutes($global:PulseActiveMins)
         $nextPauseStr = $global:PulseNextSwitch.ToString("HH:mm")
-        $global:LogQueue.Enqueue("[SISTEMA] Modo Pulsar ($($global:PulseMode)): Mineracao RETOMADA por $($global:PulseActiveMins) min (proxima pausa as $nextPauseStr).")
+        $global:LogQueue.Enqueue("[SISTEMA] Modo Pulsar ($($global:PulseMode)): Mineracao RETOMADA com RAM restaurada por $($global:PulseActiveMins) min (proxima pausa as $nextPauseStr).")
     } elseif ($Auto) {
         $global:LogQueue.Enqueue("[SISTEMA] Tempo de pausa concluido. Mineracao RETOMADA automaticamente.")
     } else {
@@ -2246,16 +2879,10 @@ function Start-MinerTask {
         return
     }
 
-    $global:CurrentThreads = $Threads; $Affinity = Get-Affinity $Threads
-    if ([string]::IsNullOrWhiteSpace($Affinity)) {
-        $chaves = ($global:ThreadProfiles.Keys | ForEach-Object { [string]$_ }) -join ", "
-        $msg = "Perfil de $Threads threads nao existe. Configurados: $chaves"
-        $global:LogQueue.Enqueue("[SISTEMA] ERRO: $msg"); Write-ErrorLog $msg
-        try { $global:notifyIcon.ShowBalloonTip(8000, "$($global:ShortVersion) - Erro", $msg, [System.Windows.Forms.ToolTipIcon]::Error) } catch {}
-        return
-    }
+    $built   = Build-MinerCommandArgs -MenuThreads $Threads
+    $ArgList = $built.Args
+    $global:CurrentThreads = $built.EffectiveThreads
 
-    $ArgList = "-a sha256d -o $($global:PoolUrl) -u $($global:Wallet) -p x -t $Threads --cpu-affinity $Affinity $($global:ExtraArgs)".Trim() -replace '\s+',' '
     if ($null -ne $global:advForm -and (-not $global:advForm.IsDisposed)) {
         try { & $script:adv_updatePreview } catch {}
     }
@@ -2279,8 +2906,10 @@ function Start-MinerTask {
 
         $global:StopRequested = $false; $global:CrashNotified = $false
         $global:TtfLogAllowedAt = (Get-Date).AddSeconds($global:TtfWarmupSeconds)
+        $modeTag = if ($global:UseLocalNode) { "Node Proprio" } else { "Pool Solo" }
+        $hardTag = if ($global:UseHardMode)  { " | Perfil Hard" } else { "" }
         $global:LogQueue.Enqueue("[SISTEMA] Comando: $($global:DetectedMinerExe) $ArgList")
-        $global:LogQueue.Enqueue("[SISTEMA] $($global:AppVersion) iniciado com $Threads Threads (Afinidade $Affinity)")
+        $global:LogQueue.Enqueue("[SISTEMA] $($global:AppVersion) iniciado ($modeTag$hardTag) com $($global:CurrentThreads) Threads")
         if ($global:PulseMode -ne "") {
             $global:PulseNextSwitch = (Get-Date).AddMinutes($global:PulseActiveMins)
             $global:LogQueue.Enqueue("[SISTEMA] Modo Pulsar ($($global:PulseMode)) ativo na memoria (proxima pausa as $($global:PulseNextSwitch.ToString('HH:mm'))).")
@@ -2293,16 +2922,27 @@ function Start-MinerTask {
 }
 
 # ============================================================
-# MENUS DO TRAY E SUBMENUS COM CRIADOR AUTOMATICO (V2.1.2)
+# MENUS DO TRAY E SUBMENUS COM CRIADOR AUTOMATICO (V2.2.0)
 # ============================================================
 $menu = New-Object System.Windows.Forms.ContextMenuStrip
 $script:KeepMenuOpenOnLangChange = $false
+$script:BlockMenuCloseUntil      = [DateTime]::MinValue
 $menu.Add_Closing({
     param($sender, $e)
+    if ([DateTime]::UtcNow -lt $script:BlockMenuCloseUntil) {
+        if ($e.CloseReason -in @(
+            [System.Windows.Forms.ToolStripDropDownCloseReason]::ItemClicked,
+            [System.Windows.Forms.ToolStripDropDownCloseReason]::AppFocusChange,
+            [System.Windows.Forms.ToolStripDropDownCloseReason]::AppClicked
+        )) {
+            $e.Cancel = $true
+            return
+        }
+    }
     if ($script:KeepMenuOpenOnLangChange -and ($e.CloseReason -eq [System.Windows.Forms.ToolStripDropDownCloseReason]::ItemClicked)) {
         $e.Cancel = $true
-        $script:KeepMenuOpenOnLangChange = $false
     }
+    $script:KeepMenuOpenOnLangChange = $false
 })
 
 $global:I18nMenuMap = New-Object System.Collections.Generic.List[object]
@@ -2344,7 +2984,7 @@ function Add-MenuLink {
 
 $global:notifyIcon.Add_MouseClick({ param($s, $e) if ($e.Button -eq [System.Windows.Forms.MouseButtons]::Left) { Toggle-LogWindow } })
 
-# 1. Cabecalho Laranja: ⟳ (Ciano na margem esquerda se houver update) + MinerIsma v2.1.2 + [☾]/[☀] e [BR] ▸
+# 1. Cabecalho Laranja: Icone Update + MinerIsma v2.2.0 + Tema e Idioma [BR]
 $headerItem = New-Object System.Windows.Forms.ToolStripMenuItem("$($global:ShortVersion)                    ")
 $headerItem.Name = "HeaderItem"; $headerItem.Padding = New-Object System.Windows.Forms.Padding(0, 4, 0, 4)
 $headerItem.ForeColor = [System.Drawing.Color]::FromArgb(255, 247, 147, 26)
@@ -2356,33 +2996,53 @@ foreach ($entry in ([ordered]@{ "PT" = "Portugues"; "EN" = "English"; "ES" = "Es
     $lItem.Tag = [string]$entry.Key
     $lItem.Add_MouseDown({ $script:KeepMenuOpenOnLangChange = $true })
     $lItem.Add_Click({
-        $script:KeepMenuOpenOnLangChange = $true
         Set-AppLanguage ([string]$this.Tag)
     })
     $headerItem.DropDownItems.Add($lItem) | Out-Null
     $langMenuItems[[string]$entry.Key] = $lItem
 }
+if (($null -ne $global:ExtraLangNames) -and ($global:ExtraLangNames.Count -gt 0)) {
+    $headerItem.DropDownItems.Add("-") | Out-Null
+    foreach ($extEntry in $global:ExtraLangNames.GetEnumerator()) {
+        $extItem = New-Object System.Windows.Forms.ToolStripMenuItem([string]$extEntry.Value)
+        $extItem.Tag = [string]$extEntry.Key
+        $extItem.Add_MouseDown({ $script:KeepMenuOpenOnLangChange = $true })
+        $extItem.Add_Click({
+            Set-AppLanguage ([string]$this.Tag)
+        })
+        $headerItem.DropDownItems.Add($extItem) | Out-Null
+        $langMenuItems[[string]$extEntry.Key] = $extItem
+    }
+}
 
 $headerItem.Add_MouseDown({
     param($sender, $e)
     if ($e.Button -eq [System.Windows.Forms.MouseButtons]::Left) {
-        if ($global:UpdateAvailable -and ($e.X -ge 0) -and ($e.X -le 26)) { Open-UpdateDownloadLink }
-        elseif (($e.X -ge ($sender.Width - 74)) -and ($e.X -lt ($sender.Width - 44))) { Set-AppTheme $(if ($global:Theme -eq "Light") { "Dark" } else { "Light" }) }
-        elseif ($e.X -ge ($sender.Width - 44)) { $sender.ShowDropDown() }
+        if ($global:UpdateAvailable -and ($e.X -ge 0) -and ($e.X -le 26)) {
+            Open-UpdateDownloadLink
+        } elseif (($e.X -ge ($sender.Width - 74)) -and ($e.X -lt ($sender.Width - 44))) {
+            Set-AppTheme $(if ($global:Theme -eq "Light") { "Dark" } else { "Light" })
+        } elseif (($e.X -ge ($sender.Width - 44)) -and ($e.X -lt ($sender.Width - 18))) {
+            $nextLang = switch ($global:Language) { "PT" { "EN" } "EN" { "ES" } default { "PT" } }
+            Set-AppLanguage $nextLang
+        } elseif ($e.X -ge ($sender.Width - 18)) {
+            $sender.ShowDropDown()
+        }
     }
 })
 $menu.Items.Add($headerItem) | Out-Null
 $menu.Items.Add("-") | Out-Null
 
 # 2. Bitcoin Agora (CoinGecko) clicavel abrindo CoinGecko
-$global:btcPriceItem = New-Object System.Windows.Forms.ToolStripMenuItem("$($global:BtcSym)$(Get-Text 'BtcUpdating')")
+$global:btcPriceItem = New-Object System.Windows.Forms.ToolStripMenuItem((Get-BtcLineText "BtcUpdating"))
 $global:btcPriceItem.Font = New-Object System.Drawing.Font("Segoe UI", 9, [System.Drawing.FontStyle]::Bold)
 $global:btcPriceItem.Add_Click({ Start-Process $global:UrlCoinGecko })
 $menu.Items.Add($global:btcPriceItem) | Out-Null
 $menu.Items.Add("-") | Out-Null
 
 # 3A. Submenu Bitcoin Links
-$global:itemLinksMenu = Add-MenuLink $menu "BtcLinks" $null $true $global:BtcSym
+$btcLinksInitPref = if ((Get-Text "BtcLinks") -match "^itcoin") { $global:BtcSym } else { "" }
+$global:itemLinksMenu = Add-MenuLink $menu "BtcLinks" $null $true $btcLinksInitPref
 Add-MenuHeader $global:itemLinksMenu "UsefulLinksHdr" | Out-Null
 Add-MenuLink $global:itemLinksMenu "LinkMempool"   "https://mempool.space/pt/" | Out-Null
 Add-MenuLink $global:itemLinksMenu "LinkTimeline"  "https://chaintimeline.com/" | Out-Null
@@ -2413,7 +3073,7 @@ Add-MenuLink $global:itemGamesMenu "Mestre Cacatal"    "https://www.youtube.com/
 Add-MenuLink $global:itemGamesMenu "GameBoard"         "https://bitcoincreative.org/biblioteca/to-the-moon-jogo-de-tabuleiro/" | Out-Null
 Add-MenuLink $global:itemGamesMenu "Sunny Land"        { Open-GameWindow "https://alzahira.itch.io/en-busca-del-bitcoin-en-sunnyland" } $false | Out-Null
 
-# 3C. Submenu Canais Cripto (Links Inspiradores + Cripto Traders com IDs permanentes)
+# 3C. Submenu Canais Cripto
 $global:itemChannelsMenu = Add-MenuLink $menu "MenuChannels" $null
 Add-MenuHeader $global:itemChannelsMenu "InspiringLinksHdr" | Out-Null
 $channelsInspiradores = [ordered]@{
@@ -2444,7 +3104,7 @@ foreach ($entry in $channelsTraders.GetEnumerator()) {
     Add-MenuLink $global:itemChannelsMenu ([string]$entry.Key) ([string]$entry.Value) $false | Out-Null
 }
 
-# 3D. Submenu Portais Cripto (Com Dolar agora: R$ / € clicavel + Portais)
+# 3D. Submenu Portais Cripto
 $global:itemPortalsMenu = Add-MenuLink $menu "MenuPortals" $null
 Add-MenuHeader $global:itemPortalsMenu "UsefulLinksHdr" | Out-Null
 $global:usdBrlPriceItem = New-Object System.Windows.Forms.ToolStripMenuItem((Get-Text "UsdUpdating"))
@@ -2476,7 +3136,23 @@ function Set-ThreadConfig {
     param([int]$t)
     if ($global:IsPaused) { $global:itemPause.Text = Get-Text "MenuPause"; $global:IsPaused = $false; $global:PauseResumeAt = $null }
     if ($global:PulseMode -ne "") { $global:PulseNextSwitch = (Get-Date).AddMinutes($global:PulseActiveMins) }
+    if ($global:UseHardMode) {
+        $global:UseHardMode = $false
+        $cleaned = Remove-HardFlagsFromExtra $global:ExtraArgs
+        if ([string]::IsNullOrWhiteSpace($cleaned)) { $cleaned = $global:DefaultExtraArgs }
+        $global:ExtraArgs = $cleaned
+        $global:LogQueue.Enqueue("[SISTEMA] Perfil do menu selecionado: Modo Hard desativado (salvo para recuperacao em Modo Avancado).")
+    }
     $global:CurrentThreads = $t; Save-MinerConfig
+    if ($null -ne $global:advForm -and (-not $global:advForm.IsDisposed)) {
+        try {
+            $script:adv_SuppressHardPrompt = $true
+            $script:adv_chkHard.Checked    = $false
+            $script:adv_SuppressHardPrompt = $false
+            $script:adv_txtExtra.Text      = $global:ExtraArgs
+            & $script:adv_syncFieldStates
+        } catch {}
+    }
     $global:notifyIcon.Text = "$($global:ShortVersion)" + [Environment]::NewLine + "$t Threads | $(Get-Text 'TrayCalculating')"
     Start-MinerTask $t
 }
@@ -2490,6 +3166,17 @@ foreach ($entry in $global:ThreadProfiles.GetEnumerator()) {
     $menu.Items.Add($item) | Out-Null
     $threadItems[$n] = $item
 }
+
+function Test-AdvancedModeActive {
+    if ($global:UseHardMode -or $global:UseLocalNode) { return $true }
+    if ($global:PoolUrl -ne $global:DefaultPoolUrl) { return $true }
+    if (($global:ExtraArgs -replace '\s+', ' ').Trim() -ne $global:DefaultExtraArgs) { return $true }
+    return $false
+}
+
+$global:itemCustomAdv = New-Object System.Windows.Forms.ToolStripMenuItem("$(Get-Text 'MenuCustomAdv'): $($global:CurrentThreads)Th")
+$global:itemCustomAdv.Add_Click({ if (Test-AdvancedModeActive) { Show-AdvancedConfig } })
+$menu.Items.Add($global:itemCustomAdv) | Out-Null
 $menu.Items.Add("-") | Out-Null
 
 # 5. Painel do Minerador, Iniciar com Windows, Testar Alerta, Tutorial e Compartilhar
@@ -2533,14 +3220,31 @@ $global:itemMinerPanel.DropDownItems.Add($global:lnkUpdates) | Out-Null
 $global:itemWallet   = Add-MenuLink $global:itemMinerPanel "MenuWallet"   { Show-WalletConfig }
 $global:itemTtfStats = Add-MenuLink $global:itemMinerPanel "MenuTtfStats" { Show-TtfStats }
 $global:lnkPool      = Add-MenuLink $global:itemMinerPanel "LinkPool"     { Open-ActivePoolDashboard }
-$global:lnkWeb       = Add-MenuLink $global:itemMinerPanel "LinkWeb" {
-    if (-not [string]::IsNullOrWhiteSpace($global:UrlTutorial)) { Start-Process $global:UrlTutorial }
-    else { [System.Windows.Forms.MessageBox]::Show((Get-Text "MsgWebSoon"), "$($global:ShortVersion) - Web", 0, 64) | Out-Null }
-}
 $global:itemDesktopIcon = Add-MenuLink $global:itemMinerPanel "MenuDesktopIcon" {
     if (Test-DesktopShortcutExists) { Remove-DesktopShortcut } else { Set-DesktopShortcut $false }
 }
 $global:itemDesktopIcon.Checked = (Test-DesktopShortcutExists)
+$global:itemThreadsPc = Add-MenuLink $global:itemMinerPanel "MenuThreadsPc" {
+    try {
+        $tmDir  = Join-Path $env:LOCALAPPDATA "Microsoft\Windows\TaskManager"
+        $tmJson = Join-Path $tmDir "settings.json"
+        if (Test-Path -LiteralPath $tmJson) {
+            $rawTm = [System.IO.File]::ReadAllText($tmJson)
+            if ($rawTm -match '"DefaultStartPage"\s*:\s*\d+') { $rawTm = $rawTm -replace '"DefaultStartPage"\s*:\s*\d+', '"DefaultStartPage":1' }
+            else { $rawTm = $rawTm -replace '\}\s*$', ',"DefaultStartPage":1}' }
+            if ($rawTm -match '"CpuMode"\s*:\s*\d+') { $rawTm = $rawTm -replace '"CpuMode"\s*:\s*\d+', '"CpuMode":1' }
+            else { $rawTm = $rawTm -replace '\}\s*$', ',"CpuMode":1}' }
+            if ($rawTm -match '"CurrentView"\s*:\s*\d+') { $rawTm = $rawTm -replace '"CurrentView"\s*:\s*\d+', '"CurrentView":0' }
+            [System.IO.File]::WriteAllText($tmJson, $rawTm, (New-Object System.Text.UTF8Encoding($false)))
+        } elseif ([Environment]::OSVersion.Version.Build -ge 22621) {
+            if (-not (Test-Path -LiteralPath $tmDir)) { New-Item -ItemType Directory -Path $tmDir -Force | Out-Null }
+            [System.IO.File]::WriteAllText($tmJson, '{"DefaultStartPage":1,"CpuMode":1,"CurrentView":0}', (New-Object System.Text.UTF8Encoding($false)))
+        }
+        Start-Process "taskmgr.exe"
+    } catch {
+        try { Start-Process "taskmgr.exe" } catch {}
+    }
+}
 $global:itemAdvanced = Add-MenuLink $global:itemMinerPanel "MenuAdvanced" { Show-AdvancedConfig }
 $global:itemSupport  = Add-MenuLink $global:itemMinerPanel "MenuSupport"  { Show-SupportDialog }
 
@@ -2625,11 +3329,19 @@ if ((-not $global:StartupInitialized) -or ($global:StartupEnabled)) {
 $global:StartupDelaySeconds = if (Test-StartupRegistered) { $global:ConfiguredDelay } else { $global:DefaultStartupDelay }
 Update-StartupMenuChecks
 
-# 5C. Submenu "Testar Alerta de Bloco"
+# 5C. Submenu "Testar Alerta de Bloco" (Com opcao Mutar global)
 function Invoke-TestBlockAlert {
     param([string]$SelectedSound)
     if (-not [string]::IsNullOrWhiteSpace($SelectedSound)) {
-        $global:SoundFileName = $SelectedSound; $global:SoundFile = Join-Path $global:ResPath $global:SoundFileName; Save-MinerConfig
+        $global:SoundFileName = $SelectedSound
+        if ($SelectedSound -eq "MUTE") {
+            if ($null -ne $global:SoundPlayer) { try { $global:SoundPlayer.Stop() } catch {} }
+            if ($null -ne $global:SfxPlayer)   { try { $global:SfxPlayer.Stop() } catch {} }
+        } else {
+            $global:SoundFile = Join-Path $global:ResPath $global:SoundFileName
+        }
+        [ObsidianMenuColors]::IsAudioMuted = ($global:SoundFileName -eq "MUTE")
+        Save-MinerConfig
     }
     $fakeLine = "TESTE MANUAL - Accepted 999 S0 R0 B1, 12.345 sec (yay!!!)"
     $global:LogQueue.Enqueue("[SISTEMA] Simulando descoberta com audio: $($global:SoundFileName)")
@@ -2637,20 +3349,38 @@ function Invoke-TestBlockAlert {
     Invoke-BlockAlert $fakeLine
 }
 
+[ObsidianMenuColors]::IsAudioMuted = ($global:SoundFileName -eq "MUTE")
 $global:itemTestAlert  = Add-MenuLink $menu "MenuTestAlert" $null
-$global:itemSoundKMS   = Add-MenuLink $global:itemTestAlert "KMS"   { Invoke-TestBlockAlert $global:SoundFileKMS } $false
-$global:itemSoundSenna = Add-MenuLink $global:itemTestAlert "Senna" { Invoke-TestBlockAlert $global:SoundFileSenna } $false
-$global:itemSoundMforN = Add-MenuLink $global:itemTestAlert "MforN" { Invoke-TestBlockAlert $global:SoundFileMforN } $false
-$global:itemSoundCoins = Add-MenuLink $global:itemTestAlert "Coins" { Invoke-TestBlockAlert $global:SoundFileCoins } $false
+$global:itemTestAlert.Name = "TestAlertItem"
+$global:itemSoundKMS   = Add-MenuLink $global:itemTestAlert "KMS"      { Invoke-TestBlockAlert $global:SoundFileKMS } $false
+$global:itemSoundSenna = Add-MenuLink $global:itemTestAlert "Senna"    { Invoke-TestBlockAlert $global:SoundFileSenna } $false
+$global:itemSoundMforN = Add-MenuLink $global:itemTestAlert "MforN"    { Invoke-TestBlockAlert $global:SoundFileMforN } $false
+$global:itemSoundCoins = Add-MenuLink $global:itemTestAlert "Coins"    { Invoke-TestBlockAlert $global:SoundFileCoins } $false
+$global:itemSoundMute  = Add-MenuLink $global:itemTestAlert "MenuMute" { Invoke-TestBlockAlert "MUTE" } $true
 
-# 5D. Tutorial e Compartilhar MinerIsma -> Copiar Link
-$global:itemTutorial      = Add-MenuLink $menu "MenuTutorial" { Show-Tutorial }
+# 5D. Submenu "Tutorial e Feedback" e "Compartilhar MinerIsma -> Copiar Link"
+$global:itemTutFeedback   = Add-MenuLink $menu "MenuTutFeedback" $null
+$global:itemTutorial      = Add-MenuLink $global:itemTutFeedback "MenuTutorial" { Show-Tutorial }
+$global:lnkWeb            = Add-MenuLink $global:itemTutFeedback "LinkWeb" {
+    if (-not [string]::IsNullOrWhiteSpace($global:UrlTutorial)) { Start-Process $global:UrlTutorial }
+    else { [System.Windows.Forms.MessageBox]::Show((Get-Text "MsgWebSoon"), "$($global:ShortVersion) - Web", 0, 64) | Out-Null }
+}
+$global:itemFeedback      = Add-MenuLink $global:itemTutFeedback "MenuFeedback" $global:UrlFeedbackForm
+$global:itemSupportTut    = Add-MenuLink $global:itemTutFeedback "MenuSupport"  { Show-SupportDialog }
+
 $global:itemShare         = Add-MenuLink $menu "MenuShare"    { Invoke-ShareMinerIsma }
 $global:itemCopyShareLink = Add-MenuLink $global:itemShare "MenuCopyLink" { Invoke-ShareMinerIsma }
 $menu.Items.Add("-") | Out-Null
 
 # 6. Mostrar/Ocultar e Pausar (com Submenu Manual, Tempos e Modo Pulsar)
-$global:itemShowHide = Add-MenuLink $menu "MenuShowHide" { Toggle-LogWindow }
+$global:itemShowHide = Add-MenuLink $menu "MenuShowHide" {
+    $script:BlockMenuCloseUntil = [DateTime]::UtcNow.AddMilliseconds(450)
+    Toggle-LogWindow $true
+}
+$global:itemShowHide.Add_MouseDown({
+    $script:KeepMenuOpenOnLangChange = $true
+    $script:BlockMenuCloseUntil = [DateTime]::UtcNow.AddMilliseconds(450)
+})
 $global:itemPause    = New-Object System.Windows.Forms.ToolStripMenuItem((Get-Text "MenuPause"))
 $pauseMenuItems = @{}
 foreach ($entry in ([ordered]@{ 0 = "PauseManual"; 15 = "15min."; 30 = "30min."; 60 = "Pause1h"; 120 = "Pause2h" }).GetEnumerator()) {
@@ -2688,21 +3418,25 @@ $global:itemExit = Add-MenuLink $menu "MenuExit" {
 
 Set-MenuObsidianTheme $menu
 
-# Comutacao dinamica de idioma via lista automatizada $global:I18nMenuMap mantendo o Menu Principal aberto
+# Comutacao dinamica de idioma mantendo o Menu Principal aberto
 function Set-AppLanguage {
     param([string]$LangCode)
-    if ($LangCode -notin @("PT", "EN", "ES")) { return }
+    if (($LangCode -notin @("PT", "EN", "ES")) -and (-not $global:ExtraLangPacks.ContainsKey($LangCode))) { return }
     $global:Language = $LangCode
-    [ObsidianMenuColors]::CurrentLangBadge = if ($global:Language -eq "PT") { "BR" } else { $global:Language }
+    [ObsidianMenuColors]::CurrentLangBadge = if ($global:Language -eq "PT") { "BR" } else { $global:Language.Substring(0, [Math]::Min(2, $global:Language.Length)) }
     Save-MinerConfig
 
     foreach ($m in $global:I18nMenuMap) {
-        if ($null -ne $m.Item) { $m.Item.Text = "$($m.Prefix)$(Get-Text $m.Key)" }
+        if ($null -ne $m.Item) {
+            $tVal = Get-Text $m.Key
+            $pref = if (($m.Key -eq "BtcLinks") -and ($tVal -notmatch "^itcoin")) { "" } else { $m.Prefix }
+            $m.Item.Text = "$pref$tVal"
+        }
     }
 
     $global:btcPriceItem.Text = if (-not [string]::IsNullOrWhiteSpace($global:LastBtcUsdFormatted)) {
-        "$($global:BtcSym)$(Get-Text 'BtcNowPrefix')$($global:LastBtcUsdFormatted)"
-    } else { "$($global:BtcSym)$(Get-Text 'BtcUpdating')" }
+        Get-BtcLineText "BtcNowPrefix" $global:LastBtcUsdFormatted
+    } else { Get-BtcLineText "BtcUpdating" }
 
     Update-FiatMenuLabel
 
@@ -2710,10 +3444,12 @@ function Set-AppLanguage {
         "$(Get-Text 'LinkUpdates') (v$($global:LatestRemoteVersion))"
     } else { Get-Text "LinkUpdates" }
 
-    $global:itemPause.Text = if ($global:IsPaused) { Get-Text "MenuResume" } else { Get-Text "MenuPause" }
+    $global:itemPause.Text     = if ($global:IsPaused) { Get-Text "MenuResume" } else { Get-Text "MenuPause" }
+    $global:itemCustomAdv.Text = "$(Get-Text 'MenuCustomAdv'): $($global:CurrentThreads)Th"
 
     if ($null -ne $global:tutForm -and (-not $global:tutForm.IsDisposed) -and $null -ne $script:tut_web -and $null -ne $script:tut_web.Document) {
-        try { $script:tut_web.Document.InvokeScript("setTutorialLang", @([string]$global:Language)) | Out-Null } catch {}
+        $tutLang = if ($global:Language -in @("PT", "EN", "ES")) { $global:Language } else { "EN" }
+        try { $script:tut_web.Document.InvokeScript("setTutorialLang", @([string]$tutLang)) | Out-Null } catch {}
     }
 
     foreach ($lKey in $langMenuItems.Keys) { $langMenuItems[$lKey].Checked = ($lKey -eq $global:Language) }
@@ -2723,16 +3459,25 @@ function Set-AppLanguage {
 }
 
 $menu.Add_Opening({
+    $script:KeepMenuOpenOnLangChange        = $false
     [ObsidianMenuColors]::CurrentLangBadge  = if ($global:Language -eq "PT") { "BR" } else { $global:Language }
     [ObsidianMenuColors]::IsUpdateAvailable = $global:UpdateAvailable
     $global:itemCopyShareLink.Text          = Get-Text "MenuCopyLink"
-    foreach ($n in $threadItems.Keys) { $threadItems[$n].Checked = ($n -eq $global:CurrentThreads) }
+    foreach ($n in $threadItems.Keys) {
+        $threadItems[$n].Checked = ((-not $global:UseHardMode) -and ($n -eq $global:CurrentThreads))
+    }
+    $advActive = (Test-AdvancedModeActive)
+    $global:itemCustomAdv.Text    = "$(Get-Text 'MenuCustomAdv'): $($global:CurrentThreads)Th"
+    $global:itemCustomAdv.Enabled = $advActive
+    $global:itemCustomAdv.Checked = $advActive
     Update-StartupMenuChecks
     $global:itemDesktopIcon.Checked = (Test-DesktopShortcutExists)
+    [ObsidianMenuColors]::IsAudioMuted = ($global:SoundFileName -eq "MUTE")
     $global:itemSoundKMS.Checked    = ($global:SoundFileName -eq $global:SoundFileKMS)
     $global:itemSoundSenna.Checked  = ($global:SoundFileName -eq $global:SoundFileSenna)
     $global:itemSoundMforN.Checked  = ($global:SoundFileName -eq $global:SoundFileMforN)
     $global:itemSoundCoins.Checked  = ($global:SoundFileName -eq $global:SoundFileCoins)
+    $global:itemSoundMute.Checked   = ($global:SoundFileName -eq "MUTE")
     $global:itemPulse1.Checked      = ($global:PulseMode -eq "2hx5")
     $global:itemPulse2.Checked      = ($global:PulseMode -eq "4hx5")
     foreach ($lKey in $langMenuItems.Keys) { $langMenuItems[$lKey].Checked = ($lKey -eq $global:Language) }
@@ -2745,19 +3490,17 @@ $global:notifyIcon.ContextMenuStrip = $menu
 # ============================================================
 Initialize-CpuDetection
 
-# Se a carteira ainda nao estiver configurada (1a execucao), abre a janela em 0,8s sem esperar os 5s de delay
 $startTimer = New-Object System.Windows.Forms.Timer
 $startTimer.Interval = if (Test-WalletConfigured) { [Math]::Max(1, $global:StartupDelaySeconds) * 1000 } else { 800 }
 $startTimer.Add_Tick({
     $startTimer.Stop()
     Start-MinerTask $global:DefaultThreads
     if ((-not $global:IsPaused) -and (Test-WalletConfigured)) {
-        $global:notifyIcon.Text = "$($global:ShortVersion)" + [Environment]::NewLine + "$($global:DefaultThreads) Threads | $(Get-Text 'TrayCalculating')"
+        $global:notifyIcon.Text = "$($global:ShortVersion)" + [Environment]::NewLine + "$($global:CurrentThreads) Threads | $(Get-Text 'TrayCalculating')"
     }
 })
 $startTimer.Start()
 
-# 1a busca de cotacao escalonada 2s apos a interface ja estar livre na bandeja (e depois a cada 60s)
 $btcTimer = New-Object System.Windows.Forms.Timer
 $btcTimer.Interval = 2000
 $btcTimer.Add_Tick({
@@ -2766,13 +3509,11 @@ $btcTimer.Add_Tick({
 })
 $btcTimer.Start()
 
-# Checagem de atualizacao escalonada 6s apos abrir (e depois a cada 6 horas)
 $updateCheckTimer = New-Object System.Windows.Forms.Timer
 $updateCheckTimer.Interval = 6000
 $updateCheckTimer.Add_Tick({ $updateCheckTimer.Interval = 21600000; Check-MinerUpdate })
 $updateCheckTimer.Start()
 
-# Checagem de ultimo bloco solo escalonada 12s apos abrir (e depois a cada 6 horas)
 $soloBlockTimer = New-Object System.Windows.Forms.Timer
 $soloBlockTimer.Interval = 12000
 $soloBlockTimer.Add_Tick({ $soloBlockTimer.Interval = 21600000; Check-LastSoloBlock })
@@ -2786,13 +3527,18 @@ $timer.Add_Tick({
             if (($null -ne $global:PauseResumeAt) -and ((Get-Date) -ge ($global:PauseResumeAt))) { Invoke-ResumeMining $true }
         } elseif (($global:PulseMode -ne "") -and ($null -ne $global:PulseNextSwitch) -and ((Get-Date) -ge ($global:PulseNextSwitch))) {
             if (($null -ne $global:CurrentProc) -and (-not $global:CurrentProc.HasExited)) {
-                Suspend-MinerProcess
+                if ($global:UseLocalNode) {
+                    $global:StopRequested = $true
+                    try { $global:CurrentProc.Kill() } catch {}
+                } else {
+                    Suspend-MinerProcess
+                }
                 $global:IsPaused = $true; $global:itemPause.Text = Get-Text "MenuResume"
                 $global:PulseNextSwitch = (Get-Date).AddMinutes($global:PulsePauseMins)
                 $global:PauseResumeAt = $global:PulseNextSwitch
                 $resumeStr = $global:PulseNextSwitch.ToString("HH:mm")
                 $global:notifyIcon.Text = "$($global:ShortVersion)" + [Environment]::NewLine + "Pulsar $($global:PulseMode) | $(Get-Text 'TrayPulsePause') $resumeStr)"
-                $global:LogQueue.Enqueue("[SISTEMA] Modo Pulsar ($($global:PulseMode)): Pausa termica de $($global:PulsePauseMins) min iniciada (retoma as $resumeStr).")
+                $global:LogQueue.Enqueue("[SISTEMA] Modo Pulsar ($($global:PulseMode)): Pausa termica e restauracao de RAM de $($global:PulsePauseMins) min iniciada (retoma as $resumeStr).")
             }
         }
 
@@ -2818,8 +3564,9 @@ $timer.Add_Tick({
                 $global:CurrentBlockHeight = [int]$Matches[1]; Save-MinerConfig
             }
 
-            if ($line -match "TTF @\s*([\d.,]+\s*\S+/s):\s*Block\s*([^,]+),\s*Share\s*(.+?)\s*$") {
-                $hr = $Matches[1]; $ttfBlock = $Matches[2].Trim(); $ttfShare = $Matches[3].Trim()
+            if ($line -match "TTF @\s*([\d.,]+\s*\S+/s):\s*Block\s*([^,\r\n]+)(?:,\s*Share\s*(.+?))?\s*$") {
+                $hr = $Matches[1]; $ttfBlock = $Matches[2].Trim()
+                $ttfShare = if ($null -ne $Matches[3] -and (-not [string]::IsNullOrWhiteSpace($Matches[3]))) { $Matches[3].Trim() } else { "Node" }
                 if ((-not $global:IsPaused) -and (Test-WalletConfigured)) {
                     $pBadge = if ($global:PulseMode -ne "") { " ($($global:PulseMode))" } else { "" }
                     $global:notifyIcon.Text = "$($global:ShortVersion)$pBadge" + [Environment]::NewLine + "$($global:CurrentThreads) Threads | $hr"
@@ -2827,7 +3574,7 @@ $timer.Add_Tick({
                 if ((Get-Date) -ge $global:TtfLogAllowedAt) {
                     $dias = Convert-TtfToDays $ttfBlock
                     if ($null -ne $dias) {
-                        $limiteDias = if ($null -ne $global:TtfThresholds[$global:CurrentThreads]) { $global:TtfThresholds[$global:CurrentThreads] } else { 365 }
+                        $limiteDias = if ($global:CurrentThreads -ge 8) { 300 } elseif ($null -ne $global:TtfThresholds[$global:CurrentThreads]) { $global:TtfThresholds[$global:CurrentThreads] } else { 365 }
                         if (($dias -lt $limiteDias) -and ($ttfBlock -ne $global:LastTtfLogged)) {
                             $global:LastTtfLogged = $ttfBlock
                             $stamp = Get-Date -Format 'yyyy-MM-dd HH:mm:ss'
@@ -2840,10 +3587,11 @@ $timer.Add_Tick({
 
             $global:logBox.SelectionStart = $global:logBox.TextLength; $global:logBox.SelectionLength = 0
             $global:logBox.SelectionColor = if ($line -match "(?i)accepted") { [System.Drawing.Color]::LimeGreen }
-                elseif ($line -match "(?i)rejected")    { [System.Drawing.Color]::Red }
-                elseif ($line -match "(?i)yay|B[1-9]")  { [System.Drawing.Color]::Gold }
-                elseif ($line -match "\x5BSISTEMA\x5D") { [System.Drawing.Color]::Cyan }
-                else                                    { [System.Drawing.Color]::DarkGray }
+                elseif ($line -match "(?i)rejected")                                           { [System.Drawing.Color]::Red }
+                elseif ($line -match "(?i)yay|S\d+\s+R\d+\s+B[1-9]")                           { [System.Drawing.Color]::Gold }
+                elseif ($line -match "(?i)\bNew block\b|Stratum.*new block|^\s*Block\s+\d{6,7}\b") { [System.Drawing.Color]::FromArgb(0, 175, 70) }
+                elseif ($line -match "\x5BSISTEMA\x5D")                                        { [System.Drawing.Color]::Cyan }
+                else                                                                           { [System.Drawing.Color]::DarkGray }
             $global:logBox.AppendText($line + [Environment]::NewLine)
             $added = $true
         }

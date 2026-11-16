@@ -17,6 +17,18 @@ See the LICENSE file in the resources folder for more details.
 ================================================================================
 ```
 --------------------------------------------------------------------------------
+### [REGISTRO #10 - BASE CONSOLIDADA V2.1.2 - Alpha]
+- Data do Registro   : 11/11/2026
+- Arquivo Empacotado : MinerIsma_v2.1.2.exe
+- Hash SHA-256 .exe  : (0x)E5FE414E13E83C5CAC49A4AF3455715E99E637461EDC99AB7EDC78939A433637
+- Rede / Blockchain  : Polygon Mainnet
+- Hash Transacao (Tx): 0x0e3f70814115e5bbbb66409f61944c560e99b498befcbd9d1a37c9b8c4b7e00e
+- Link Verificador   : https://polygonscan.com/tx/0x0e3f70814115e5bbbb66409f61944c560e99b498befcbd9d1a37c9b8c4b7e00e
+- Carteira Assinante : 0xF72C0Ee272eEf5c52018dA877ED2EF61c9434015
+- Marcos da Versao   : Correção de Bug com leve congelamento ao inciar, além de implementação de Verificação Instantânea de Rede Offline + Escalonamento de funções; Implantado sistema de checagem de carteira ultra rápido para acionamento de Janela de Carteira Instantânea no 1º Uso; Reestilização de janelas para adaptação a telas de 15 polegadas ou menor; Calibragens, ajustes e correções diversas; Adaptações de novos formatos de Registros e Arquivos .md e .txt para empacotamento de inclusão em GitHub; Incluído o cabeçalho com o Registro #09 em Blockchain para "BTC_MinerIsma_v2.1.1.exe" (MinerIsma_v2.1.1.exe).
+--------------------------------------------------------------------------------
+
+--------------------------------------------------------------------------------
 ### [REGISTRO #09 - BASE CONSOLIDADA V2.1.1 - Alpha]
 - Data do Registro   : 07/11/2026
 - Arquivo Empacotado : BTC_MinerIsma_v2.1.1.exe
@@ -132,18 +144,19 @@ https://polygonscan.com/tx/0xda0aed37e52cde8a3fbb6d59f6f091d931384a7923068f5e7f5
 ================================================================================
 
 --------------------------------------------------------------------------------
-### [REGISTRO #10 - PROXIMO MARCO RELEVANTE (MODELO)]
-- Data do Registro   : <DD/11/2026>
-- Arquivo Empacotado : BTC_MinerIsma_v2.1.2.exe
+### [REGISTRO #11 - BASE CONSOLIDADA V2.2.0 - Beta]
+- Data do Registro   : 19/11/2026
+- Arquivo Empacotado : MinerIsma_v2.2.0.exe
 - Hash SHA-256       : <INSERIR_HASH_SHA256_DO_ARQUIVO_EXE>
 - Rede / Blockchain  : Polygon Mainnet (ou Ethereum Mainnet)
 - Hash Transacao (Tx): <INSERIR_TXID_DA_TRANSACAO>
 - Link Verificador   : https://polygonscan.com/tx/<TXID> (ou etherscan.io/tx/<TXID>)
 - Carteira Assinante : 0xF72C0Ee272eEf5c52018dA877ED2EF61c9434015
-- Marcos da Versao   : Correção de Bug com leve congelamento ao inciar, além de implementação de Verificação Instantânea de Rede Offline + Escalonamento de funções; Implantado sistema de checagem de carteira ultra rápido para acionamento de Janela de Carteira Instantânea no 1º Uso; Reestilização de janelas para adaptação a telas de 15 polegadas ou menor; Calibragens, ajustes e correções diversas; Adaptações de novos formatos de Registros e Arquivos .md e .txt para empacotamento de inclusão em GitHub; Incluído o cabeçalho com o Registro #09 em Blockchain para "BTC_MinerIsma_v2.1.1.exe" (MinerIsma_v2.1.1.exe).
+- Marcos da Versao   : Versão Consolidada para nova qualificação de Software Beta, com fase de distribuição liberada; Esta versão contempla os seguintes aprimoramentos e implementações desde a última versão consolidada: Significativa evolução no Modo Avançado, agora com duas ferramentas que atende todo tipo de usuário minerador, o Usuário Nobre, reverenciando quem roda seu Node Próprio, liberando configurações dedicadas a essa modalidade, e o Usuário Hard, com possibilidades customizadas de livre configurações, além de botão para recuperação de perfil com memória dedicada; Prático Teste de Latência (ping) com botão dedicado diretamente no Modo Avançado, referências e resultados de fácil compreensão; Ajustes diversos para plena compatibilidade do conjunto do programa com o novo Modo Avançado; Alternância Cíclica de Idioma direto no topo do Menu principal do ícone no tray; Modo Pulsar aprimorado para liberação/restauração de RAM especialmente quando em mineração para Node Próprio; Reestilização de janelas do Modo Avançado e Console; Implementada nova função Mutar, para todos os sons e animações do programa, além do Alerta de Descoberta de Bloco; Novo botão Suas Threads no Pc, capaz de exibir a aba de Processadores Lógicos com gráficos do Windows; Novo visor de Modo Avançado com botão Custom nos perfis de Potência junto ao Menu principal; Reestilização do Menu Principal com novo subMenu para Tutorial e Feedback com subotões, e link para Formulários Google; Implementação de Suporte Multilíngue expandido, contando com três idiomas nativos completos — Português (BR), Inglês (EN) e Espanhol (ES) — e três idiomas adicionais dedicados à interface: Francês (FR), Alemão (DE) e Árabe (AR), além de detecção inteligente do idioma do Windows na primeira inicialização e carregamento de pacote externo (`MinerIsma_Langs.json`) com submenu dinâmico; Calibragens, correções diversas, e ajustes para melhor experiência e usabilidade; Incluído o cabeçalho com o Registro #10 em Blockchain para "MinerIsma_v2.1.2.exe" última versão consolidada anterior.
 --------------------------------------------------------------------------------
+
 --------------------------------------------------------------------------------
-### [REGISTRO #11 - PROXIMO MARCO RELEVANTE (MODELO)]
+### [REGISTRO #12 - PROXIMO MARCO RELEVANTE (MODELO)]
 - Data do Registro   : <DD/MM/AAAA>
 - Arquivo Empacotado : BTC_MinerIsma_v2.x.x.exe
 - Hash SHA-256       : <INSERIR_HASH_SHA256_DO_ARQUIVO_EXE>
